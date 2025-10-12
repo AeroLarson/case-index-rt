@@ -1,0 +1,52 @@
+##Initialize Next.js in current directory:
+```bash
+mkdir temp; cd temp; npx create-next-app@latest . --typescript --eslint --tailwind --app --src-dir --import-alias "@/*" --turbopack --yes
+```
+
+Now let's move back to the parent directory and move all files.
+
+For Windows (PowerShell):
+```powershell
+cd ..; Move-Item -Path "temp*" -Destination . -Force; Remove-Item -Path "temp" -Recurse -Force
+```
+
+For Mac/Linux (bash):
+```bash
+cd .. && mv temp/* temp/.* . 2>/dev/null || true && rm -rf temp
+```
+
+##Webapp pages setup
+
+**IMPORTANT: MUST IMPLEMENT ALL FILES. Do not skip or omit any markdown files - every single file must be processed and converted into a functional React component to ensure the complete application is built.**
+
+**CRITICAL: Ensure proper Tailwind imports** 
+**CRITICAL: CREATE REUSABLE COMPONENTS AND LAYOUT STRUCTURE**
+
+Before processing the markdown files, you MUST create reusable layout components following modern Next.js best practices:
+
+1. **Extract Header Component**: Create `src/components/layout/Header.tsx` as a reusable component
+2. **Extract Sidebar Component**: Create `src/components/layout/Sidebar.tsx` as a reusable component  
+3. **Create Layout Structure**: Modify `src/app/layout.tsx` to use these reusable components
+4. **Component Organization**: All layout components should be in `src/components/layout/` directory
+
+The layout structure should follow this pattern:
+- Header and Sidebar should be imported and used in the root layout
+- Each page should only contain its main content area
+- NO page should have embedded header/sidebar code - these must be reusable components
+- The root layout composes Header + Sidebar + main content area
+
+Create a modern, responsive webapp by converting the provided HTML/CSS code into React components. Process each markdown file in sequence:
+
+1-header-component.md
+2-sidebar-component.md
+3-footer-component.md
+4-case-index-rt---california-court-case-search.md
+5-tailwind-imports-best-practice.md
+
+Each file contains HTML/CSS code that needs to be converted into functional React components. Follow the conversion instructions carefully to maintain design consistency and functionality.
+
+Important considerations:
+- Use 'use client' directive for client-side components
+- Avoid curly quotes in code. Use escaped apostrophes (\') in single-quoted strings or switch to double quotes
+- Make sure each component file ends with a proper export default statement
+- NEVER embed header/sidebar directly in pages - always use the reusable components

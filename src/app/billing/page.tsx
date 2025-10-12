@@ -1,0 +1,688 @@
+'use client'
+
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { userProfileManager } from '@/lib/userProfile'
+import { PaymentService } from '@/lib/stripe'
+import { PaymentTracker } from '@/lib/paymentTracker'
+import { InvoiceGenerator } from '@/lib/invoiceGenerator'
+
+export default function BillingPage() {
+  const { user, userProfile, refreshProfile } = useAuth()
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState('overview')
+  const [isLoading, setIsLoading] = useState(false)
+  const [billingHistory, setBillingHistory] = useState<any[]>([])
+
+  // Get subscription data from user profile
+  const [subscription, setSubscription] = useState({
+    plan: 'Free',
+    status: 'active',
+    nextBilling: null as string | null,
+    amount: 0,
+    features: ['1 case per month', 'Basic case information only']
+  })
+
+  // Update subscription when userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      const planName = userProfile.plan === 'free' ? 'Free' : userProfile.plan === 'pro' ? 'Professional' : 'Team'
+      const amount = userProfile.plan === 'pro' ? 99 : userProfile.plan === 'team' ? 299 : 0
+      const features = userProfile.plan === 'free' 
+        ? ['1 case per month', 'Basic case information only']
+        : userProfile.plan === 'pro'
+        ? ['Unlimited case searches', 'AI-powered case summaries', 'Calendar integration']
+        : ['Everything in Professional', 'Up to 5 team members', 'Clio CRM integration']
+      
+      setSubscription({
+        plan: planName,
+        status: 'active',
+        nextBilling: userProfile.plan !== 'free' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null,
+        amount,
+        features
+      })
+    }
+  }, [userProfile])
+
+  const handleCancelSubscription = async () => {
+    if (confirm('Are you sure you want to cancel your subscription?')) {
+      setIsLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Update user profile to free plan
+      if (user) {
+        userProfileManager.updatePlan(user.id, 'free')
+        refreshProfile() // Refresh the profile in AuthContext
+      }
+      
+      setSubscription({
+        plan: 'Free',
+        status: 'cancelled',
+        nextBilling: null,
+        amount: 0,
+        features: ['1 case per month', 'Basic case information only']
+      })
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login?returnUrl=/billing')
+      return
+    }
+    
+    // Check for downgrade parameter
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('downgrade') === 'true') {
+      handleCancelSubscription()
+    }
+
+    // Handle successful Stripe payment
+    if (urlParams.get('success') === 'true' && urlParams.get('session_id')) {
+      const sessionId = urlParams.get('session_id')
+      if (sessionId) {
+        handlePaymentSuccess(sessionId)
+      }
+    }
+
+    // Handle tab parameter from pricing page
+    if (urlParams.get('tab') === 'plans') {
+      setActiveTab('plans')
+    }
+
+    // Load billing history
+    loadBillingHistory()
+  }, [user, router])
+
+  const handlePaymentSuccess = async (sessionId: string) => {
+    try {
+      const result = await PaymentService.handlePaymentSuccess(sessionId)
+      if (result.success && user) {
+        // Track the payment
+        const planAmount = result.planId === 'pro' ? 99 : 299
+        PaymentTracker.addPaymentRecord({
+          userId: user.id,
+          userEmail: user.email,
+          userName: user.name,
+          planId: result.planId as 'pro' | 'team',
+          amount: planAmount,
+          status: 'completed',
+          stripeSessionId: sessionId,
+          nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        })
+
+        // Update user profile with new plan
+        userProfileManager.updatePlan(user.id, result.planId as 'pro' | 'team')
+        refreshProfile()
+        
+        // Reload billing history
+        loadBillingHistory()
+        
+        alert('Payment successful! Your plan has been upgraded.')
+        // Clean up URL
+        window.history.replaceState({}, document.title, '/billing')
+      }
+    } catch (error) {
+      console.error('Payment success handling error:', error)
+      alert('Payment verification failed. Please contact support.')
+    }
+  }
+
+  const loadBillingHistory = () => {
+    if (user) {
+      console.log('Loading billing history for user:', user.email)
+      const userPayments = PaymentTracker.getPaymentsByUser(user.id)
+      console.log('User payments found:', userPayments.length)
+      
+      // Show all payments (both admin and regular users get invoices when they upgrade)
+      console.log('Setting billing history:', userPayments)
+      setBillingHistory(userPayments)
+    }
+  }
+
+  const downloadInvoice = (payment: any) => {
+    try {
+      console.log('Generating invoice for payment:', payment)
+      const invoiceData = InvoiceGenerator.generateInvoiceFromPayment(payment)
+      console.log('Invoice data:', invoiceData)
+      InvoiceGenerator.generateInvoice(invoiceData)
+      console.log('PDF generation completed')
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Failed to generate PDF. Please try again.')
+    }
+  }
+
+  const handleUpgrade = async (planId: string) => {
+    setIsLoading(true)
+    
+    try {
+      // Check if user is admin (exempt from charges)
+      const isAdmin = user?.email === 'aero.larson@gmail.com'
+      
+      if (isAdmin) {
+        // Admin can switch plans freely without payment, but still create invoice
+        if (user) {
+          userProfileManager.updatePlan(user.id, planId as 'pro' | 'team')
+          refreshProfile()
+          
+          // Create payment record for admin (simulated payment)
+          const planAmount = planId === 'pro' ? 99 : 299
+          PaymentTracker.addPaymentRecord({
+            userId: user.id,
+            userEmail: user.email,
+            userName: user.name,
+            planId: planId as 'pro' | 'team',
+            amount: planAmount,
+            status: 'completed',
+            stripeSessionId: `admin_${Date.now()}`,
+            nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          })
+          
+          // Reload billing history to show new invoice
+          loadBillingHistory()
+        }
+        
+        const planDetails = {
+          'pro': {
+            plan: 'Professional',
+            amount: 99,
+            features: ['Unlimited case searches', 'AI-powered case summaries', 'Calendar integration']
+          },
+          'team': {
+            plan: 'Team',
+            amount: 299,
+            features: ['Everything in Professional', 'Up to 5 team members', 'Clio CRM integration']
+          }
+        }
+        
+        setSubscription({
+          ...subscription,
+          ...planDetails[planId as keyof typeof planDetails],
+          nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        })
+        
+        alert('Plan updated successfully! Invoice has been generated. (Admin account - no payment required)')
+        setIsLoading(false)
+        return
+      }
+      
+      // For regular users, redirect to Stripe checkout
+      if (!user) {
+        alert('Please log in to upgrade your plan')
+        setIsLoading(false)
+        return
+      }
+      
+      const session = await PaymentService.createCheckoutSession(
+        planId, 
+        user.id, 
+        user.email
+      )
+      
+      if (session.success && session.url) {
+        // Redirect to Stripe checkout
+        window.location.href = session.url
+      } else if (session.adminExempt) {
+        // This shouldn't happen for non-admin users, but handle gracefully
+        alert('Admin account detected - no payment required')
+        if (user) {
+          userProfileManager.updatePlan(user.id, planId as 'pro' | 'team')
+          refreshProfile()
+        }
+      } else {
+        alert('Failed to create checkout session. Please try again.')
+      }
+    } catch (error: any) {
+      console.error('Payment error:', error)
+      
+      // Check if it's a 503 error (service unavailable)
+      if (error?.message?.includes('503') || error?.status === 503) {
+        alert('Payment system is currently unavailable. Please contact support or try again later.')
+      } else {
+        alert('Payment processing failed. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (!user) {
+    return null
+  }
+
+  return (
+    <main 
+      className="min-h-screen animated-aura"
+      style={{
+        background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
+        padding: '40px 24px'
+      }}
+    >
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-white text-4xl font-bold mb-4 tracking-tight">Billing & Subscription</h1>
+          <p className="text-gray-300 text-lg">Manage your subscription and payment methods</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1">
+            <div className="apple-card p-6 sticky top-8">
+              <nav className="space-y-2">
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'overview' 
+                      ? 'bg-blue-500/20 text-blue-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-chart-pie mr-3"></i>
+                  Overview
+                </button>
+                <button
+                  onClick={() => setActiveTab('plans')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'plans' 
+                      ? 'bg-blue-500/20 text-blue-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-crown mr-3"></i>
+                  Plans
+                </button>
+                <button
+                  onClick={() => setActiveTab('payment')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'payment' 
+                      ? 'bg-blue-500/20 text-blue-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-credit-card mr-3"></i>
+                  Payment Methods
+                </button>
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'history' 
+                      ? 'bg-blue-500/20 text-blue-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-file-invoice mr-3"></i>
+                  Billing History
+                </button>
+                <button
+                  onClick={() => setActiveTab('invoices')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'invoices' 
+                      ? 'bg-blue-500/20 text-blue-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-file-invoice mr-3"></i>
+                  Invoices
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Current Plan</h2>
+                  <div className={`rounded-2xl p-6 ${
+                    subscription.plan === 'Free' 
+                      ? 'bg-gray-500/10 border border-gray-500/20' 
+                      : 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30'
+                  }`}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-white text-xl font-semibold">{subscription.plan} Plan</h3>
+                        <p className="text-gray-300">
+                          {subscription.amount > 0 ? `$${subscription.amount}/month` : 'Free forever'}
+                        </p>
+                        <p className="text-gray-400 text-sm mt-2">
+                          {subscription.status === 'active' ? 'Active' : 'Cancelled'}
+                        </p>
+                        {subscription.nextBilling && (
+                          <p className="text-gray-400 text-sm">
+                            Next billing: {new Date(subscription.nextBilling).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      {subscription.plan !== 'Free' && (
+                        <button
+                          onClick={handleCancelSubscription}
+                          className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Plan Features</h2>
+                  <div className="space-y-3">
+                    {subscription.features.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <i className="fa-solid fa-check text-green-400 text-sm"></i>
+                        <span className="text-gray-300">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Usage This Month</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <i className="fa-solid fa-search text-white text-2xl" />
+                      </div>
+                      <p className="text-white text-3xl font-bold">{userProfile?.recentSearches?.length || 0}</p>
+                      <p className="text-gray-400 text-sm">Case Searches</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <i className="fa-solid fa-file text-white text-2xl" />
+                      </div>
+                      <p className="text-white text-3xl font-bold">{userProfile?.savedCases?.length || 0}</p>
+                      <p className="text-gray-400 text-sm">Saved Cases</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <i className="fa-solid fa-bell text-white text-2xl" />
+                      </div>
+                      <p className="text-white text-3xl font-bold">{userProfile?.monthlyUsage || 0}</p>
+                      <p className="text-gray-400 text-sm">Monthly Usage</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Plans Tab */}
+            {activeTab === 'plans' && (
+              <div className="space-y-6">
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Available Plans</h2>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="border border-white/10 rounded-2xl p-8">
+                      <div className="mb-6">
+                        <h3 className="text-white text-xl font-semibold mb-2">Free</h3>
+                        <p className="text-gray-400 text-lg">$0/month</p>
+                      </div>
+                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                        <li>• 1 case search per month</li>
+                        <li>• Basic case information</li>
+                        <li>• Limited features</li>
+                        <li>• Community support</li>
+                      </ul>
+                      <button
+                        onClick={() => handleUpgrade('free')}
+                        disabled={isLoading || subscription.plan === 'Free'}
+                        className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-500 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-base"
+                      >
+                        {isLoading ? 'Processing...' : subscription.plan === 'Free' ? 'Current Plan' : 'Downgrade'}
+                      </button>
+                    </div>
+
+                    <div className="border border-white/10 rounded-2xl p-8">
+                      <div className="mb-6">
+                        <h3 className="text-white text-xl font-semibold mb-2">Professional</h3>
+                        <p className="text-gray-400 text-lg">$99/month</p>
+                      </div>
+                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                        <li>• Unlimited case searches</li>
+                        <li>• AI-powered case summaries</li>
+                        <li>• Calendar integration</li>
+                        <li>• Advanced analytics</li>
+                      </ul>
+                      <button
+                        onClick={() => handleUpgrade('pro')}
+                        disabled={isLoading || subscription.plan === 'Professional'}
+                        className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-base"
+                      >
+                        {isLoading ? 'Processing...' : subscription.plan === 'Professional' ? 'Current Plan' : 'Upgrade'}
+                      </button>
+                    </div>
+
+                    <div className="border border-white/10 rounded-2xl p-8">
+                      <div className="mb-6">
+                        <h3 className="text-white text-xl font-semibold mb-2">Team</h3>
+                        <p className="text-gray-400 text-lg">$299/month</p>
+                      </div>
+                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                        <li>• Everything in Professional</li>
+                        <li>• Up to 5 team members</li>
+                        <li>• Clio CRM integration</li>
+                        <li>• Dedicated support</li>
+                      </ul>
+                      <button
+                        onClick={() => handleUpgrade('team')}
+                        disabled={isLoading || subscription.plan === 'Team'}
+                        className="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-gray-500 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-base"
+                      >
+                        {isLoading ? 'Processing...' : subscription.plan === 'Team' ? 'Current Plan' : 'Upgrade'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Methods Tab */}
+            {activeTab === 'payment' && (
+              <div className="space-y-6">
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Payment Methods</h2>
+                  
+                  {/* No Payment Methods State */}
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fa-solid fa-credit-card text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 className="text-white text-lg font-semibold mb-2">No Payment Methods</h3>
+                    <p className="text-gray-400 mb-6">Add a payment method to manage your subscription</p>
+                    
+                    <button 
+                      onClick={() => {
+                        alert('Payment system integration coming soon! This will connect to Stripe or similar payment processor.')
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                    >
+                      <i className="fa-solid fa-plus mr-2"></i>
+                      Add Payment Method
+                    </button>
+                  </div>
+                  
+                  {/* Payment Method Form (Hidden for now) */}
+                  <div className="hidden">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Card Number</label>
+                        <input 
+                          type="text" 
+                          placeholder="1234 5678 9012 3456"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Expiry Date</label>
+                          <input 
+                            type="text" 
+                            placeholder="MM/YY"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">CVV</label>
+                          <input 
+                            type="text" 
+                            placeholder="123"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Cardholder Name</label>
+                        <input 
+                          type="text" 
+                          placeholder="John Doe"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                      <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200">
+                        Save Payment Method
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Billing History Tab */}
+            {activeTab === 'history' && (
+              <div className="space-y-6">
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Billing History</h2>
+                  
+                  {billingHistory.length > 0 ? (
+                    <div className="space-y-4">
+                      {billingHistory.map((payment, index) => (
+                        <div key={payment.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                              <i className="fa-solid fa-receipt text-white text-lg"></i>
+                            </div>
+                            <div>
+                              <h3 className="text-white font-semibold">
+                                {payment.planId === 'pro' ? 'Professional Plan' : 'Team Plan'}
+                              </h3>
+                              <p className="text-gray-400 text-sm">
+                                {new Date(payment.paymentDate).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </p>
+                              <p className="text-gray-500 text-xs">
+                                Status: <span className={`capitalize ${
+                                  payment.status === 'completed' ? 'text-green-400' : 
+                                  payment.status === 'pending' ? 'text-yellow-400' : 
+                                  'text-red-400'
+                                }`}>
+                                  {payment.status}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-white text-xl font-bold">${payment.amount}</div>
+                            <button
+                              onClick={() => downloadInvoice(payment)}
+                              className="mt-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center"
+                            >
+                              <i className="fa-solid fa-download mr-2"></i>
+                              Download PDF
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i className="fa-solid fa-file-invoice text-gray-400 text-2xl"></i>
+                      </div>
+                      <h3 className="text-white text-lg font-semibold mb-2">No Billing History</h3>
+                      <p className="text-gray-400">
+                        {user?.email === 'aero.larson@gmail.com' 
+                          ? 'No payment history found. Test invoice should appear above.'
+                          : 'Your payment history will appear here once you make your first payment.'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Invoices Tab */}
+            {activeTab === 'invoices' && (
+              <div className="space-y-6">
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Invoice Downloads</h2>
+                  
+                  {billingHistory.length > 0 ? (
+                    <div className="space-y-4">
+                      {billingHistory.map((payment, index) => (
+                        <div key={payment.id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
+                          <div>
+                            <h3 className="text-white font-medium">
+                              {payment.planId === 'pro' ? 'Professional Plan' : 'Team Plan'} - {new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                              {new Date(payment.paymentDate).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </p>
+                            <p className="text-gray-500 text-xs">
+                              Status: <span className={`capitalize ${
+                                payment.status === 'completed' ? 'text-green-400' : 
+                                payment.status === 'pending' ? 'text-yellow-400' : 
+                                'text-red-400'
+                              }`}>
+                                {payment.status}
+                              </span>
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white font-medium">${payment.amount.toFixed(2)}</p>
+                            <button 
+                              onClick={() => downloadInvoice(payment)}
+                              className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
+                            >
+                              Download PDF
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i className="fa-solid fa-file-invoice text-gray-400 text-2xl"></i>
+                      </div>
+                      <h3 className="text-white text-lg font-semibold mb-2">No Invoices Available</h3>
+                      <p className="text-gray-400">
+                        {user?.email === 'aero.larson@gmail.com' 
+                          ? 'No payment history found. Test invoice should appear above.'
+                          : 'Your invoice history will appear here once you make your first payment.'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
