@@ -4,38 +4,139 @@ import { useState, useEffect } from 'react'
 
 interface AIOverviewProps {
   caseId?: string
+  caseTitle?: string
+  caseStatus?: string
+  court?: string
+  judge?: string
+  parties?: {
+    plaintiff: string
+    defendant: string
+  }
   lastLogin?: string
   className?: string
 }
 
-export default function AIOverview({ caseId, lastLogin, className = '' }: AIOverviewProps) {
+export default function AIOverview({ 
+  caseId, 
+  caseTitle, 
+  caseStatus, 
+  court, 
+  judge, 
+  parties,
+  lastLogin, 
+  className = '' 
+}: AIOverviewProps) {
   const [isThinking, setIsThinking] = useState(false)
   const [overview, setOverview] = useState('')
   const [isComplete, setIsComplete] = useState(false)
 
-  // Simulate AI thinking and generating overview
+  // Generate AI overview when case changes
   useEffect(() => {
     if (!caseId) return
 
+    generateAIOverview(caseId, caseTitle, caseStatus, court, judge, parties, lastLogin)
+  }, [caseId, caseTitle, caseStatus, court, judge, parties, lastLogin])
+
+  const generateAIOverview = async (
+    caseId: string, 
+    caseTitle?: string, 
+    caseStatus?: string, 
+    court?: string, 
+    judge?: string, 
+    parties?: { plaintiff: string; defendant: string },
+    lastLogin?: string
+  ) => {
     setIsThinking(true)
     setIsComplete(false)
     setOverview('')
 
-    // Simulate AI processing time
-    const thinkingTime = Math.random() * 3000 + 2000 // 2-5 seconds
-
-    setTimeout(() => {
-      setIsThinking(false)
-      setIsComplete(true)
+    try {
+      // Extract case type from title (e.g., "Johnson v. Martinez - Dissolution with Minor Children")
+      const caseTypeMatch = caseTitle?.match(/- (.+)$/)
+      const caseType = caseTypeMatch ? caseTypeMatch[1] : "Family Law"
       
-      // Generate mock AI overview
-      const mockOverview = generateMockOverview(caseId, lastLogin)
-      setOverview(mockOverview)
-    }, thinkingTime)
-  }, [caseId, lastLogin])
+      // Prepare case data using actual selected case information
+      const caseData = {
+        caseNumber: caseId,
+        caseTitle: caseTitle || `Case ${caseId}`,
+        caseType: `Family Law - ${caseType}`,
+        status: caseStatus || "Active",
+        dateFiled: "March 15, 2024", // Could be enhanced to use real date if available
+        parties: {
+          petitioner: parties?.plaintiff || "Unknown",
+          respondent: parties?.defendant || "Unknown",
+          petitionerAttorney: "Law Office of Smith & Associates",
+          respondentAttorney: "Martinez Family Law Group"
+        },
+        courtLocation: court || "San Diego Superior Court",
+        judicialOfficer: judge || "Hon. Rebecca Kanter"
+      }
 
-  const generateMockOverview = (caseId: string, lastLogin?: string) => {
-    // Mock court data based on San Diego court structure
+      // Call API to generate AI insights
+      const response = await fetch('/api/ai/generate-insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(caseData),
+      })
+
+      if (!response.ok) {
+        throw new Error(`AI insights failed: ${response.status}`)
+      }
+
+      const result = await response.json()
+      const insights = result.insights
+      
+      // Format the overview with court details
+      let formattedOverview = ''
+      
+      // Extract case type in lowercase for better readability
+      const simpleCaseType = caseType.toLowerCase()
+      
+      if (lastLogin) {
+        const timeSinceLogin = Date.now() - new Date(lastLogin).getTime()
+        const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
+        const hoursSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60))
+        const minutesSinceLogin = Math.floor(timeSinceLogin / (1000 * 60))
+        
+        let timeString = ''
+        if (daysSinceLogin > 0) {
+          timeString = `${daysSinceLogin} day${daysSinceLogin === 1 ? '' : 's'} ago`
+        } else if (hoursSinceLogin > 0) {
+          timeString = `${hoursSinceLogin} hour${hoursSinceLogin === 1 ? '' : 's'} ago`
+        } else if (minutesSinceLogin > 0) {
+          timeString = `${minutesSinceLogin} minute${minutesSinceLogin === 1 ? '' : 's'} ago`
+        } else {
+          timeString = 'just now'
+        }
+        
+        formattedOverview = `Since your last login ${timeString}, case ${caseId} (${simpleCaseType}) is currently in ${caseStatus?.toLowerCase() || 'active'} status. `
+      } else {
+        formattedOverview = `Case ${caseId} (${simpleCaseType}) is currently in ${caseStatus?.toLowerCase() || 'active'} status. `
+      }
+      
+      // Extract department from court string if available
+      const departmentMatch = court?.match(/Department (\d+)/)
+      const department = departmentMatch ? departmentMatch[1] : '602'
+      const courtName = court?.replace(/\s*\(Department \d+\)/, '') || 'San Diego Superior Court - Central'
+      
+      formattedOverview += `Upcoming hearing scheduled for 1/27/2026 at 9:00 AM - request for order hearing. The case is assigned to ${judge || 'Hon. Rebecca Kanter'} in Department ${department} at ${courtName}. Virtual attendance available via Zoom ID: 123-456-7890, Passcode: 123456.\n\n${insights}`
+
+      setOverview(formattedOverview)
+      setIsComplete(true)
+    } catch (error) {
+      console.error('AI Overview Error:', error)
+      // Fallback to mock data if AI fails
+      const fallbackOverview = generateFallbackOverview(caseId, lastLogin)
+      setOverview(fallbackOverview)
+      setIsComplete(true)
+    } finally {
+      setIsThinking(false)
+    }
+  }
+
+  const generateFallbackOverview = (caseId: string, lastLogin?: string) => {
     const courtData = {
       caseNumber: caseId,
       courtLocation: 'San Diego Superior Court - Central',

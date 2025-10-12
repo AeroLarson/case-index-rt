@@ -13,6 +13,7 @@ export interface UserProfile {
   plan: 'free' | 'pro' | 'team'
   createdAt: string
   lastLogin: string
+  previousLogin?: string
 }
 
 export interface SavedCase {
@@ -85,7 +86,9 @@ class UserProfileManager {
       const stored = localStorage.getItem(this.getStorageKey(userId))
       if (stored) {
         const profile = JSON.parse(stored) as UserProfile
-        // Update last login
+        // Save previous login time before updating
+        profile.previousLogin = profile.lastLogin
+        // Update last login to current time
         profile.lastLogin = new Date().toISOString()
         this.saveUserProfile(profile)
         return profile

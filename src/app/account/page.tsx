@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 export default function AccountPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, userProfile } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
   const [isEditing, setIsEditing] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -22,6 +23,26 @@ export default function AccountPage() {
   })
 
   const handleLogout = () => {
+    logout()
+    router.push('/')
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!user) return
+    
+    // Cancel subscription if user has one
+    if (userProfile?.plan === 'pro' || userProfile?.plan === 'team') {
+      // In a real app, this would call your backend to cancel the Stripe subscription
+      console.log('Cancelling subscription for user:', user.id)
+      // await fetch('/api/stripe/cancel-subscription', { method: 'POST', body: JSON.stringify({ userId: user.id }) })
+    }
+    
+    // Clear all user data
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`user_profile_${user.id}`)
+    }
+    
+    // Log out and redirect
     logout()
     router.push('/')
   }
@@ -453,21 +474,79 @@ export default function AccountPage() {
           <div className="apple-card p-8 border-red-500/20">
             <h2 className="text-red-400 text-2xl font-semibold mb-6 tracking-tight">Danger Zone</h2>
             <div className="space-y-6">
-              <button 
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
-              >
-                <i className="fa-solid fa-sign-out-alt mr-2"></i>
-                Sign Out
-              </button>
-              <button className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 px-6 py-3 rounded-2xl font-medium transition-all duration-200">
-                <i className="fa-solid fa-trash mr-2"></i>
-                Delete Account
-              </button>
+              <div className="pb-4 border-b border-red-500/20">
+                <button 
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 w-full sm:w-auto"
+                >
+                  <i className="fa-solid fa-sign-out-alt mr-2"></i>
+                  Sign Out
+                </button>
+                <p className="text-gray-400 text-sm mt-3">
+                  Sign out of your account on this device
+                </p>
+              </div>
+              
+              <div>
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 px-6 py-3 rounded-2xl font-medium transition-all duration-200 w-full sm:w-auto"
+                >
+                  <i className="fa-solid fa-trash mr-2"></i>
+                  Delete Account
+                </button>
+                <p className="text-gray-400 text-sm mt-3">
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="apple-card p-8 max-w-md w-full border-red-500/30">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <i className="fa-solid fa-exclamation-triangle text-red-400 text-2xl"></i>
+              </div>
+              <h3 className="text-white text-2xl font-bold mb-2">Delete Account?</h3>
+              <p className="text-gray-400">This action cannot be undone. All your data will be permanently deleted.</p>
+            </div>
+
+            {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <i className="fa-solid fa-info-circle text-yellow-400 mt-1"></i>
+                  <div>
+                    <p className="text-yellow-400 font-medium mb-1">Active Subscription</p>
+                    <p className="text-yellow-300 text-sm">
+                      Your {userProfile.plan === 'pro' ? 'Professional' : 'Team'} subscription will be cancelled immediately.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                onClick={handleDeleteAccount}
+                className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+              >
+                Yes, Delete My Account
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="w-full bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

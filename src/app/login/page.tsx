@@ -142,7 +142,7 @@ export default function LoginPage() {
           )}
 
           {/* Footer Links */}
-          <div className="mt-8 pt-6 border-t border-white/10">
+          <div className="mt-6 pt-4 border-t border-white/10">
             <div className="flex justify-center space-x-6 text-sm">
               <a href="/privacy" className="text-gray-400 hover:text-gray-300 transition-colors">
                 Privacy Policy

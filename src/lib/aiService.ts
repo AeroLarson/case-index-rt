@@ -1,188 +1,168 @@
-// AI Service for Case Summarization
-// This service handles AI-powered case analysis and summarization
+import OpenAI from 'openai'
 
-export interface AICaseSummary {
-  id: string
-  caseId: string
+// Initialize OpenAI client with hardcoded API key for now
+const getOpenAI = () => {
+  const apiKey = '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'
+  return new OpenAI({ apiKey })
+}
+
+export interface CaseAnalysis {
   summary: string
-  keyPoints: string[]
+  keyRisks: string[]
   recommendations: string[]
-  riskAssessment: 'low' | 'medium' | 'high'
   nextSteps: string[]
-  generatedAt: string
+  confidence: number
+  riskAssessment?: string
 }
 
-export interface AICaseAnalysis {
-  caseOverview: string
-  timeline: Array<{
-    date: string
-    event: string
-    importance: 'low' | 'medium' | 'high'
-  }>
-  keyDocuments: string[]
-  upcomingDeadlines: Array<{
-    date: string
-    description: string
-    urgency: 'low' | 'medium' | 'high'
-  }>
-  riskFactors: string[]
-  opportunities: string[]
+export interface CaseData {
+  caseNumber: string
+  caseTitle: string
+  caseType: string
+  status: string
+  dateFiled: string
+  parties: {
+    petitioner: string
+    respondent: string
+    petitionerAttorney?: string
+    respondentAttorney?: string
+  }
+  courtLocation: string
+  judicialOfficer: string
+  documents?: any[]
+  hearings?: any[]
 }
 
-class AIService {
-  private summaries: Map<string, AICaseSummary> = new Map()
+export class AIService {
+  static async analyzeCase(caseData: CaseData): Promise<CaseAnalysis> {
+    try {
+      // Use hardcoded API key for now
+      const openai = getOpenAI()
 
-  async generateCaseSummary(caseData: any): Promise<AICaseSummary> {
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    const summaryId = `summary_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    // Generate AI summary based on case data
-    const summary: AICaseSummary = {
-      id: summaryId,
-      caseId: caseData.id,
-      summary: this.generateSummaryText(caseData),
-      keyPoints: this.generateKeyPoints(caseData),
-      recommendations: this.generateRecommendations(caseData),
-      riskAssessment: this.assessRisk(caseData),
-      nextSteps: this.generateNextSteps(caseData),
-      generatedAt: new Date().toISOString()
-    }
-    
-    this.summaries.set(summaryId, summary)
-    return summary
-  }
+      const prompt = `
+You are a legal AI assistant specializing in California family law cases. Analyze the following case data and provide a comprehensive analysis:
 
-  async analyzeCase(caseData: any): Promise<AICaseAnalysis> {
-    // Simulate AI analysis time
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    return {
-      caseOverview: this.generateCaseOverview(caseData),
-      timeline: this.generateTimeline(caseData),
-      keyDocuments: this.extractKeyDocuments(caseData),
-      upcomingDeadlines: this.extractDeadlines(caseData),
-      riskFactors: this.identifyRiskFactors(caseData),
-      opportunities: this.identifyOpportunities(caseData)
-    }
-  }
+Case Information:
+- Case Number: ${caseData.caseNumber}
+- Case Title: ${caseData.caseTitle}
+- Case Type: ${caseData.caseType}
+- Status: ${caseData.status}
+- Date Filed: ${caseData.dateFiled}
+- Petitioner: ${caseData.parties.petitioner}
+- Respondent: ${caseData.parties.respondent}
+- Petitioner Attorney: ${caseData.parties.petitionerAttorney || 'Not specified'}
+- Respondent Attorney: ${caseData.parties.respondentAttorney || 'Not specified'}
+- Court Location: ${caseData.courtLocation}
+- Judicial Officer: ${caseData.judicialOfficer}
 
-  getSummary(summaryId: string): AICaseSummary | null {
-    return this.summaries.get(summaryId) || null
-  }
+Please provide a JSON response with the following structure:
+{
+  "summary": "A concise 1-2 sentence summary of the case status and key points",
+  "keyRisks": ["Risk 1", "Risk 2"],
+  "recommendations": ["Recommendation 1", "Recommendation 2"],
+  "nextSteps": ["Next step 1", "Next step 2"],
+  "confidence": 0.85,
+  "riskAssessment": "low|medium|high"
+}
 
-  private generateSummaryText(caseData: any): string {
-    const caseType = caseData.caseType || 'Legal Case'
-    const status = caseData.caseStatus || 'Active'
-    const parties = caseData.parties || {}
-    
-    return `This ${caseType} case involves ${parties.petitioner || 'Petitioner'} vs ${parties.respondent || 'Respondent'}. The case is currently ${status.toLowerCase()} and requires ongoing attention. Key legal issues include document review, deadline management, and strategic planning for optimal case resolution.`
-  }
+Focus on:
+1. Brief legal implications and potential outcomes
+2. Key risks in family law cases of this type
+3. Essential recommendations for the client
+4. Immediate next steps in the legal process
+5. California-specific legal considerations
 
-  private generateKeyPoints(caseData: any): string[] {
-    return [
-      `Case Status: ${caseData.caseStatus || 'Active'}`,
-      `Case Type: ${caseData.caseType || 'Legal Matter'}`,
-      `Court: ${caseData.courtLocation || 'San Diego Superior Court'}`,
-      `Judge: ${caseData.judicialOfficer || 'Assigned Judge'}`,
-      `Filing Date: ${caseData.dateFiled || 'Recent'}`,
-      'Document review required',
-      'Deadline monitoring essential'
-    ]
-  }
+Be professional, accurate, and concise. Keep responses brief and actionable. Confidence should be between 0.0 and 1.0.
+`
 
-  private generateRecommendations(caseData: any): string[] {
-    return [
-      'Schedule regular case review meetings',
-      'Implement document management system for case files',
-      'Set up automated deadline reminders',
-      'Consider mediation for potential settlement',
-      'Prepare for upcoming hearings',
-      'Review case strategy with legal team'
-    ]
-  }
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a legal AI assistant specializing in California family law. Provide accurate, professional legal analysis in JSON format.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1500,
+      })
 
-  private assessRisk(caseData: any): 'low' | 'medium' | 'high' {
-    const status = caseData.caseStatus?.toLowerCase() || ''
-    if (status.includes('urgent') || status.includes('critical')) return 'high'
-    if (status.includes('pending') || status.includes('active')) return 'medium'
-    return 'low'
-  }
-
-  private generateNextSteps(caseData: any): string[] {
-    return [
-      'Review all case documents',
-      'Prepare for next hearing',
-      'Update case timeline',
-      'Communicate with client',
-      'File necessary motions',
-      'Monitor case status updates'
-    ]
-  }
-
-  private generateCaseOverview(caseData: any): string {
-    return `Comprehensive analysis of ${caseData.caseTitle || 'the case'} reveals multiple legal considerations requiring strategic attention. The case involves complex legal issues that demand careful review and proactive management.`
-  }
-
-  private generateTimeline(caseData: any): Array<{date: string, event: string, importance: 'low' | 'medium' | 'high'}> {
-    return [
-      {
-        date: caseData.dateFiled || '2024-01-01',
-        event: 'Case filed',
-        importance: 'high'
-      },
-      {
-        date: new Date().toISOString().split('T')[0],
-        event: 'Current status review',
-        importance: 'medium'
+      const response = completion.choices[0]?.message?.content
+      if (!response) {
+        throw new Error('No response from OpenAI')
       }
-    ]
-  }
 
-  private extractKeyDocuments(caseData: any): string[] {
-    return [
-      'Initial filing documents',
-      'Response to complaint',
-      'Discovery materials',
-      'Motion papers',
-      'Court orders'
-    ]
-  }
-
-  private extractDeadlines(caseData: any): Array<{date: string, description: string, urgency: 'low' | 'medium' | 'high'}> {
-    return [
-      {
-        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        description: 'Document filing deadline',
-        urgency: 'high'
-      },
-      {
-        date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        description: 'Response deadline',
-        urgency: 'medium'
+      // Parse the JSON response
+      const analysis = JSON.parse(response) as CaseAnalysis
+      
+      // Validate the response structure
+      if (!analysis.summary || !analysis.keyRisks || !analysis.recommendations || !analysis.nextSteps) {
+        throw new Error('Invalid AI response structure')
       }
-    ]
+
+      return analysis
+
+    } catch (error) {
+      console.error('AI Analysis Error:', error)
+      
+      // Fallback to mock data if AI fails
+      return {
+        summary: "Family law case involving custody and support matters. Consult your attorney for detailed analysis.",
+        keyRisks: [
+          "Case complexity requires legal guidance",
+          "Timeline uncertainties in proceedings"
+        ],
+        recommendations: [
+          "Consult with family law attorney",
+          "Gather relevant documentation"
+        ],
+        nextSteps: [
+          "Review case documents",
+          "Schedule legal consultation"
+        ],
+        confidence: 0.5,
+        riskAssessment: "medium"
+      }
+    }
   }
 
-  private identifyRiskFactors(caseData: any): string[] {
-    return [
-      'Potential deadline conflicts',
-      'Document production requirements',
-      'Witness availability',
-      'Court scheduling constraints'
-    ]
-  }
+  static async generateCaseInsights(caseData: CaseData): Promise<string> {
+    try {
+      // Use hardcoded API key for now
+      const openai = getOpenAI()
 
-  private identifyOpportunities(caseData: any): string[] {
-    return [
-      'Settlement negotiations',
-      'Alternative dispute resolution',
-      'Strategic motion filing',
-      'Evidence gathering'
-    ]
+      const prompt = `
+Generate 2-3 key insights for this California family law case:
+
+Case: ${caseData.caseTitle}
+Type: ${caseData.caseType}
+Status: ${caseData.status}
+Parties: ${caseData.parties.petitioner} vs ${caseData.parties.respondent}
+
+Provide brief, actionable insights that would be valuable for legal professionals.
+`
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.4,
+        max_tokens: 300,
+      })
+
+      return completion.choices[0]?.message?.content || "AI insights temporarily unavailable."
+
+    } catch (error) {
+      console.error('AI Insights Error:', error)
+      return "AI insights temporarily unavailable. Please consult with your legal team for case analysis."
+    }
   }
 }
-
-export const aiService = new AIService()
-

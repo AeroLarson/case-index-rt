@@ -138,35 +138,35 @@ export default function Header() {
           )}
         </div>
 
-            {/* Hero Content - Only show for non-authenticated users */}
-            {!user && (
-              <div className="text-center">
-                <h1 
-                  id="title-dashboard" 
-                  className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
-                >
-                  Search California Court Cases<br className="hidden sm:block"/>
-                  with AI-Powered Precision
-                </h1>
-                <p className="text-purple-300 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto mb-8">
-                  Access comprehensive case data from San Diego County family law cases. Track filings, hearings, and documents in real-time with automated updates.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button 
-                    onClick={() => router.push('/login')}
-                    className="bg-purple-400 text-white border-none px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-purple-500 transition-colors hover-lift btn-pulse"
-                  >
-                    Get Started
-                  </button>
-                  <button 
-                    onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="bg-transparent text-white border-2 border-purple-400 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-purple-400/10 transition-colors hover-lift hover-glow"
-                  >
-                    Learn More
-                  </button>
-                </div>
-              </div>
-            )}
+                   {/* Hero Content - Only show for non-authenticated users */}
+                   {!user && (
+                     <div className="text-center mt-8">
+                       <h1 
+                         id="title-dashboard" 
+                         className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
+                       >
+                         Search California Court Cases<br className="hidden sm:block"/>
+                         with AI-Powered Precision
+                       </h1>
+                       <p className="text-purple-300 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto mb-8">
+                         Access comprehensive case data from San Diego County family law cases. Track filings, hearings, and documents in real-time with automated updates.
+                       </p>
+                       <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                         <button 
+                           onClick={() => router.push('/login')}
+                           className="bg-purple-400 text-white border-none px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-purple-500 transition-colors hover-lift btn-pulse"
+                         >
+                           Get Started
+                         </button>
+                         <button 
+                           onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                           className="bg-transparent text-white border-2 border-purple-400 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-purple-400/10 transition-colors hover-lift hover-glow"
+                         >
+                           Learn More
+                         </button>
+                       </div>
+                     </div>
+                   )}
 
             {/* Welcome message only for dashboard (home page) */}
             {user && pathname === '/' && (

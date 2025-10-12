@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import AIOverview from '@/components/AIOverview'
 import CaseTimeline from '@/components/CaseTimeline'
 import { userProfileManager } from '@/lib/userProfile'
-import { aiService } from '@/lib/aiService'
+import { AIService } from '@/lib/aiService'
 import EmptyState from '@/components/EmptyState'
 
 interface CaseResult {
@@ -49,49 +49,97 @@ export default function SearchPage() {
     {
       id: '1',
       caseNumber: 'FL-2024-001234',
-      title: 'Smith v. Johnson',
-      court: 'San Diego Superior Court',
-      judge: 'Hon. Martinez',
-      status: 'Active',
-      lastActivity: '2 hours ago',
+      title: 'Johnson v. Martinez - Dissolution with Minor Children',
+      court: 'San Diego Superior Court - Central (Department 602)',
+      judge: 'Hon. Rebecca Kanter',
+      status: 'Post-Judgment - Request for Order',
+      lastActivity: 'October 12, 2025',
       parties: {
-        plaintiff: 'John Smith',
-        defendant: 'Jane Johnson'
+        plaintiff: 'Sarah Johnson (Petitioner)',
+        defendant: 'Michael Martinez (Respondent)'
       },
-      documents: 15,
-      hearings: 3,
+      documents: 23,
+      hearings: 7,
       isDetailed: isProUser
     },
     {
       id: '2',
-      caseNumber: 'FL-2024-001235',
-      title: 'Davis v. Wilson',
-      court: 'San Diego Superior Court',
-      judge: 'Hon. Rodriguez',
-      status: 'Pending',
-      lastActivity: '1 day ago',
+      caseNumber: 'FL-2024-002847',
+      title: 'Anderson v. Chen - Custody Modification',
+      court: 'San Diego Superior Court - North County (Department 403)',
+      judge: 'Hon. James Patterson',
+      status: 'Active - Mediation Scheduled',
+      lastActivity: 'October 10, 2025',
       parties: {
-        plaintiff: 'Michael Davis',
-        defendant: 'Sarah Wilson'
+        plaintiff: 'David Anderson (Petitioner)',
+        defendant: 'Lisa Chen (Respondent)'
       },
-      documents: 8,
-      hearings: 1,
+      documents: 18,
+      hearings: 4,
       isDetailed: isProUser
     },
     {
       id: '3',
-      caseNumber: 'FL-2024-001236',
-      title: 'Brown v. Miller',
-      court: 'San Diego Superior Court',
-      judge: 'Hon. Thompson',
-      status: 'Settled',
-      lastActivity: '3 days ago',
+      caseNumber: 'FL-2023-009512',
+      title: 'Williams v. Rodriguez - Child Support Arrears',
+      court: 'San Diego Superior Court - Central (Department 509)',
+      judge: 'Hon. Maria Gonzalez',
+      status: 'Post-Judgment - Enforcement Hearing',
+      lastActivity: 'October 8, 2025',
       parties: {
-        plaintiff: 'Robert Brown',
-        defendant: 'Lisa Miller'
+        plaintiff: 'Jennifer Williams (Petitioner)',
+        defendant: 'Carlos Rodriguez (Respondent)'
       },
-      documents: 22,
-      hearings: 5,
+      documents: 31,
+      hearings: 9,
+      isDetailed: isProUser
+    },
+    {
+      id: '4',
+      caseNumber: 'FL-2025-000123',
+      title: 'Thompson v. Brown - Legal Separation',
+      court: 'San Diego Superior Court - East County (Department 304)',
+      judge: 'Hon. Richard Lee',
+      status: 'Active - Discovery Phase',
+      lastActivity: 'October 11, 2025',
+      parties: {
+        plaintiff: 'Emily Thompson (Petitioner)',
+        defendant: 'Robert Brown (Respondent)'
+      },
+      documents: 12,
+      hearings: 2,
+      isDetailed: isProUser
+    },
+    {
+      id: '5',
+      caseNumber: 'FL-2024-005678',
+      title: 'Davis v. Miller - Domestic Violence Restraining Order',
+      court: 'San Diego Superior Court - Central (Department 701)',
+      judge: 'Hon. Catherine Wong',
+      status: 'Active - Hearing Set',
+      lastActivity: 'October 9, 2025',
+      parties: {
+        plaintiff: 'Amanda Davis (Protected Party)',
+        defendant: 'Steven Miller (Restrained Party)'
+      },
+      documents: 8,
+      hearings: 3,
+      isDetailed: isProUser
+    },
+    {
+      id: '6',
+      caseNumber: 'FL-2023-012456',
+      title: 'Garcia v. Nguyen - Spousal Support Modification',
+      court: 'San Diego Superior Court - South County (Department 205)',
+      judge: 'Hon. Daniel Foster',
+      status: 'Post-Judgment - Motion Pending',
+      lastActivity: 'October 7, 2025',
+      parties: {
+        plaintiff: 'Maria Garcia (Petitioner)',
+        defendant: 'Kevin Nguyen (Respondent)'
+      },
+      documents: 27,
+      hearings: 6,
       isDetailed: isProUser
     }
   ]
@@ -285,10 +333,42 @@ export default function SearchPage() {
 
     setIsGeneratingAI(true)
     try {
-      const summary = await aiService.generateCaseSummary(case_)
-      setAiSummary(summary)
+      // Prepare case data for AI analysis
+      const caseData = {
+        caseNumber: case_.caseNumber,
+        caseTitle: case_.title,
+        caseType: 'Family Law', // Default type
+        status: case_.status,
+        dateFiled: case_.lastActivity,
+        parties: {
+          petitioner: case_.parties.plaintiff,
+          respondent: case_.parties.defendant,
+          petitionerAttorney: 'Not specified',
+          respondentAttorney: 'Not specified'
+        },
+        courtLocation: case_.court,
+        judicialOfficer: case_.judge
+      }
+
+      // Call the AI API
+      const response = await fetch('/api/ai/analyze-case', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(caseData),
+      })
+
+      if (!response.ok) {
+        throw new Error(`AI analysis failed: ${response.status}`)
+      }
+
+      const result = await response.json()
+      setAiSummary(result.analysis)
     } catch (error) {
       console.error('Error generating AI summary:', error)
+      // Show error message to user
+      alert('AI analysis failed. Please try again or contact support.')
     } finally {
       setIsGeneratingAI(false)
     }
@@ -361,12 +441,16 @@ export default function SearchPage() {
                         <p className="text-blue-300 font-medium">{case_.caseNumber}</p>
                       </div>
                       <div className="text-right">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          case_.status === 'Active' 
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                          case_.status.includes('Active') 
                             ? 'bg-green-500/20 text-green-400' 
-                            : case_.status === 'Pending'
+                            : case_.status.includes('Pending')
                             ? 'bg-yellow-500/20 text-yellow-400'
-                            : 'bg-gray-500/20 text-gray-400'
+                            : case_.status.includes('Post-Judgment')
+                            ? 'bg-blue-500/20 text-blue-400'
+                            : case_.status.includes('Settled')
+                            ? 'bg-gray-500/20 text-gray-400'
+                            : 'bg-purple-500/20 text-purple-400'
                         }`}>
                           {case_.status}
                         </span>
@@ -489,7 +573,12 @@ export default function SearchPage() {
               <>
                 <AIOverview 
                   caseId={selectedCase.caseNumber}
-                  lastLogin={user ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() : undefined}
+                  caseTitle={selectedCase.title}
+                  caseStatus={selectedCase.status}
+                  court={selectedCase.court}
+                  judge={selectedCase.judge}
+                  parties={selectedCase.parties}
+                  lastLogin={userProfile?.previousLogin}
                   className="mb-6"
                 />
                 <CaseTimeline 
@@ -580,8 +669,8 @@ export default function SearchPage() {
 
       {/* Case Details Modal */}
       {showCaseDetails && caseDetails && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="apple-card p-8 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-20 overflow-y-auto">
+          <div className="apple-card p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-white text-2xl font-bold">{caseDetails.title}</h3>
               <button
@@ -733,8 +822,8 @@ export default function SearchPage() {
 
       {/* AI Summary Modal */}
       {aiSummary && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="apple-card p-8 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-20 overflow-y-auto">
+          <div className="apple-card p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-white text-2xl font-bold">AI Case Summary</h3>
               <button
@@ -752,16 +841,16 @@ export default function SearchPage() {
                 <p className="text-gray-300 leading-relaxed">{aiSummary.summary}</p>
               </div>
 
-              {/* Key Points */}
+              {/* Key Risks */}
               <div>
-                <h4 className="text-white font-semibold text-lg mb-3">Key Points</h4>
+                <h4 className="text-white font-semibold text-lg mb-3">Key Risks</h4>
                 <ul className="space-y-2">
-                  {aiSummary.keyPoints.map((point: string, index: number) => (
+                  {aiSummary.keyRisks?.map((risk: string, index: number) => (
                     <li key={index} className="flex items-start gap-3 text-gray-300">
-                      <i className="fa-solid fa-check-circle text-green-400 mt-1"></i>
-                      {point}
+                      <i className="fa-solid fa-exclamation-triangle text-yellow-400 mt-1"></i>
+                      {risk}
                     </li>
-                  ))}
+                  )) || <li className="text-gray-400">No specific risks identified</li>}
                 </ul>
               </div>
 
@@ -769,20 +858,20 @@ export default function SearchPage() {
               <div>
                 <h4 className="text-white font-semibold text-lg mb-3">Risk Assessment</h4>
                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-                  aiSummary.riskAssessment === 'high' 
+                  (aiSummary.riskAssessment || 'medium') === 'high' 
                     ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                    : aiSummary.riskAssessment === 'medium'
+                    : (aiSummary.riskAssessment || 'medium') === 'medium'
                     ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
                     : 'bg-green-500/20 text-green-400 border border-green-500/30'
                 }`}>
                   <i className={`fa-solid ${
-                    aiSummary.riskAssessment === 'high' 
+                    (aiSummary.riskAssessment || 'medium') === 'high' 
                       ? 'fa-exclamation-triangle'
-                      : aiSummary.riskAssessment === 'medium'
+                      : (aiSummary.riskAssessment || 'medium') === 'medium'
                       ? 'fa-exclamation-circle'
                       : 'fa-shield-check'
                   }`}></i>
-                  {aiSummary.riskAssessment.charAt(0).toUpperCase() + aiSummary.riskAssessment.slice(1)} Risk
+                  {(aiSummary.riskAssessment || 'medium').charAt(0).toUpperCase() + (aiSummary.riskAssessment || 'medium').slice(1)} Risk
                 </div>
               </div>
 
@@ -790,12 +879,12 @@ export default function SearchPage() {
               <div>
                 <h4 className="text-white font-semibold text-lg mb-3">Recommendations</h4>
                 <ul className="space-y-2">
-                  {aiSummary.recommendations.map((rec: string, index: number) => (
+                  {aiSummary.recommendations?.map((rec: string, index: number) => (
                     <li key={index} className="flex items-start gap-3 text-gray-300">
                       <i className="fa-solid fa-lightbulb text-yellow-400 mt-1"></i>
                       {rec}
                     </li>
-                  ))}
+                  )) || <li className="text-gray-400">No specific recommendations available</li>}
                 </ul>
               </div>
 
@@ -803,12 +892,12 @@ export default function SearchPage() {
               <div>
                 <h4 className="text-white font-semibold text-lg mb-3">Next Steps</h4>
                 <ul className="space-y-2">
-                  {aiSummary.nextSteps.map((step: string, index: number) => (
+                  {aiSummary.nextSteps?.map((step: string, index: number) => (
                     <li key={index} className="flex items-start gap-3 text-gray-300">
                       <i className="fa-solid fa-arrow-right text-blue-400 mt-1"></i>
                       {step}
                     </li>
-                  ))}
+                  )) || <li className="text-gray-400">No specific next steps identified</li>}
                 </ul>
               </div>
             </div>
