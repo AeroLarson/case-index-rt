@@ -48,44 +48,45 @@ export default function CalendarPage() {
     }
 
     loadCalendarData()
-  }, [user, router])
+  }, [user, userProfile, router])
 
   const loadCalendarData = async () => {
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise(resolve => setTimeout(resolve, 500))
     
-    // Generate events from user's saved cases
+    // Load events from user profile's calendar events
     const userEvents: CalendarEvent[] = []
     
-    if (userProfile?.savedCases) {
-      userProfile.savedCases.forEach((savedCase, index) => {
-        // Add hearing events for saved cases
+    if (userProfile?.calendarEvents) {
+      userProfile.calendarEvents.forEach((calEvent) => {
+        // Find the associated saved case for additional details
+        const savedCase = userProfile.savedCases.find(c => c.caseNumber === calEvent.caseNumber)
+        
         userEvents.push({
-          id: `saved-${savedCase.id}`,
-          title: `Hearing - ${savedCase.caseTitle}`,
-          date: '2024-03-20',
-          time: '09:00',
-          type: 'hearing',
-          caseNumber: savedCase.caseNumber,
-          location: savedCase.courtLocation,
-          description: `Court hearing for ${savedCase.caseType}`,
-          duration: 60,
-          priority: 'high',
-          status: 'scheduled',
+          id: calEvent.id,
+          title: calEvent.title,
+          date: calEvent.date,
+          time: calEvent.time,
+          type: calEvent.type,
+          caseNumber: calEvent.caseNumber,
+          location: calEvent.location || (savedCase?.courtLocation),
+          description: calEvent.description,
+          duration: calEvent.duration,
+          attendees: [],
+          priority: calEvent.priority,
+          status: calEvent.status,
           source: 'manual',
-          countyData: {
+          countyData: savedCase ? {
             court: savedCase.courtLocation,
             judge: savedCase.judicialOfficer,
             department: savedCase.department,
             caseType: savedCase.caseType,
             filingDate: savedCase.dateFiled,
             lastActivity: new Date().toISOString().split('T')[0]
-          }
+          } : undefined
         })
       })
     }
-    
-    // Don't add any mock events - keep it completely empty for new users
     
     setEvents(userEvents)
     setLastSyncTime(new Date())
@@ -352,55 +353,92 @@ export default function CalendarPage() {
                   <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {getUpcomingEvents().map((event) => (
-                    <div
-                      key={event.id}
-                      onClick={() => setSelectedEvent(event)}
-                      className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer transition-all duration-200 border-l-4 border-blue-500"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`w-10 h-10 ${getEventColor(event.type)} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                          <i className={`fa-solid ${getEventIcon(event.type)} text-white text-sm`}></i>
+                <div className="space-y-6">
+                  {(() => {
+                    // Group events by date
+                    const upcomingEvents = getUpcomingEvents()
+                    const eventsByDate: { [key: string]: typeof upcomingEvents } = {}
+                    
+                    upcomingEvents.forEach(event => {
+                      if (!eventsByDate[event.date]) {
+                        eventsByDate[event.date] = []
+                      }
+                      eventsByDate[event.date].push(event)
+                    })
+                    
+                    // Sort dates
+                    const sortedDates = Object.keys(eventsByDate).sort()
+                    
+                    return sortedDates.map(date => (
+                      <div key={date}>
+                        {/* Date Header */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex flex-col items-center justify-center">
+                            <span className="text-white text-xl font-bold">
+                              {new Date(date).getDate()}
+                            </span>
+                            <span className="text-white text-xs">
+                              {new Date(date).toLocaleDateString('en-US', { month: 'short' })}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="text-white text-lg font-semibold">
+                              {new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            </h3>
+                            <p className="text-gray-400 text-sm">{eventsByDate[date].length} event{eventsByDate[date].length !== 1 ? 's' : ''}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="text-white font-semibold text-lg">{event.title}</h4>
-                            <div className="flex items-center gap-2">
-                              <i className={`fa-solid ${getSourceIcon(event.source)} ${getSourceColor(event.source)} text-sm`}></i>
-                              <span className="text-gray-400 text-sm">{event.source === 'county_api' ? 'County' : 'Manual'}</span>
+                        
+                        {/* Events for this date */}
+                        <div className="space-y-3 ml-4">
+                          {eventsByDate[date].map((event) => (
+                            <div
+                              key={event.id}
+                              onClick={() => setSelectedEvent(event)}
+                              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className={`w-10 h-10 ${getEventColor(event.type)} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                                  <i className={`fa-solid ${getEventIcon(event.type)} text-white text-sm`}></i>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4 className="text-white font-semibold text-lg">{event.title}</h4>
+                                    <div className="flex items-center gap-2">
+                                      <i className={`fa-solid ${getSourceIcon(event.source)} ${getSourceColor(event.source)} text-sm`}></i>
+                                      <span className="text-gray-400 text-sm">{event.source === 'county_api' ? 'County' : 'Manual'}</span>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-300 text-sm mb-2">{event.description}</p>
+                                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                                    <span className="flex items-center gap-1">
+                                      <i className="fa-solid fa-clock"></i>
+                                      {formatTime(event.time)}
+                                    </span>
+                                    <span className="text-blue-300">{event.caseNumber}</span>
+                                  </div>
+                                  {event.location && (
+                                    <p className="text-gray-400 text-sm mt-2">
+                                      <i className="fa-solid fa-map-marker-alt mr-1"></i>
+                                      {event.location}
+                                    </p>
+                                  )}
+                                  {event.countyData && (
+                                    <div className="mt-2 p-2 bg-green-500/10 rounded-lg">
+                                      <p className="text-green-300 text-sm">
+                                        <i className="fa-solid fa-building mr-1"></i>
+                                        {event.countyData.court} • {event.countyData.judge}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <p className="text-gray-300 text-sm mb-2">{event.description}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <i className="fa-solid fa-calendar"></i>
-                              {new Date(event.date).toLocaleDateString()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <i className="fa-solid fa-clock"></i>
-                              {formatTime(event.time)}
-                            </span>
-                            <span className="text-blue-300">{event.caseNumber}</span>
-                          </div>
-                          {event.location && (
-                            <p className="text-gray-400 text-sm mt-2">
-                              <i className="fa-solid fa-map-marker-alt mr-1"></i>
-                              {event.location}
-                            </p>
-                          )}
-                          {event.countyData && (
-                            <div className="mt-2 p-2 bg-green-500/10 rounded-lg">
-                              <p className="text-green-300 text-sm">
-                                <i className="fa-solid fa-building mr-1"></i>
-                                {event.countyData.court} • {event.countyData.judge}
-                              </p>
-                            </div>
-                          )}
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  })()}
                 </div>
               )}
             </div>
@@ -556,11 +594,12 @@ export default function CalendarPage() {
               </div>
 
               <div className="flex gap-3 mt-8">
-                <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200">
-                  Edit Event
-                </button>
-                <button className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200">
-                  Add to Calendar
+                <button 
+                  onClick={() => setSelectedEvent(null)}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                >
+                  <i className="fa-solid fa-check mr-2"></i>
+                  Close
                 </button>
               </div>
             </div>

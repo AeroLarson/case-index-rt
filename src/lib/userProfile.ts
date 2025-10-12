@@ -1,5 +1,21 @@
 'use client'
 
+export interface CalendarEvent {
+  id: string
+  title: string
+  date: string
+  time: string
+  type: 'hearing' | 'deadline' | 'meeting' | 'deposition' | 'trial'
+  caseNumber: string
+  location?: string
+  description: string
+  duration: number
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'scheduled' | 'completed' | 'cancelled'
+  virtualMeetingInfo?: string
+  createdAt: string
+}
+
 export interface UserProfile {
   id: string
   name: string
@@ -8,6 +24,7 @@ export interface UserProfile {
   savedCases: SavedCase[]
   recentSearches: RecentSearch[]
   starredCases: string[]
+  calendarEvents: CalendarEvent[]
   monthlyUsage: number
   maxMonthlyUsage: number
   plan: 'free' | 'pro' | 'team'
@@ -69,6 +86,7 @@ class UserProfileManager {
       savedCases: [],
       recentSearches: [],
       starredCases: [],
+      calendarEvents: [],
       monthlyUsage: 0,
       maxMonthlyUsage: 1, // Free plan limit - only 1 case per month
       plan: 'free',
@@ -208,6 +226,48 @@ class UserProfileManager {
     } catch (error) {
       console.warn('Failed to clear user data:', error)
     }
+  }
+
+  addCalendarEvent(userId: string, eventData: Omit<CalendarEvent, 'id' | 'createdAt'>): CalendarEvent {
+    const profile = this.getUserProfile(userId, '', '')
+    
+    // Initialize calendarEvents if it doesn't exist (for existing profiles)
+    if (!profile.calendarEvents) {
+      profile.calendarEvents = []
+    }
+    
+    const newEvent: CalendarEvent = {
+      ...eventData,
+      id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString()
+    }
+
+    // Check if event already exists for this case
+    const existingEventIndex = profile.calendarEvents.findIndex(
+      e => e.caseNumber === eventData.caseNumber && e.type === eventData.type
+    )
+
+    if (existingEventIndex >= 0) {
+      // Update existing event
+      profile.calendarEvents[existingEventIndex] = newEvent
+    } else {
+      // Add new event
+      profile.calendarEvents.unshift(newEvent)
+    }
+
+    this.saveUserProfile(profile)
+    return newEvent
+  }
+
+  removeCalendarEvent(userId: string, eventId: string): void {
+    const profile = this.getUserProfile(userId, '', '')
+    profile.calendarEvents = profile.calendarEvents.filter(e => e.id !== eventId)
+    this.saveUserProfile(profile)
+  }
+
+  getCalendarEvents(userId: string): CalendarEvent[] {
+    const profile = this.getUserProfile(userId, '', '')
+    return profile.calendarEvents || []
   }
 }
 

@@ -302,8 +302,24 @@ export default function SearchPage() {
         respondent: case_.parties.defendant
       }
     })
+    
+    // Add calendar event for the case hearing
+    userProfileManager.addCalendarEvent(user.id, {
+      title: `Hearing - ${case_.title}`,
+      date: '2026-01-27', // Format: YYYY-MM-DD
+      time: '09:00',
+      type: 'hearing',
+      caseNumber: case_.caseNumber,
+      location: case_.court,
+      description: `Request for Order Hearing for ${case_.title}`,
+      duration: 60, // 1 hour
+      priority: 'high',
+      status: 'scheduled',
+      virtualMeetingInfo: 'Zoom ID: 123-456-7890, Passcode: 123456'
+    })
+    
     refreshProfile()
-    alert(`Case ${case_.caseNumber} saved to your profile!`)
+    alert(`Case ${case_.caseNumber} and hearing added to your calendar!`)
   }
 
   const handleStarCase = (case_: CaseResult) => {
