@@ -226,10 +226,10 @@ export default function CalendarPage() {
   if (!isLoading && events.length === 0 && (!userProfile?.savedCases || userProfile.savedCases.length === 0)) {
     return (
       <main 
-        className="min-h-screen animated-aura"
+        className="min-h-screen animated-aura pb-20 lg:pb-10"
         style={{
           background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-          padding: '20px 24px 40px 24px' // Reduced top padding
+          padding: '20px 12px 40px 12px' // Optimized mobile padding
         }}
       >
         <div className="max-w-4xl mx-auto">
@@ -241,10 +241,10 @@ export default function CalendarPage() {
 
   return (
     <main 
-      className="min-h-screen animated-aura"
+      className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-        padding: '20px 24px 40px 24px' // Reduced top padding
+        padding: '20px 12px 40px 12px' // Optimized mobile padding
       }}
     >
       <div className="max-w-7xl mx-auto">

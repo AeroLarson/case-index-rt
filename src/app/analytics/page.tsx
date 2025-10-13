@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
   }, [userProfile])
 
   return (
-    <div className="min-h-screen p-4 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)' }}>
+    <div className="min-h-screen p-3 md:p-4 lg:p-8 pb-20 lg:pb-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)' }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

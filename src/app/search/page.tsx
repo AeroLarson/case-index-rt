@@ -405,7 +405,7 @@ export default function SearchPage() {
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-        padding: '20px 16px 40px 16px' // Reduced top padding and added mobile padding
+        padding: '20px 12px 40px 12px' // Optimized mobile padding
       }}
     >
       <div className="max-w-7xl mx-auto">
@@ -415,7 +415,7 @@ export default function SearchPage() {
           <p className="text-gray-300 text-sm md:text-base lg:text-lg">Search and track California court cases with AI-powered insights</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6 lg:gap-8">
           {/* Search Section */}
           <div className="lg:col-span-2">
             {/* Search Form */}
