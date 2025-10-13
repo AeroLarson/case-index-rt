@@ -1,168 +1,151 @@
-import OpenAI from 'openai'
-
-// Initialize OpenAI client with hardcoded API key for now
-const getOpenAI = () => {
-  const apiKey = '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'
-  return new OpenAI({ apiKey })
-}
-
-export interface CaseAnalysis {
-  summary: string
-  keyRisks: string[]
-  recommendations: string[]
-  nextSteps: string[]
-  confidence: number
-  riskAssessment?: string
-}
-
-export interface CaseData {
-  caseNumber: string
-  caseTitle: string
-  caseType: string
-  status: string
-  dateFiled: string
-  parties: {
-    petitioner: string
-    respondent: string
-    petitionerAttorney?: string
-    respondentAttorney?: string
-  }
-  courtLocation: string
-  judicialOfficer: string
-  documents?: any[]
-  hearings?: any[]
-}
-
+// AI Service for handling AI-related operations
 export class AIService {
-  static async analyzeCase(caseData: CaseData): Promise<CaseAnalysis> {
+  // Generate AI response using OpenAI API or fallback
+  static async generateResponse(prompt: string): Promise<string> {
     try {
-      // Use hardcoded API key for now
-      const openai = getOpenAI()
-
-      const prompt = `
-You are a legal AI assistant specializing in California family law cases. Analyze the following case data and provide a comprehensive analysis:
-
-Case Information:
-- Case Number: ${caseData.caseNumber}
-- Case Title: ${caseData.caseTitle}
-- Case Type: ${caseData.caseType}
-- Status: ${caseData.status}
-- Date Filed: ${caseData.dateFiled}
-- Petitioner: ${caseData.parties.petitioner}
-- Respondent: ${caseData.parties.respondent}
-- Petitioner Attorney: ${caseData.parties.petitionerAttorney || 'Not specified'}
-- Respondent Attorney: ${caseData.parties.respondentAttorney || 'Not specified'}
-- Court Location: ${caseData.courtLocation}
-- Judicial Officer: ${caseData.judicialOfficer}
-
-Please provide a JSON response with the following structure:
-{
-  "summary": "A concise 1-2 sentence summary of the case status and key points",
-  "keyRisks": ["Risk 1", "Risk 2"],
-  "recommendations": ["Recommendation 1", "Recommendation 2"],
-  "nextSteps": ["Next step 1", "Next step 2"],
-  "confidence": 0.85,
-  "riskAssessment": "low|medium|high"
-}
-
-Focus on:
-1. Brief legal implications and potential outcomes
-2. Key risks in family law cases of this type
-3. Essential recommendations for the client
-4. Immediate next steps in the legal process
-5. California-specific legal considerations
-
-Be professional, accurate, and concise. Keep responses brief and actionable. Confidence should be between 0.0 and 1.0.
-`
-
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a legal AI assistant specializing in California family law. Provide accurate, professional legal analysis in JSON format.'
+      // Check if OpenAI API key is available
+      const openaiApiKey = process.env.OPENAI_API_KEY
+      
+      if (openaiApiKey) {
+        // Use real OpenAI API
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
           },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1500,
-      })
+          body: JSON.stringify({
+            model: 'gpt-4',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an expert legal assistant specializing in California family law. Provide practical, actionable advice based on case facts. Be professional, helpful, and focus on California legal procedures.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7,
+          }),
+        })
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) {
-        throw new Error('No response from OpenAI')
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status}`)
+        }
+
+        const data = await response.json()
+        return data.choices[0]?.message?.content || 'Unable to generate response.'
+      } else {
+        // Fallback to mock AI responses
+        return this.generateMockResponse(prompt)
       }
-
-      // Parse the JSON response
-      const analysis = JSON.parse(response) as CaseAnalysis
-      
-      // Validate the response structure
-      if (!analysis.summary || !analysis.keyRisks || !analysis.recommendations || !analysis.nextSteps) {
-        throw new Error('Invalid AI response structure')
-      }
-
-      return analysis
-
     } catch (error) {
-      console.error('AI Analysis Error:', error)
-      
-      // Fallback to mock data if AI fails
-      return {
-        summary: "Family law case involving custody and support matters. Consult your attorney for detailed analysis.",
-        keyRisks: [
-          "Case complexity requires legal guidance",
-          "Timeline uncertainties in proceedings"
-        ],
-        recommendations: [
-          "Consult with family law attorney",
-          "Gather relevant documentation"
-        ],
-        nextSteps: [
-          "Review case documents",
-          "Schedule legal consultation"
-        ],
-        confidence: 0.5,
-        riskAssessment: "medium"
-      }
+      console.error('AI Service Error:', error)
+      // Fallback to mock responses
+      return this.generateMockResponse(prompt)
     }
   }
 
-  static async generateCaseInsights(caseData: CaseData): Promise<string> {
-    try {
-      // Use hardcoded API key for now
-      const openai = getOpenAI()
-
-      const prompt = `
-Generate 2-3 key insights for this California family law case:
-
-Case: ${caseData.caseTitle}
-Type: ${caseData.caseType}
-Status: ${caseData.status}
-Parties: ${caseData.parties.petitioner} vs ${caseData.parties.respondent}
-
-Provide brief, actionable insights that would be valuable for legal professionals.
-`
-
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.4,
-        max_tokens: 300,
-      })
-
-      return completion.choices[0]?.message?.content || "AI insights temporarily unavailable."
-
-    } catch (error) {
-      console.error('AI Insights Error:', error)
-      return "AI insights temporarily unavailable. Please consult with your legal team for case analysis."
+  // Generate mock AI responses for development/demo
+  private static generateMockResponse(prompt: string): string {
+    const lowerPrompt = prompt.toLowerCase()
+    
+    // Case status questions
+    if (lowerPrompt.includes('status') || lowerPrompt.includes('current')) {
+      return `Based on the case information, this case is currently in an active status. The case appears to be proceeding normally through the court system. I recommend monitoring any upcoming deadlines and ensuring all required documents are filed on time.`
     }
+    
+    // Deadline questions
+    if (lowerPrompt.includes('deadline') || lowerPrompt.includes('due')) {
+      return `Looking at the case timeline, there are several important deadlines to track. I recommend setting up calendar reminders for any upcoming filing deadlines and ensuring you have sufficient time to prepare responses. California family law typically requires responses within 30 days of service.`
+    }
+    
+    // Hearing questions
+    if (lowerPrompt.includes('hearing') || lowerPrompt.includes('court')) {
+      return `The upcoming hearing is scheduled for the date shown in the case details. I recommend preparing thoroughly by reviewing all case documents, organizing evidence, and preparing any necessary witnesses. Virtual attendance is available via the provided Zoom link.`
+    }
+    
+    // Document questions
+    if (lowerPrompt.includes('document') || lowerPrompt.includes('file')) {
+      return `The case includes several important documents that should be reviewed carefully. I recommend organizing them chronologically and ensuring you have copies of all filings. Consider creating a document index for easy reference during hearings.`
+    }
+    
+    // Strategy questions
+    if (lowerPrompt.includes('strategy') || lowerPrompt.includes('next') || lowerPrompt.includes('should')) {
+      return `Based on the case facts, I recommend focusing on the key legal issues and ensuring all procedural requirements are met. Consider consulting with opposing counsel about potential settlement options, and prepare thoroughly for any upcoming hearings.`
+    }
+    
+    // Timeline questions
+    if (lowerPrompt.includes('timeline') || lowerPrompt.includes('schedule')) {
+      return `The case timeline shows the progression of events and upcoming dates. I recommend creating a detailed calendar with all important dates and deadlines. This will help ensure nothing is missed and all filings are timely.`
+    }
+    
+    // General case questions
+    if (lowerPrompt.includes('case') || lowerPrompt.includes('overview')) {
+      return `This appears to be a family law case in the San Diego Superior Court system. The case is assigned to the specified judge and is proceeding through normal court procedures. I recommend staying current with all filings and maintaining communication with all parties involved.`
+    }
+    
+    // Default response
+    return `I understand you're asking about this case. Based on the case information available, I can help you understand the legal procedures, deadlines, and next steps. Could you be more specific about what aspect of the case you'd like me to focus on? I can help with case strategy, document analysis, deadline tracking, or hearing preparation.`
+  }
+
+  // Generate case summary
+  static async generateCaseSummary(caseData: any): Promise<string> {
+    const prompt = `
+    Generate a comprehensive case summary for the following case:
+    
+    Case Number: ${caseData.caseNumber || 'N/A'}
+    Case Type: ${caseData.caseType || 'Family Law'}
+    Status: ${caseData.status || 'Active'}
+    Court: ${caseData.court || 'San Diego Superior Court'}
+    Judge: ${caseData.judge || 'N/A'}
+    
+    Parties:
+    - Plaintiff: ${caseData.parties?.plaintiff || 'N/A'}
+    - Defendant: ${caseData.parties?.defendant || 'N/A'}
+    
+    Please provide a professional summary highlighting key case information, current status, and important considerations.
+    `
+    
+    return this.generateResponse(prompt)
+  }
+
+  // Analyze case documents
+  static async analyzeDocuments(documents: string[], caseContext: any): Promise<string> {
+    const prompt = `
+    Analyze the following case documents for case ${caseContext.caseNumber}:
+    
+    Documents: ${documents.join(', ')}
+    
+    Please provide insights on:
+    1. Key legal issues identified
+    2. Important deadlines or dates
+    3. Document relationships and chronology
+    4. Strategic recommendations
+    
+    Focus on California family law procedures and requirements.
+    `
+    
+    return this.generateResponse(prompt)
+  }
+
+  // Generate hearing preparation advice
+  static async generateHearingAdvice(hearingInfo: any, caseContext: any): Promise<string> {
+    const prompt = `
+    Provide hearing preparation advice for:
+    
+    Hearing Type: ${hearingInfo.type || 'N/A'}
+    Date: ${hearingInfo.date || 'N/A'}
+    Time: ${hearingInfo.time || 'N/A'}
+    Location: ${hearingInfo.location || 'N/A'}
+    
+    Case Context: ${caseContext.caseNumber} - ${caseContext.caseType}
+    
+    Please provide specific recommendations for preparation, what to bring, and what to expect.
+    `
+    
+    return this.generateResponse(prompt)
   }
 }

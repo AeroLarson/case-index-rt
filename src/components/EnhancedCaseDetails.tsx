@@ -272,6 +272,7 @@ export default function EnhancedCaseDetails({ caseDetails, onClose }: EnhancedCa
                 caseId={caseDetails.caseNumber}
                 caseTitle={caseDetails.title}
                 caseStatus={caseDetails.status}
+                caseType={caseDetails.caseType}
                 court="San Diego Superior Court"
                 judge={caseDetails.judge || 'Hon. Judge Smith'}
                 parties={{
@@ -279,6 +280,28 @@ export default function EnhancedCaseDetails({ caseDetails, onClose }: EnhancedCa
                   defendant: 'Case Defendant'
                 }}
                 lastLogin={new Date().toISOString()}
+                upcomingHearings={caseDetails.nextHearing ? [
+                  {
+                    date: caseDetails.nextHearing.date,
+                    time: caseDetails.nextHearing.time,
+                    type: caseDetails.nextHearing.type,
+                    location: caseDetails.nextHearing.location,
+                    virtualMeeting: caseDetails.nextHearing.virtualLinks?.zoom || caseDetails.nextHearing.virtualLinks?.teams
+                  }
+                ] : undefined}
+                caseHistory={[
+                  {
+                    date: caseDetails.filedDate,
+                    event: 'Case Filed',
+                    description: `${caseDetails.caseType} case filed in San Diego Superior Court`
+                  }
+                ]}
+                documents={[
+                  'Case Documents',
+                  'Court Filings',
+                  'Evidence',
+                  'Correspondence'
+                ]}
                 className="mb-6"
               />
 
