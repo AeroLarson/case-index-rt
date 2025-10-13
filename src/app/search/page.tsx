@@ -7,7 +7,6 @@ import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
 import AIOverview from '@/components/AIOverview'
 import CaseTimeline from '@/components/CaseTimeline'
 import { userProfileManager } from '@/lib/userProfile'
-import { AIService } from '@/lib/aiService'
 import EmptyState from '@/components/EmptyState'
 
 interface CaseResult {
@@ -37,8 +36,6 @@ export default function SearchPage() {
   const [showCaseDetails, setShowCaseDetails] = useState(false)
   const [caseDetails, setCaseDetails] = useState<any>(null)
   const [selectedCase, setSelectedCase] = useState<CaseResult | null>(null)
-  const [aiSummary, setAiSummary] = useState<any>(null)
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -238,54 +235,6 @@ export default function SearchPage() {
     setSelectedCase(case_)
   }
 
-  const handleGenerateAISummary = async (case_: CaseResult) => {
-    if (!isProUser) {
-      setShowUpgradeModal(true)
-      return
-    }
-
-    setIsGeneratingAI(true)
-    try {
-      // Prepare case data for AI analysis
-      const caseData = {
-        caseNumber: case_.caseNumber,
-        caseTitle: case_.title,
-        caseType: 'Family Law', // Default type
-        status: case_.status,
-        dateFiled: case_.lastActivity,
-        parties: {
-          petitioner: case_.parties.plaintiff,
-          respondent: case_.parties.defendant,
-          petitionerAttorney: 'Not specified',
-          respondentAttorney: 'Not specified'
-        },
-        courtLocation: case_.court,
-        judicialOfficer: case_.judge
-      }
-
-      // Call the AI API
-      const response = await fetch('/api/ai/analyze-case', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(caseData),
-      })
-
-      if (!response.ok) {
-        throw new Error(`AI analysis failed: ${response.status}`)
-      }
-
-      const result = await response.json()
-      setAiSummary(result.analysis)
-    } catch (error) {
-      console.error('Error generating AI summary:', error)
-      // Show error message to user
-      alert('AI analysis failed. Please try again or contact support.')
-    } finally {
-      setIsGeneratingAI(false)
-    }
-  }
 
   const handleAddToCalendar = (case_: CaseResult) => {
     if (!user) return
@@ -397,6 +346,7 @@ export default function SearchPage() {
             {searchResults.map((case_) => (
               <div
                 key={case_.id}
+                onClick={() => handleCaseClick(case_)}
                 className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
               >
                 <div className="flex justify-between items-start mb-4">
@@ -491,21 +441,6 @@ export default function SearchPage() {
                     <i className="fa-solid fa-star"></i>
                     Star Case
                   </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleGenerateAISummary(case_)
-                    }}
-                    disabled={isGeneratingAI}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {isGeneratingAI ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <i className="fa-solid fa-robot"></i>
-                    )}
-                    AI Summary
-                  </button>
                 </div>
 
                 {/* Monthly Usage Warning for Basic Users */}
@@ -555,7 +490,8 @@ export default function SearchPage() {
                 <h3 className="text-white font-semibold text-lg mb-4">AI Case Overview</h3>
                 <div className="text-center text-gray-400">
                   <i className="fa-solid fa-robot text-4xl mb-4 opacity-50"></i>
-                  <p>Select a case to generate AI overview</p>
+                  <p className="mb-2">Click on any case to see AI insights</p>
+                  <p className="text-sm">AI will analyze case details, timeline, and provide strategic recommendations</p>
                 </div>
               </div>
             )}
