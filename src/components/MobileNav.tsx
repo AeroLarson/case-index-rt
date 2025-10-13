@@ -33,7 +33,7 @@ export default function MobileNav() {
   return (
     <>
       {/* Bottom Mobile Navigation - Fixed */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-lg border-t border-purple-400/20 pb-safe">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-lg border-t border-purple-400/20" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="grid grid-cols-5 gap-1 px-2 py-2">
           {navItems.map((item) => (
             <button
@@ -56,7 +56,7 @@ export default function MobileNav() {
       <style jsx global>{`
         @media (max-width: 1024px) {
           body {
-            padding-bottom: env(safe-area-inset-bottom, 70px) !important;
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 70px) !important;
           }
         }
       `}</style>

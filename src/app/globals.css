@@ -896,7 +896,7 @@ input:checked + .toggle-slider:before {
 
   /* Add padding for bottom nav */
   main {
-    padding-bottom: 80px;
+    padding-bottom: 80px !important;
   }
 
   /* Better mobile scrolling */
@@ -956,6 +956,15 @@ input:checked + .toggle-slider:before {
 /* Safe area for notched devices */
 @supports (padding: max(0px)) {
   body {
-    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Ensure mobile nav stays at bottom */
+@media (max-width: 1024px) {
+  .fixed.bottom-0 {
+    position: fixed !important;
+    bottom: 0 !important;
+    z-index: 50 !important;
   }
 }
