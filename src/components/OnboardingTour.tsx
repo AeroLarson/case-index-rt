@@ -56,38 +56,48 @@ export default function OnboardingTour() {
 
   useEffect(() => {
     if (showTour && currentStep < tourSteps.length) {
-      const targetElement = document.querySelector(tourSteps[currentStep].target)
-      if (targetElement) {
-        const rect = targetElement.getBoundingClientRect()
-        const pos = tourSteps[currentStep].position
+      // Small delay to ensure DOM is stable
+      const timer = setTimeout(() => {
+        const targetElement = document.querySelector(tourSteps[currentStep].target)
+        if (targetElement) {
+          const rect = targetElement.getBoundingClientRect()
+          const pos = tourSteps[currentStep].position
 
-        let top = 0
-        let left = 0
+          let top = 0
+          let left = 0
 
-        switch (pos) {
-          case 'right':
-            top = rect.top + rect.height / 2
-            left = rect.right + 20
-            break
-          case 'left':
-            top = rect.top + rect.height / 2
-            left = rect.left - 320
-            break
-          case 'top':
-            top = rect.top - 180
-            left = rect.left + rect.width / 2
-            break
-          case 'bottom':
-            top = rect.bottom + 20
-            left = rect.left + rect.width / 2
-            break
+          switch (pos) {
+            case 'right':
+              top = rect.top + rect.height / 2
+              left = rect.right + 20
+              break
+            case 'left':
+              top = rect.top + rect.height / 2
+              left = rect.left - 320
+              break
+            case 'top':
+              top = rect.top - 180
+              left = rect.left + rect.width / 2
+              break
+            case 'bottom':
+              top = rect.bottom + 20
+              left = rect.left + rect.width / 2
+              break
+          }
+
+          setPosition({ top, left })
+
+          // Highlight the target element with a small delay to prevent layout shifts
+          setTimeout(() => {
+            targetElement.classList.add('tour-highlight')
+          }, 100)
         }
+      }, 150)
 
-        setPosition({ top, left })
-
-        // Highlight the target element
-        targetElement.classList.add('tour-highlight')
-        return () => {
+      return () => {
+        clearTimeout(timer)
+        const targetElement = document.querySelector(tourSteps[currentStep].target)
+        if (targetElement) {
           targetElement.classList.remove('tour-highlight')
         }
       }

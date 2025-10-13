@@ -238,6 +238,45 @@ body {
   width: 100% !important;
 }
 
+/* Tour highlight styles - prevent layout shifts */
+.tour-highlight {
+  position: relative !important;
+  z-index: 51 !important;
+  transform: none !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Ensure sidebar stays fixed during tour */
+#sidebar-navigation.tour-highlight {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
+}
+
+.tour-highlight::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 2px solid rgba(168, 85, 247, 0.8);
+  border-radius: 12px;
+  z-index: -1;
+  animation: tour-pulse 2s infinite;
+}
+
+@keyframes tour-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(168, 85, 247, 0.1);
+  }
+}
+
 /* Animated Purple Aura Background - Optimized */
 .animated-aura {
   position: relative;
