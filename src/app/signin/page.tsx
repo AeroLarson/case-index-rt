@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { authenticateWithGoogle } from '@/lib/googleAuth'
 
-export default function LoginPage() {
+export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -48,15 +48,6 @@ export default function LoginPage() {
         <div className="particle"></div>
       </div>
       
-      {/* Back Button */}
-      <button
-        onClick={() => router.push('/')}
-        className="absolute bottom-8 right-8 z-20 flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-800 transition-all group"
-      >
-        <i className="fa-solid fa-arrow-left text-lg group-hover:-translate-x-1 transition-transform"></i>
-        <span className="font-medium">Back to Home</span>
-      </button>
-
       {/* Main Content */}
       <div className="relative z-10 max-w-6xl w-full grid lg:grid-cols-2 gap-12 items-center">
         {/* Left Side - Branding */}
@@ -88,39 +79,21 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-4 justify-center lg:justify-start">
               <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <i className="fa-solid fa-database text-blue-400 text-xl"></i>
+                <i className="fa-solid fa-search text-blue-400 text-xl"></i>
               </div>
-              <div>
-                <p className="text-gray-200 text-lg font-semibold">Real-Time Court Data</p>
-                <p className="text-gray-400 text-sm">Live county records, constantly updated</p>
-              </div>
+              <p className="text-gray-200 text-lg">Advanced case search</p>
             </div>
             <div className="flex items-center gap-4 justify-center lg:justify-start">
               <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
                 <i className="fa-solid fa-robot text-purple-400 text-xl"></i>
               </div>
-              <div>
-                <p className="text-gray-200 text-lg font-semibold">AI-Powered Insights</p>
-                <p className="text-gray-400 text-sm">Smart case summaries and analysis</p>
-              </div>
+              <p className="text-gray-200 text-lg">AI-powered summaries</p>
             </div>
             <div className="flex items-center gap-4 justify-center lg:justify-start">
               <div className="w-12 h-12 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                <i className="fa-solid fa-link text-cyan-400 text-xl"></i>
+                <i className="fa-solid fa-calendar-check text-cyan-400 text-xl"></i>
               </div>
-              <div>
-                <p className="text-gray-200 text-lg font-semibold">Easy Clio Integration</p>
-                <p className="text-gray-400 text-sm">Seamless sync with your CRM</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 justify-center lg:justify-start">
-              <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
-                <i className="fa-solid fa-calendar-check text-green-400 text-xl"></i>
-              </div>
-              <div>
-                <p className="text-gray-200 text-lg font-semibold">Automated Calendar</p>
-                <p className="text-gray-400 text-sm">Never miss a deadline or hearing</p>
-              </div>
+              <p className="text-gray-200 text-lg">Automated calendar sync</p>
             </div>
           </div>
         </div>
@@ -206,3 +179,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

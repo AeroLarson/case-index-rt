@@ -1,0 +1,25 @@
+═══════════════════════════════════════════════════════════════
+  📋 COPY THESE TWO LINES TO YOUR .env.local FILE
+═══════════════════════════════════════════════════════════════
+
+Open your .env.local file and add these lines at the bottom:
+
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=NCjTsoYiixt4zIbDF53ZGvL7mE/gq8b1YPW98uOx5+g=
+
+That's it! Just those 2 lines.
+
+Your existing Google OAuth credentials should already be in there.
+
+After you save .env.local, the server will automatically restart 
+and Google sign-in will work! 🚀
+
+═══════════════════════════════════════════════════════════════
+
+✅ What happens after:
+- Google button will work
+- Email/password will work
+- Both options will be available on login page
+
+═══════════════════════════════════════════════════════════════
+

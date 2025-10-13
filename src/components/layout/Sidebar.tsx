@@ -19,13 +19,16 @@ export default function Sidebar() {
 
   const getButtonClasses = (path: string) => {
     const baseClasses = "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium no-underline transition-colors border-none cursor-pointer w-full text-left hover-lift hover-glow"
-    const activeClasses = "bg-indigo-800 text-white"
+    const activeClasses = "accent-gradient text-white"
     const inactiveClasses = "text-purple-300 hover:bg-purple-900/20"
     
     return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
   }
 
-  // Always render sidebar, but show different content based on user state
+  // Only show sidebar when user is logged in
+  if (!user) {
+    return null
+  }
 
   return (
     <aside 
@@ -109,6 +112,14 @@ export default function Sidebar() {
             >
               <i className="fa-solid fa-user text-base" />
               <span>Account</span>
+            </button>
+            <button 
+              onClick={() => router.push('/help')}
+              id="nav-help"
+              className={getButtonClasses('/help')}
+            >
+              <i className="fa-solid fa-circle-question text-base" />
+              <span>Help Center</span>
             </button>
           </nav>
 

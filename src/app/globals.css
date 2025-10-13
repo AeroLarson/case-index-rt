@@ -6,11 +6,219 @@
 :root {
   --background: #0f0520;
   --foreground: #ffffff;
+  --accent-from: #3b82f6;
+  --accent-to: #8b5cf6;
+}
+
+/* Light Theme - FULLY BRIGHT */
+[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  color-scheme: light;
+}
+
+[data-theme="light"] body {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Light theme - ALL main areas bright */
+[data-theme="light"] main,
+[data-theme="light"] div[style*="background"],
+[data-theme="light"] .min-h-screen {
+  background: #f8fafc !important;
+}
+
+/* Light theme cards - clean white */
+[data-theme="light"] .apple-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Light theme text - ALL dark for readability */
+[data-theme="light"] .text-white,
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] p,
+[data-theme="light"] span {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-gray-300,
+[data-theme="light"] .text-gray-400 {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+[data-theme="light"] .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+/* Light theme purple/blue accents become darker */
+[data-theme="light"] .text-purple-300,
+[data-theme="light"] .text-purple-400 {
+  color: #7c3aed !important;
+}
+
+[data-theme="light"] .text-blue-300,
+[data-theme="light"] .text-blue-400 {
+  color: #2563eb !important;
+}
+
+/* Light theme header */
+[data-theme="light"] header {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%) !important;
+}
+
+/* Light theme sidebar */
+[data-theme="light"] aside {
+  background: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] aside .text-purple-300 {
+  color: #7c3aed !important;
+}
+
+/* Light theme footer */
+[data-theme="light"] footer {
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+/* Light theme all slate backgrounds */
+[data-theme="light"] [class*="bg-slate"] {
+  background: #f1f5f9 !important;
+}
+
+[data-theme="light"] .bg-gray-900 {
+  background: #f8fafc !important;
+}
+
+/* Light theme borders */
+[data-theme="light"] [class*="border-slate"],
+[data-theme="light"] [class*="border-gray"] {
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] [class*="border-purple"] {
+  border-color: #e9d5ff !important;
+}
+
+/* Light theme inputs */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+  border-color: var(--accent-from) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+[data-theme="light"] input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Light theme - hide/adjust dark overlays */
+[data-theme="light"] .animated-aura::before,
+[data-theme="light"] .animated-aura::after {
+  display: none !important;
+}
+
+/* Light theme particles - barely visible */
+[data-theme="light"] .particle {
+  background: rgba(139, 92, 246, 0.08) !important;
+}
+
+/* Light theme - make icon colors visible */
+[data-theme="light"] i[class*="text-"] {
+  /* Keep icon colors vibrant in light mode */
+}
+
+/* Dark Theme (default) */
+[data-theme="dark"] {
+  --background: #0f0520;
+  --foreground: #ffffff;
+  color-scheme: dark;
+}
+
+/* Accent Color Variations */
+[data-accent="blue-purple"] {
+  --accent-from: #3b82f6;
+  --accent-to: #8b5cf6;
+}
+
+[data-accent="green-emerald"] {
+  --accent-from: #10b981;
+  --accent-to: #059669;
+}
+
+[data-accent="orange-red"] {
+  --accent-from: #f97316;
+  --accent-to: #ef4444;
+}
+
+[data-accent="pink-rose"] {
+  --accent-from: #ec4899;
+  --accent-to: #f43f5e;
+}
+
+[data-accent="cyan-blue"] {
+  --accent-from: #06b6d4;
+  --accent-to: #3b82f6;
+}
+
+[data-accent="indigo-purple"] {
+  --accent-from: #6366f1;
+  --accent-to: #8b5cf6;
+}
+
+/* Apply accent colors to gradients */
+.accent-gradient {
+  background: linear-gradient(135deg, var(--accent-from) 0%, var(--accent-to) 100%) !important;
+}
+
+.accent-gradient-hover:hover {
+  background: linear-gradient(135deg, var(--accent-from) 0%, var(--accent-to) 100%);
+}
+
+.bg-gradient-accent {
+  background: linear-gradient(to right, var(--accent-from), var(--accent-to)) !important;
+}
+
+/* Apply accent to common button patterns */
+button[class*="from-blue-500"][class*="to-purple"],
+button[class*="from-purple-600"][class*="to-indigo"],
+.btn-accent {
+  background: linear-gradient(to right, var(--accent-from), var(--accent-to)) !important;
+}
+
+button[class*="from-blue-500"][class*="to-purple"]:hover,
+button[class*="from-purple-600"][class*="to-indigo"]:hover,
+.btn-accent:hover {
+  opacity: 0.9;
 }
 
 /* Ensure proper color scheme */
 * {
   color-scheme: dark;
+}
+
+[data-theme="light"] * {
+  color-scheme: light;
 }
 
 /* Reset body margins for full-width layout */
@@ -91,6 +299,7 @@ body {
   position: absolute;
   background: rgba(139, 92, 246, 0.2);
   border-radius: 50%;
+  opacity: 0;
   animation: float 8s ease-in-out infinite;
   will-change: transform, opacity;
 }
@@ -159,7 +368,7 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+  0% {
     transform: translateY(100vh) rotate(0deg);
     opacity: 0;
   }
@@ -489,6 +698,176 @@ input:checked + .toggle-slider:before {
     transform: translateY(0);
     filter: blur(0);
   }
+}
+
+/* Page Transitions */
+.page-transition {
+  animation: pageEnter 0.3s ease-out;
+}
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Loading Skeletons */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(51, 65, 85, 0.5) 25%,
+    rgba(71, 85, 105, 0.5) 50%,
+    rgba(51, 65, 85, 0.5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Notification animations */
+.notification-enter {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.notification-exit {
+  animation: slideOutRight 0.3s ease-in;
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Micro animations */
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow-subtle {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.hover-glow-subtle:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+/* Smooth reveal animations */
+.reveal-fade-in {
+  animation: revealFadeIn 0.6s ease-out;
+}
+
+@keyframes revealFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animations for lists */
+.stagger-animation {
+  animation: revealFadeIn 0.6s ease-out;
+}
+
+.stagger-animation:nth-child(1) { animation-delay: 0.05s; }
+.stagger-animation:nth-child(2) { animation-delay: 0.1s; }
+.stagger-animation:nth-child(3) { animation-delay: 0.15s; }
+.stagger-animation:nth-child(4) { animation-delay: 0.2s; }
+.stagger-animation:nth-child(5) { animation-delay: 0.25s; }
+.stagger-animation:nth-child(6) { animation-delay: 0.3s; }
+
+/* Display Density Settings */
+[data-density="compact"] .apple-card {
+  padding: 0.75rem !important;
+}
+
+[data-density="compact"] section,
+[data-density="compact"] div[class*="py-"] {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+[data-density="spacious"] .apple-card {
+  padding: 2rem !important;
+}
+
+[data-density="spacious"] section,
+[data-density="spacious"] div[class*="py-"] {
+  padding-top: 3rem !important;
+  padding-bottom: 3rem !important;
+}
+
+/* Disable hover effects when turned off */
+.no-hover-effects .hover-lift:hover,
+.no-hover-effects .hover-glow:hover,
+.no-hover-effects .hover-glow-subtle:hover,
+.no-hover-effects .hover-scale:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+[data-density="compact"] * {
+  --animation-duration: 0.01ms;
 }
 
 /* Mobile Responsive Styles */

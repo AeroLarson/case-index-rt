@@ -39,11 +39,21 @@ export default function SearchPage() {
   const [aiSummary, setAiSummary] = useState<any>(null)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      router.push('/login')
+    }
+  }, [user, router])
+
   // Get user subscription status from profile
   const isProUser = userProfile?.plan === 'pro' || userProfile?.plan === 'team'
   const isBasicUser = userProfile?.plan === 'free'
   const monthlyUsage = userProfile?.monthlyUsage || 0
   const maxMonthlyUsage = userProfile?.maxMonthlyUsage || 1
+
+  // Don't render anything if not logged in
+  if (!user) return null
 
   const mockSearchResults: CaseResult[] = [
     {

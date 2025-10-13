@@ -25,9 +25,9 @@ export default function Header() {
   return (
     <header 
       id="header-dashboard" 
-      className="relative overflow-hidden lg:ml-60"
+      className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
       style={{
-        background: 'linear-gradient(135deg,#1a0b2e 0%,#2d1b4e 50%,#4c1d95 100%)',
+        background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
         padding: user 
           ? (pathname === '/' ? '10px 24px 40px' : '10px 24px 10px') // Much smaller purple area
           : '10px 24px 80px', // Smaller header for non-authenticated users
@@ -43,71 +43,79 @@ export default function Header() {
       
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Navigation */}
-        <div className={`flex justify-between items-center ${pathname === '/' ? 'mb-8' : 'mb-1'}`}>
-          {/* Mobile menu button */}
-          <button 
-            onClick={toggleMobileMenu}
-            className="lg:hidden text-white p-2"
-          >
-            <i className={`fa-solid ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
-          </button>
+        <div className={`flex items-center ${user ? 'justify-end' : 'justify-between'} ${pathname === '/' ? 'mb-8' : 'mb-1'}`}>
+          {/* Logo and Name - Top Left when not logged in */}
+          {!user && (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                <i className="fa-solid fa-gavel text-white text-xl"></i>
+              </div>
+              <span className="text-white text-xl font-bold hidden sm:block">Case Index RT</span>
+            </div>
+          )}
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex gap-6">
-            <button 
-              onClick={() => router.push('/')}
-              className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
-            >
-              Home
-            </button>
-            <button 
-              onClick={() => router.push('/about')}
-              className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
-            >
-              About
-            </button>
-            <button 
-              onClick={() => router.push('/pricing')}
-              className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
-            >
-              Pricing
-            </button>
-            <button 
-              onClick={() => router.push('/privacy')}
-              className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
-            >
-              Privacy
-            </button>
-          </nav>
+          {/* Desktop Navigation - Centered when not logged in */}
+          {!user && (
+            <nav className="hidden lg:flex gap-8 absolute left-1/2 transform -translate-x-1/2">
+              <button 
+                onClick={() => router.push('/')}
+                className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
+              >
+                Home
+              </button>
+              <button 
+                onClick={() => router.push('/about')}
+                className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
+              >
+                About
+              </button>
+              <button 
+                onClick={() => router.push('/pricing')}
+                className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
+              >
+                Pricing
+              </button>
+              <button 
+                onClick={() => router.push('/privacy')}
+                className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer"
+              >
+                Privacy
+              </button>
+            </nav>
+          )}
 
           {/* Mobile Navigation Menu */}
           {mobileMenuOpen && (
             <div className="absolute top-full left-0 right-0 bg-gray-900 border-t border-purple-400/20 lg:hidden z-50">
               <nav className="flex flex-col p-4 space-y-2">
-                <button 
-                  onClick={() => { router.push('/'); setMobileMenuOpen(false); }}
-                  className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                >
-                  Home
-                </button>
-                <button 
-                  onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}
-                  className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                >
-                  About
-                </button>
-                <button 
-                  onClick={() => { router.push('/pricing'); setMobileMenuOpen(false); }}
-                  className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                >
-                  Pricing
-                </button>
-                <button 
-                  onClick={() => { router.push('/privacy'); setMobileMenuOpen(false); }}
-                  className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                >
-                  Privacy
-                </button>
+                {!user && (
+                  <>
+                    <button 
+                      onClick={() => { router.push('/'); setMobileMenuOpen(false); }}
+                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
+                    >
+                      Home
+                    </button>
+                    <button 
+                      onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}
+                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
+                    >
+                      About
+                    </button>
+                    <button 
+                      onClick={() => { router.push('/pricing'); setMobileMenuOpen(false); }}
+                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
+                    >
+                      Pricing
+                    </button>
+                    <button 
+                      onClick={() => { router.push('/privacy'); setMobileMenuOpen(false); }}
+                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
+                    >
+                      Privacy
+                    </button>
+                  </>
+                )}
               </nav>
             </div>
           )}

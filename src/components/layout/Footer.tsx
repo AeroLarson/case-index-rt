@@ -1,10 +1,14 @@
 'use client'
 
+import { useAuth } from '@/contexts/AuthContext'
+
 export default function Footer() {
+  const { user } = useAuth()
+  
   return (
     <footer 
       id="footer-main"
-      className="border-t border-purple-400/10 lg:ml-60"
+      className={`border-t border-purple-400/10 ${user ? 'lg:ml-60' : ''}`}
       style={{
         background: '#0f0520',
         padding: '48px 24px 24px'

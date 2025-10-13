@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Authentication & Profile
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // Hashed password for email/password auth
+  emailVerified DateTime?
+  image         String?
+  
+  // OAuth accounts (Google, etc.)
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Password reset
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+  
+  // User profile data
+  avatar        String?
+  plan          String    @default("free") // free, pro, team
+  monthlyUsage  Int       @default(0)
+  maxMonthlyUsage Int     @default(10)
+  
+  // Tracking
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLogin     DateTime  @default(now())
+  previousLogin DateTime?
+  
+  // Relations
+  savedCases    SavedCase[]
+  recentSearches RecentSearch[]
+  starredCases  StarredCase[]
+  calendarEvents CalendarEvent[]
+  
+  @@index([email])
+}
+
+// NextAuth Account model (for OAuth providers)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// NextAuth Session model
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Saved Cases
+model SavedCase {
+  id          String   @id @default(cuid())
+  userId      String
+  caseNumber  String
+  caseTitle   String
+  caseType    String
+  caseStatus  String
+  dateFiled   String
+  court       String
+  judge       String?
+  parties     String?
+  savedAt     DateTime @default(now())
+  notes       String?  @db.Text
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([caseNumber])
+}
+
+// Recent Searches
+model RecentSearch {
+  id          String   @id @default(cuid())
+  userId      String
+  query       String
+  searchType  String   // party, case, attorney
+  searchedAt  DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// Starred Cases
+model StarredCase {
+  id         String   @id @default(cuid())
+  userId     String
+  caseNumber String
+  starredAt  DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, caseNumber])
+  @@index([userId])
+}
+
+// Calendar Events
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?  @db.Text
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  eventType   String   // hearing, filing, deadline, meeting
+  caseNumber  String?
+  court       String?
+  judge       String?
+  zoomLink    String?
+  zoomId      String?
+  zoomPasscode String?
+  createdAt   DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([startDate])
+}

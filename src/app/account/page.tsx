@@ -1,15 +1,24 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 export default function AccountPage() {
   const { user, logout, userProfile } = useAuth()
+  const { settings, updateSettings } = useCustomization()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showSavedNotification, setShowSavedNotification] = useState(false)
+
+  const handleCustomizationChange = (newSettings: any) => {
+    updateSettings(newSettings)
+    setShowSavedNotification(true)
+    setTimeout(() => setShowSavedNotification(false), 2000)
+  }
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -87,6 +96,19 @@ export default function AccountPage() {
         padding: '40px 24px'
       }}
     >
+      {/* Saved Notification Toast */}
+      {showSavedNotification && (
+        <div className="fixed top-4 right-4 z-50 animate-slideInRight">
+          <div className="apple-card p-4 bg-green-500/20 border-green-500/50 flex items-center gap-3">
+            <i className="fa-solid fa-check-circle text-green-400 text-xl"></i>
+            <div>
+              <p className="text-white font-semibold">Settings Saved!</p>
+              <p className="text-green-300 text-sm">Changes applied successfully</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -149,6 +171,17 @@ export default function AccountPage() {
                 >
                   <i className="fa-solid fa-gear mr-3"></i>
                   Preferences
+                </button>
+                <button
+                  onClick={() => setActiveTab('customization')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'customization' 
+                      ? 'bg-blue-500/20 text-blue-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-palette mr-3"></i>
+                  Customization
                 </button>
               </nav>
             </div>
@@ -417,15 +450,6 @@ export default function AccountPage() {
                 <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Application Preferences</h2>
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">Theme</label>
-                    <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                      <option value="dark">Dark Mode</option>
-                      <option value="light">Light Mode</option>
-                      <option value="auto">Auto</option>
-                    </select>
-                  </div>
-
-                  <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2">Language</label>
                     <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
                       <option value="en">English</option>
@@ -441,6 +465,279 @@ export default function AccountPage() {
                       <option value="est">Eastern Standard Time</option>
                       <option value="cst">Central Standard Time</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 text-sm font-medium mb-2">Date Format</label>
+                    <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                      <option value="mm/dd/yyyy">MM/DD/YYYY (US)</option>
+                      <option value="dd/mm/yyyy">DD/MM/YYYY (International)</option>
+                      <option value="yyyy-mm-dd">YYYY-MM-DD (ISO)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Customization Tab */}
+            {activeTab === 'customization' && (
+              <div className="apple-card p-8">
+                <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">
+                  <i className="fa-solid fa-palette text-purple-400 mr-2"></i>
+                  Customization
+                </h2>
+                <p className="text-gray-300 mb-8">Personalize your Case Index RT experience</p>
+
+                <div className="space-y-8">
+                  {/* Theme Selection */}
+                  <div>
+                    <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+                      <i className="fa-solid fa-moon text-blue-400"></i>
+                      Theme
+                    </h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <button 
+                        onClick={() => handleCustomizationChange({ theme: 'dark' })}
+                        className={`p-6 border-2 rounded-xl transition-all ${
+                          settings.theme === 'dark' 
+                            ? 'border-blue-500 bg-blue-500/20' 
+                            : 'border-slate-600 bg-slate-800/20 hover:bg-slate-800/40'
+                        }`}
+                      >
+                        <div className="w-full h-16 bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg mb-3"></div>
+                        <p className="text-white font-medium text-sm">Dark</p>
+                        {settings.theme === 'dark' && (
+                          <p className="text-blue-400 text-xs mt-1">
+                            <i className="fa-solid fa-check"></i> Active
+                          </p>
+                        )}
+                      </button>
+                      <button 
+                        onClick={() => handleCustomizationChange({ theme: 'light' })}
+                        className={`p-6 border-2 rounded-xl transition-all ${
+                          settings.theme === 'light' 
+                            ? 'border-blue-500 bg-blue-500/20' 
+                            : 'border-slate-600 bg-slate-800/20 hover:bg-slate-800/40'
+                        }`}
+                      >
+                        <div className="w-full h-16 bg-gradient-to-br from-gray-100 to-white rounded-lg mb-3 border border-gray-300"></div>
+                        <p className="text-white font-medium text-sm">Light</p>
+                        {settings.theme === 'light' && (
+                          <p className="text-blue-400 text-xs mt-1">
+                            <i className="fa-solid fa-check"></i> Active
+                          </p>
+                        )}
+                      </button>
+                      <button 
+                        onClick={() => handleCustomizationChange({ theme: 'auto' })}
+                        className={`p-6 border-2 rounded-xl transition-all ${
+                          settings.theme === 'auto' 
+                            ? 'border-blue-500 bg-blue-500/20' 
+                            : 'border-slate-600 bg-slate-800/20 hover:bg-slate-800/40'
+                        }`}
+                      >
+                        <div className="w-full h-16 bg-gradient-to-r from-slate-900 via-gray-300 to-white rounded-lg mb-3"></div>
+                        <p className="text-white font-medium text-sm">Auto</p>
+                        {settings.theme === 'auto' && (
+                          <p className="text-blue-400 text-xs mt-1">
+                            <i className="fa-solid fa-check"></i> Active
+                          </p>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Accent Color */}
+                  <div>
+                    <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+                      <i className="fa-solid fa-droplet text-purple-400"></i>
+                      Accent Color
+                    </h3>
+                    <div className="grid grid-cols-6 gap-3">
+                      {[
+                        { name: 'blue-purple', gradient: 'from-blue-500 to-purple-600' },
+                        { name: 'green-emerald', gradient: 'from-green-500 to-emerald-600' },
+                        { name: 'orange-red', gradient: 'from-orange-500 to-red-600' },
+                        { name: 'pink-rose', gradient: 'from-pink-500 to-rose-600' },
+                        { name: 'cyan-blue', gradient: 'from-cyan-500 to-blue-600' },
+                        { name: 'indigo-purple', gradient: 'from-indigo-500 to-purple-600' },
+                      ].map((color) => (
+                        <button
+                          key={color.name}
+                          onClick={() => handleCustomizationChange({ accentColor: color.name })}
+                          className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color.gradient} border-2 hover:scale-110 transition-all ${
+                            settings.accentColor === color.name ? 'border-white shadow-lg' : 'border-transparent'
+                          }`}
+                        >
+                          {settings.accentColor === color.name && (
+                            <i className="fa-solid fa-check text-white"></i>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Display Density */}
+                  <div>
+                    <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+                      <i className="fa-solid fa-expand text-cyan-400"></i>
+                      Display Density
+                    </h3>
+                    <div className="space-y-3">
+                      {(['compact', 'comfortable', 'spacious'] as const).map((density) => (
+                        <button
+                          key={density}
+                          onClick={() => handleCustomizationChange({ displayDensity: density })}
+                          className={`w-full p-4 border-2 rounded-xl transition-all text-left ${
+                            settings.displayDensity === density
+                              ? 'border-blue-500 bg-blue-500/20 hover:bg-blue-500/30'
+                              : 'border-slate-600 bg-slate-800/20 hover:bg-slate-800/40'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-white font-medium capitalize">{density}</p>
+                              <p className={settings.displayDensity === density ? 'text-blue-400 text-sm' : 'text-gray-400 text-sm'}>
+                                {settings.displayDensity === density && <><i className="fa-solid fa-check mr-1"></i> Active - </>}
+                                {density === 'compact' && 'More content, less spacing'}
+                                {density === 'comfortable' && 'Balanced spacing'}
+                                {density === 'spacious' && 'Maximum breathing room'}
+                              </p>
+                            </div>
+                            <div className={`flex ${density === 'compact' ? 'gap-1' : density === 'comfortable' ? 'gap-2' : 'gap-3'}`}>
+                              <div className={`w-2 h-8 rounded ${settings.displayDensity === density ? 'bg-blue-400' : 'bg-gray-500'}`}></div>
+                              <div className={`w-2 h-8 rounded ${settings.displayDensity === density ? 'bg-blue-400' : 'bg-gray-500'}`}></div>
+                              <div className={`w-2 h-8 rounded ${settings.displayDensity === density ? 'bg-blue-400' : 'bg-gray-500'}`}></div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dashboard Layout */}
+                  <div>
+                    <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+                      <i className="fa-solid fa-grip text-green-400"></i>
+                      Dashboard Layout
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button className="p-4 border-2 border-blue-500 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-all">
+                        <div className="grid grid-cols-3 gap-1 mb-3">
+                          <div className="h-8 bg-blue-400/50 rounded col-span-2"></div>
+                          <div className="h-8 bg-blue-400/50 rounded"></div>
+                          <div className="h-6 bg-blue-400/30 rounded col-span-3"></div>
+                        </div>
+                        <p className="text-white font-medium text-sm">Default</p>
+                        <p className="text-blue-400 text-xs">
+                          <i className="fa-solid fa-check mr-1"></i>
+                          Active
+                        </p>
+                      </button>
+                      <button className="p-4 border-2 border-slate-600 bg-slate-800/20 rounded-xl hover:bg-slate-800/40 transition-all">
+                        <div className="grid grid-cols-2 gap-1 mb-3">
+                          <div className="h-8 bg-gray-500/50 rounded"></div>
+                          <div className="h-8 bg-gray-500/50 rounded"></div>
+                          <div className="h-6 bg-gray-500/30 rounded col-span-2"></div>
+                        </div>
+                        <p className="text-gray-300 font-medium text-sm">Grid</p>
+                        <p className="text-gray-500 text-xs">Coming Soon</p>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Animations */}
+                  <div>
+                    <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+                      <i className="fa-solid fa-sparkles text-yellow-400"></i>
+                      Animations & Effects
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="text-white font-medium">Page Transitions</h4>
+                          <p className="text-gray-400 text-sm">Smooth animations between pages</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer" 
+                            checked={settings.animations.pageTransitions}
+                            onChange={(e) => handleCustomizationChange({ 
+                              animations: { ...settings.animations, pageTransitions: e.target.checked }
+                            })}
+                          />
+                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="text-white font-medium">Particle Effects</h4>
+                          <p className="text-gray-400 text-sm">Floating particles on backgrounds</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer" 
+                            checked={settings.animations.particleEffects}
+                            onChange={(e) => handleCustomizationChange({ 
+                              animations: { ...settings.animations, particleEffects: e.target.checked }
+                            })}
+                          />
+                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="text-white font-medium">Hover Effects</h4>
+                          <p className="text-gray-400 text-sm">Card lifts and glows on hover</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer" 
+                            checked={settings.animations.hoverEffects}
+                            onChange={(e) => handleCustomizationChange({ 
+                              animations: { ...settings.animations, hoverEffects: e.target.checked }
+                            })}
+                          />
+                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="text-white font-medium">Reduce Motion</h4>
+                          <p className="text-gray-400 text-sm">Minimize animations for accessibility</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer" 
+                            checked={settings.animations.reduceMotion}
+                            onChange={(e) => handleCustomizationChange({ 
+                              animations: { ...settings.animations, reduceMotion: e.target.checked }
+                            })}
+                          />
+                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info Banner */}
+                  <div className="pt-6 border-t border-slate-700">
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                      <div className="flex items-center gap-3">
+                        <i className="fa-solid fa-check-circle text-green-400 text-xl"></i>
+                        <div>
+                          <p className="text-green-300 font-medium">Changes Saved Automatically</p>
+                          <p className="text-green-400/70 text-sm">Your customization preferences are applied instantly</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
