@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import AICaseChat from './AICaseChat'
 
 interface AIOverviewProps {
   caseId?: string
   caseTitle?: string
   caseStatus?: string
-  caseType?: string
   court?: string
   judge?: string
   parties?: {
@@ -15,39 +13,21 @@ interface AIOverviewProps {
     defendant: string
   }
   lastLogin?: string
-  upcomingHearings?: Array<{
-    date: string
-    time: string
-    type: string
-    location: string
-    virtualMeeting?: string
-  }>
-  caseHistory?: Array<{
-    date: string
-    event: string
-    description: string
-  }>
-  documents?: string[]
   className?: string
 }
 
 export default function AIOverview({ 
   caseId, 
   caseTitle, 
-  caseStatus,
-  caseType = 'Family Law',
+  caseStatus, 
   court, 
   judge, 
   parties,
-  lastLogin,
-  upcomingHearings,
-  caseHistory,
-  documents,
+  lastLogin, 
   className = '' 
 }: AIOverviewProps) {
   const [isThinking, setIsThinking] = useState(false)
   const [overview, setOverview] = useState('')
-  const [showChat, setShowChat] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
 
   // Generate AI overview when case changes
@@ -216,18 +196,9 @@ export default function AIOverview({
         ) : isComplete ? (
           <div className="ai-overview-content">
             <p className="text-gray-300 leading-relaxed">{overview}</p>
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-purple-400">
-                <i className="fa-solid fa-sparkles"></i>
-                <span>AI-generated summary</span>
-              </div>
-              <button
-                onClick={() => setShowChat(!showChat)}
-                className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
-              >
-                <i className="fa-solid fa-comments"></i>
-                <span>{showChat ? 'Hide Chat' : 'Ask AI'}</span>
-              </button>
+            <div className="mt-4 flex items-center gap-2 text-sm text-purple-400">
+              <i className="fa-solid fa-sparkles"></i>
+              <span>AI-generated summary</span>
             </div>
           </div>
         ) : (
@@ -237,24 +208,6 @@ export default function AIOverview({
           </div>
         )}
       </div>
-
-      {/* AI Case Chat */}
-      {showChat && isComplete && caseId && (
-        <div className="mt-6">
-          <AICaseChat
-            caseNumber={caseId}
-            caseTitle={caseTitle || 'Case Details'}
-            caseStatus={caseStatus || 'Active'}
-            caseType={caseType}
-            court={court || 'San Diego Superior Court'}
-            judge={judge || 'Hon. Judge'}
-            parties={parties || { plaintiff: 'Plaintiff', defendant: 'Defendant' }}
-            upcomingHearings={upcomingHearings}
-            caseHistory={caseHistory}
-            documents={documents}
-          />
-        </div>
-      )}
 
       <style jsx>{`
         .ai-thinking-container {

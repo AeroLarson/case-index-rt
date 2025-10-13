@@ -474,44 +474,10 @@ export default function SearchPage() {
                       caseId={selectedCase.caseNumber}
                       caseTitle={selectedCase.title}
                       caseStatus={selectedCase.status}
-                      caseType="Family Law"
                       court={selectedCase.court}
                       judge={selectedCase.judge}
                       parties={selectedCase.parties}
                       lastLogin={userProfile?.previousLogin}
-                      upcomingHearings={[
-                        {
-                          date: '1/27/2026',
-                          time: '9:00 AM',
-                          type: 'Request for Order Hearing',
-                          location: selectedCase.court,
-                          virtualMeeting: 'Zoom ID: 123-456-7890, Passcode: 123456'
-                        }
-                      ]}
-                      caseHistory={[
-                        {
-                          date: '2024-03-15',
-                          event: 'Motion Hearing',
-                          description: 'Motion for temporary custody hearing scheduled'
-                        },
-                        {
-                          date: '2024-03-10',
-                          event: 'Document Filing',
-                          description: 'Response to motion filed by defendant'
-                        },
-                        {
-                          date: '2024-03-01',
-                          event: 'Case Filed',
-                          description: 'Initial complaint filed'
-                        }
-                      ]}
-                      documents={[
-                        'Complaint for Divorce',
-                        'Summons',
-                        'Response to Complaint',
-                        'Motion for Temporary Custody',
-                        'Declaration of Service'
-                      ]}
                       className="mb-6"
                     />
                 <CaseTimeline 
