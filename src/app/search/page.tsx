@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
+import AIOverview from '@/components/AIOverview'
+import CaseTimeline from '@/components/CaseTimeline'
 import { userProfileManager } from '@/lib/userProfile'
+import { AIService } from '@/lib/aiService'
 import EmptyState from '@/components/EmptyState'
 
 interface CaseResult {
@@ -33,6 +36,9 @@ export default function SearchPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [showCaseDetails, setShowCaseDetails] = useState(false)
   const [caseDetails, setCaseDetails] = useState<any>(null)
+  const [selectedCase, setSelectedCase] = useState<CaseResult | null>(null)
+  const [aiSummary, setAiSummary] = useState<any>(null)
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -224,6 +230,115 @@ export default function SearchPage() {
     router.push('/pricing')
   }
 
+  const handleCaseClick = (case_: CaseResult) => {
+    if (!isProUser && !case_.isDetailed) {
+      setShowUpgradeModal(true)
+      return
+    }
+    setSelectedCase(case_)
+  }
+
+  const handleGenerateAISummary = async (case_: CaseResult) => {
+    if (!isProUser) {
+      setShowUpgradeModal(true)
+      return
+    }
+
+    setIsGeneratingAI(true)
+    try {
+      // Prepare case data for AI analysis
+      const caseData = {
+        caseNumber: case_.caseNumber,
+        caseTitle: case_.title,
+        caseType: 'Family Law', // Default type
+        status: case_.status,
+        dateFiled: case_.lastActivity,
+        parties: {
+          petitioner: case_.parties.plaintiff,
+          respondent: case_.parties.defendant,
+          petitionerAttorney: 'Not specified',
+          respondentAttorney: 'Not specified'
+        },
+        courtLocation: case_.court,
+        judicialOfficer: case_.judge
+      }
+
+      // Call the AI API
+      const response = await fetch('/api/ai/analyze-case', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(caseData),
+      })
+
+      if (!response.ok) {
+        throw new Error(`AI analysis failed: ${response.status}`)
+      }
+
+      const result = await response.json()
+      setAiSummary(result.analysis)
+    } catch (error) {
+      console.error('Error generating AI summary:', error)
+      // Show error message to user
+      alert('AI analysis failed. Please try again or contact support.')
+    } finally {
+      setIsGeneratingAI(false)
+    }
+  }
+
+  const handleAddToCalendar = (case_: CaseResult) => {
+    if (!user) return
+    
+    // Save case to user profile
+    userProfileManager.addSavedCase(user.id, {
+      caseNumber: case_.caseNumber,
+      caseTitle: case_.title,
+      caseType: 'Family Law',
+      caseStatus: case_.status,
+      dateFiled: '2024-01-15',
+      department: '602',
+      courtLocation: case_.court,
+      judicialOfficer: case_.judge,
+      parties: {
+        petitioner: case_.parties.plaintiff,
+        respondent: case_.parties.defendant
+      }
+    })
+    
+    // Add calendar event for the case hearing
+    userProfileManager.addCalendarEvent(user.id, {
+      title: `Hearing - ${case_.title}`,
+      date: '2026-01-27', // Format: YYYY-MM-DD
+      time: '09:00',
+      type: 'hearing',
+      caseNumber: case_.caseNumber,
+      location: case_.court,
+      description: `Request for Order Hearing for ${case_.title}`,
+      duration: 60, // 1 hour
+      priority: 'high',
+      status: 'scheduled',
+      virtualMeetingInfo: 'Zoom ID: 123-456-7890, Passcode: 123456'
+    })
+    
+    refreshProfile()
+    alert(`Case ${case_.caseNumber} and hearing added to your calendar!`)
+  }
+
+  const handleStarCase = (case_: CaseResult) => {
+    if (!user) return
+    
+    // Toggle star status
+    const isStarred = userProfileManager.toggleStarredCase(user.id, case_.id)
+    refreshProfile()
+    
+    if (isStarred) {
+      alert(`Case ${case_.caseNumber} starred!`)
+    } else {
+      alert(`Case ${case_.caseNumber} unstarred!`)
+    }
+  }
+
   return (
     <main 
       className="min-h-screen animated-aura pb-20 lg:pb-10"
@@ -239,8 +354,11 @@ export default function SearchPage() {
           <p className="text-gray-300 text-sm md:text-base lg:text-lg">Search and track California court cases with AI-powered insights</p>
         </div>
 
-        {/* Search Form */}
-        <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6 lg:gap-8">
+          {/* Search Section */}
+          <div className="lg:col-span-2">
+            {/* Search Form */}
+            <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
           <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3 md:gap-4">
             <div className="flex-1 relative">
               <input
@@ -336,22 +454,59 @@ export default function SearchPage() {
                   )}
                 </div>
 
-                {/* Action Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleGetCaseDetails(case_)
-                  }}
-                  disabled={isSearching}
-                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isSearching ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <i className="fa-solid fa-info-circle"></i>
-                  )}
-                  View Enhanced Details
-                </button>
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleGetCaseDetails(case_)
+                    }}
+                    disabled={isSearching}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isSearching ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <i className="fa-solid fa-info-circle"></i>
+                    )}
+                    Get Details
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleAddToCalendar(case_)
+                    }}
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <i className="fa-solid fa-calendar-plus"></i>
+                    Add to Calendar
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleStarCase(case_)
+                    }}
+                    className="flex-1 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <i className="fa-solid fa-star"></i>
+                    Star Case
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleGenerateAISummary(case_)
+                    }}
+                    disabled={isGeneratingAI}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isGeneratingAI ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <i className="fa-solid fa-robot"></i>
+                    )}
+                    AI Summary
+                  </button>
+                </div>
 
                 {/* Monthly Usage Warning for Basic Users */}
                 {isBasicUser && (
@@ -374,6 +529,56 @@ export default function SearchPage() {
             <p className="text-gray-400">Try adjusting your search terms or search criteria</p>
           </div>
         )}
+
+          {/* AI Overview and Timeline Sidebar */}
+          <div className="lg:col-span-1">
+            {selectedCase ? (
+              <>
+                <AIOverview 
+                  caseId={selectedCase.caseNumber}
+                  caseTitle={selectedCase.title}
+                  caseStatus={selectedCase.status}
+                  court={selectedCase.court}
+                  judge={selectedCase.judge}
+                  parties={selectedCase.parties}
+                  lastLogin={userProfile?.previousLogin}
+                  className="mb-6"
+                />
+                <CaseTimeline 
+                  caseNumber={selectedCase.caseNumber}
+                  className="mb-6"
+                />
+              </>
+            ) : (
+              <div className="apple-card p-6 mb-6">
+                <h3 className="text-white font-semibold text-lg mb-4">AI Case Overview</h3>
+                <div className="text-center text-gray-400">
+                  <i className="fa-solid fa-robot text-4xl mb-4 opacity-50"></i>
+                  <p>Select a case to generate AI overview</p>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Stats */}
+            <div className="apple-card p-6">
+              <h3 className="text-white font-semibold text-lg mb-4">Search Statistics</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Searches this month</span>
+                  <span className="text-white font-semibold">{userProfile?.recentSearches?.length || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Cases tracked</span>
+                  <span className="text-white font-semibold">{userProfile?.savedCases?.length || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">AI insights generated</span>
+                  <span className="text-white font-semibold">{userProfile?.savedCases?.filter(c => c.aiSummary).length || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Upgrade Modal */}
         {showUpgradeModal && (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import CourtRulesAI from './CourtRulesAI'
 import CaseMonitor from './CaseMonitor'
 import DocumentManager from './DocumentManager'
+import AIOverview from './AIOverview'
 
 interface CaseDetails {
   caseNumber: string
@@ -100,6 +101,7 @@ export default function EnhancedCaseDetails({ caseDetails, onClose }: EnhancedCa
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: 'fa-info-circle' },
+    { id: 'ai-analysis', label: 'AI Analysis', icon: 'fa-robot' },
     { id: 'hearings', label: 'Hearings', icon: 'fa-calendar' },
     { id: 'rulings', label: 'Tentative Rulings', icon: 'fa-gavel' },
     { id: 'documents', label: 'Documents', icon: 'fa-file' },
@@ -247,6 +249,85 @@ export default function EnhancedCaseDetails({ caseDetails, onClose }: EnhancedCa
                         <span>Order Court Documents</span>
                       </a>
                     )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI Analysis Tab */}
+          {activeTab === 'ai-analysis' && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-2xl flex items-center justify-center">
+                  <i className="fa-solid fa-robot text-white text-xl"></i>
+                </div>
+                <div>
+                  <h3 className="text-white text-2xl font-semibold">AI Case Analysis</h3>
+                  <p className="text-gray-300">Comprehensive AI-powered insights and document analysis</p>
+                </div>
+              </div>
+
+              <AIOverview 
+                caseId={caseDetails.caseNumber}
+                caseTitle={caseDetails.title}
+                caseStatus={caseDetails.status}
+                court="San Diego Superior Court"
+                judge={caseDetails.judge || 'Hon. Judge Smith'}
+                parties={{
+                  plaintiff: 'Case Plaintiff',
+                  defendant: 'Case Defendant'
+                }}
+                lastLogin={new Date().toISOString()}
+                className="mb-6"
+              />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="apple-card p-6">
+                  <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                    <i className="fa-solid fa-file-text text-blue-400"></i>
+                    Document Analysis
+                  </h4>
+                  <p className="text-gray-300 text-sm mb-4">
+                    AI will analyze all case documents once we have access to the county API keys.
+                  </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm">Motion analysis and deadline tracking</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm">Evidence review and categorization</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm">Legal precedent identification</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="apple-card p-6">
+                  <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                    <i className="fa-solid fa-chart-line text-green-400"></i>
+                    Case Strategy
+                  </h4>
+                  <p className="text-gray-300 text-sm mb-4">
+                    AI-powered recommendations for case strategy and next steps.
+                  </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm">Strategic recommendations</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm">Risk assessment and mitigation</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm">Timeline optimization</span>
+                    </div>
                   </div>
                 </div>
               </div>
