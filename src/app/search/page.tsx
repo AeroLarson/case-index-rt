@@ -402,49 +402,50 @@ export default function SearchPage() {
 
   return (
     <main 
-      className="min-h-screen animated-aura"
+      className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-        padding: '20px 24px 40px 24px' // Reduced top padding to bring content closer to header
+        padding: '20px 16px 40px 16px' // Reduced top padding and added mobile padding
       }}
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-white text-4xl font-bold mb-4 tracking-tight">Case Search</h1>
-          <p className="text-gray-300 text-lg">Search and track California court cases with AI-powered insights</p>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-white text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 tracking-tight">Case Search</h1>
+          <p className="text-gray-300 text-sm md:text-base lg:text-lg">Search and track California court cases with AI-powered insights</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {/* Search Section */}
           <div className="lg:col-span-2">
             {/* Search Form */}
-            <div className="apple-card p-6 mb-6">
-              <form onSubmit={handleSearch} className="flex gap-4">
+            <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
+              <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3 md:gap-4">
                 <div className="flex-1 relative">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by case number, party name, or case title..."
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 md:py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px]"
                   />
                   <i className="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <button
                   type="submit"
                   disabled={isSearching}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 md:px-8 py-3 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
                 >
                   {isSearching ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Searching...
+                      <span className="hidden md:inline">Searching...</span>
+                      <span className="md:hidden">Searching...</span>
                     </>
                   ) : (
                     <>
                       <i className="fa-solid fa-search"></i>
-                      Search
+                      <span>Search</span>
                     </>
                   )}
                 </button>

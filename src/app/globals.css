@@ -870,8 +870,14 @@ input:checked + .toggle-slider:before {
   --animation-duration: 0.01ms;
 }
 
-/* Mobile Responsive Styles */
+/* Mobile Optimizations */
 @media (max-width: 1024px) {
+  /* Better touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
   .apple-card {
     padding: 1rem;
   }
@@ -887,11 +893,29 @@ input:checked + .toggle-slider:before {
   .text-2xl {
     font-size: 1.5rem;
   }
+
+  /* Add padding for bottom nav */
+  main {
+    padding-bottom: 80px;
+  }
+
+  /* Better mobile scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Optimize animations on mobile */
+  .hover-lift,
+  .hover-glow,
+  .hover-scale {
+    transition-duration: 0.2s;
+  }
 }
 
 @media (max-width: 640px) {
   .apple-card {
     padding: 0.75rem;
+    border-radius: 16px;
   }
   
   .text-4xl {
@@ -908,5 +932,30 @@ input:checked + .toggle-slider:before {
   
   .grid {
     gap: 1rem;
+  }
+
+  /* Mobile-specific padding */
+  section,
+  div[class*="py-"] {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Mobile-friendly modals */
+  .fixed.inset-0 > div {
+    max-width: calc(100vw - 2rem);
+    margin: 1rem;
+  }
+
+  /* Better button spacing on mobile */
+  button {
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+/* Safe area for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
   }
 }

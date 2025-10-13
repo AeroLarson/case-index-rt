@@ -84,39 +84,89 @@ export default function Header() {
             </nav>
           )}
 
-          {/* Mobile Navigation Menu */}
-          {mobileMenuOpen && (
-            <div className="absolute top-full left-0 right-0 bg-gray-900 border-t border-purple-400/20 lg:hidden z-50">
-              <nav className="flex flex-col p-4 space-y-2">
-                {!user && (
-                  <>
-                    <button 
-                      onClick={() => { router.push('/'); setMobileMenuOpen(false); }}
-                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                    >
-                      Home
-                    </button>
-                    <button 
-                      onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}
-                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                    >
-                      About
-                    </button>
-                    <button 
-                      onClick={() => { router.push('/pricing'); setMobileMenuOpen(false); }}
-                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                    >
-                      Pricing
-                    </button>
-                    <button 
-                      onClick={() => { router.push('/privacy'); setMobileMenuOpen(false); }}
-                      className="text-purple-300 text-sm font-medium transition-colors hover:text-white border-none bg-transparent cursor-pointer text-left py-2"
-                    >
-                      Privacy
-                    </button>
-                  </>
-                )}
-              </nav>
+          {/* Hamburger Menu Button - Mobile Only */}
+          {!user && (
+            <button 
+              className="lg:hidden text-white p-3 -mr-2 min-w-[48px] min-h-[48px] flex items-center justify-center"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
+            >
+              <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-2xl`}></i>
+            </button>
+          )}
+
+          {/* Mobile Navigation Menu - Slide-in Panel */}
+          {!user && (
+            <div 
+              className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
+                mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              {/* Backdrop */}
+              <div 
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={toggleMobileMenu}
+              ></div>
+              
+              {/* Menu Panel */}
+              <div 
+                className={`absolute top-0 right-0 h-full w-64 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 ${
+                  mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+                }`}
+              >
+                {/* Close Button */}
+                <div className="flex justify-end p-4">
+                  <button
+                    onClick={toggleMobileMenu}
+                    className="text-white p-2 min-w-[48px] min-h-[48px] flex items-center justify-center"
+                    aria-label="Close menu"
+                  >
+                    <i className="fa-solid fa-xmark text-2xl"></i>
+                  </button>
+                </div>
+
+                {/* Menu Items */}
+                <nav className="flex flex-col gap-2 px-4 pt-4">
+                  <button 
+                    onClick={() => { router.push('/'); setMobileMenuOpen(false); }}
+                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                  >
+                    <i className="fa-solid fa-house w-5"></i>
+                    Home
+                  </button>
+                  <button 
+                    onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}
+                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                  >
+                    <i className="fa-solid fa-circle-info w-5"></i>
+                    About
+                  </button>
+                  <button 
+                    onClick={() => { router.push('/pricing'); setMobileMenuOpen(false); }}
+                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                  >
+                    <i className="fa-solid fa-dollar-sign w-5"></i>
+                    Pricing
+                  </button>
+                  <button 
+                    onClick={() => { router.push('/privacy'); setMobileMenuOpen(false); }}
+                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                  >
+                    <i className="fa-solid fa-shield-halved w-5"></i>
+                    Privacy
+                  </button>
+                  
+                  <div className="h-px bg-purple-400/20 my-4"></div>
+                  
+                  <button 
+                    onClick={() => { handleSignIn(); setMobileMenuOpen(false); }}
+                    className="px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 font-medium transition-all min-h-[48px] flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <i className="fa-solid fa-arrow-right-to-bracket"></i>
+                    Sign In
+                  </button>
+                </nav>
+              </div>
             </div>
           )}
           {user ? (

@@ -48,17 +48,18 @@ export default function LoginPage() {
         <div className="particle"></div>
       </div>
       
-      {/* Back Button */}
+      {/* Back Button - Mobile Optimized */}
       <button
         onClick={() => router.push('/')}
-        className="absolute bottom-8 right-8 z-20 flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-800 transition-all group"
+        className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20 flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-800 transition-all group min-h-[48px]"
       >
         <i className="fa-solid fa-arrow-left text-lg group-hover:-translate-x-1 transition-transform"></i>
-        <span className="font-medium">Back to Home</span>
+        <span className="font-medium hidden sm:inline">Back to Home</span>
+        <span className="font-medium sm:hidden">Back</span>
       </button>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-6xl w-full grid lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 max-w-6xl w-full grid lg:grid-cols-2 gap-8 lg:gap-12 items-center px-4">
         {/* Left Side - Branding */}
         <div className="text-center lg:text-left">
           <div className="mb-8">
@@ -73,19 +74,19 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <h2 className="text-white text-5xl font-bold mb-6 leading-tight">
+          <h2 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
             Your Legal Dashboard<br />
             <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
               Simplified
             </span>
           </h2>
 
-          <p className="text-gray-300 text-xl mb-8 leading-relaxed">
+          <p className="text-gray-300 text-base md:text-lg lg:text-xl mb-8 leading-relaxed">
             Access comprehensive case data from California courts. Track filings, hearings, 
             and documents in real-time with AI-powered insights.
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-4 hidden lg:block">
             <div className="flex items-center gap-4 justify-center lg:justify-start">
               <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
                 <i className="fa-solid fa-database text-blue-400 text-xl"></i>
@@ -127,13 +128,13 @@ export default function LoginPage() {
 
         {/* Right Side - Login Card */}
         <div>
-          <div className="apple-card p-10 max-w-md mx-auto backdrop-blur-2xl" style={{
+          <div className="apple-card p-6 md:p-10 max-w-md mx-auto backdrop-blur-2xl" style={{
             background: 'rgba(30, 41, 59, 0.6)',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(139, 92, 246, 0.2)'
           }}>
-            <div className="text-center mb-8">
-              <h3 className="text-white text-3xl font-bold mb-3">Welcome Back</h3>
-              <p className="text-gray-300 text-lg">Sign in to continue to your dashboard</p>
+            <div className="text-center mb-6 md:mb-8">
+              <h3 className="text-white text-2xl md:text-3xl font-bold mb-3">Welcome Back</h3>
+              <p className="text-gray-300 text-base md:text-lg">Sign in to continue to your dashboard</p>
             </div>
 
             {/* Security Badge */}
@@ -151,7 +152,7 @@ export default function LoginPage() {
             <button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full bg-white hover:bg-gray-50 text-gray-900 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 border border-gray-300 shadow-lg hover:shadow-xl"
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 py-4 px-6 rounded-xl font-semibold text-base md:text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 md:gap-4 border border-gray-300 shadow-lg hover:shadow-xl min-h-[56px]"
             >
               {isLoading ? (
                 <div className="w-6 h-6 border-3 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
@@ -198,7 +199,7 @@ export default function LoginPage() {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-8 left-0 right-0 text-center">
+      <div className="absolute bottom-20 md:bottom-8 left-0 right-0 text-center px-4">
         <p className="text-gray-500 text-sm">
           © 2025 Case Index RT. All rights reserved.
         </p>
