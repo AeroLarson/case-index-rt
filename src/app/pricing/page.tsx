@@ -177,9 +177,9 @@ export default function PricingPage() {
               {/* CTA Button */}
               <button
                 onClick={() => handleSelectPlan(plan.id)}
-                disabled={plan.isCurrent}
+                disabled={user && plan.isCurrent}
                 className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-200 ${
-                  plan.isCurrent
+                  user && plan.isCurrent
                     ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-not-allowed'
                     : plan.popular
                     ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white hover:scale-105'
