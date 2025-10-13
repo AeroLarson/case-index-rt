@@ -529,6 +529,7 @@ export default function SearchPage() {
             <p className="text-gray-400">Try adjusting your search terms or search criteria</p>
           </div>
         )}
+          </div>
 
           {/* AI Overview and Timeline Sidebar */}
           <div className="lg:col-span-1">
