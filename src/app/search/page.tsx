@@ -359,36 +359,36 @@ export default function SearchPage() {
           <div className="lg:col-span-2">
             {/* Search Form */}
             <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3 md:gap-4">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by case number, party name, or case title..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 md:py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px]"
-              />
-              <i className="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3 md:gap-4">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by case number, party name, or case title..."
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 md:py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px]"
+                  />
+                  <i className="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSearching}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 md:px-8 py-3 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
+                >
+                  {isSearching ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Searching...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-search"></i>
+                      <span>Search</span>
+                    </>
+                  )}
+                </button>
+              </form>
             </div>
-            <button
-              type="submit"
-              disabled={isSearching}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 md:px-8 py-3 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
-            >
-              {isSearching ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Searching...</span>
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-search"></i>
-                  <span>Search</span>
-                </>
-              )}
-            </button>
-          </form>
-        </div>
 
         {/* Search Results */}
         {searchResults.length > 0 && (
