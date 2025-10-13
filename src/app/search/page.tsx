@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import AIOverview from '@/components/AIOverview'
 import CaseTimeline from '@/components/CaseTimeline'
+import CaseMonitor from '@/components/CaseMonitor'
+import DocumentManager from '@/components/DocumentManager'
 import { userProfileManager } from '@/lib/userProfile'
 import { AIService } from '@/lib/aiService'
 import EmptyState from '@/components/EmptyState'
@@ -812,7 +814,7 @@ export default function SearchPage() {
 
             {/* Documents */}
             <div className="mt-8">
-              <h4 className="text-white font-semibold text-lg mb-4">Documents</h4>
+              <h4 className="text-white font-semibold text-lg mb-4">Court Documents</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {caseDetails.detailedInfo.documents.map((doc: string, index: number) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
@@ -824,6 +826,18 @@ export default function SearchPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Case Monitoring & Document Management */}
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <CaseMonitor 
+                caseNumber={caseDetails.caseNumber}
+                onUpdate={(caseData) => {
+                  // Handle case updates from monitoring
+                  console.log('Case updated:', caseData)
+                }}
+              />
+              <DocumentManager caseNumber={caseDetails.caseNumber} />
             </div>
 
             {/* Action Buttons */}
