@@ -561,13 +561,13 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="py-12 px-6">
+      <div className="py-12 px-6 pb-20 lg:pb-12">
         <div className="max-w-4xl mx-auto text-center fade-in-up">
-          <h2 className="text-white text-3xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-purple-300 text-lg mb-8">Join thousands of legal professionals tracking their cases</p>
+          <h2 className="text-white text-2xl md:text-3xl font-bold mb-4">Ready to Get Started?</h2>
+          <p className="text-purple-300 text-base md:text-lg mb-8">Join thousands of legal professionals tracking their cases</p>
           <button 
             onClick={handleGetStarted}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 hover-lift btn-pulse"
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold text-base md:text-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 hover-lift btn-pulse min-h-[48px]"
           >
             Create Your Account
           </button>
