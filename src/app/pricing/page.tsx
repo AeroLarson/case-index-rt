@@ -47,6 +47,7 @@ export default function PricingPage() {
         'Full case details and documents',
         'AI-powered case summaries',
         'Calendar integration (Google, Outlook)',
+        'Clio CRM integration',
         'Advanced analytics and reporting',
         'Priority email support',
         'Real-time notifications',
@@ -67,7 +68,7 @@ export default function PricingPage() {
         'Everything in Professional',
         'Up to 5 team members',
         'Team collaboration tools',
-        'Clio CRM integration',
+        'Advanced Clio CRM features',
         'Custom reporting',
         'Dedicated account manager',
         'Phone support',
@@ -231,7 +232,7 @@ export default function PricingPage() {
                 <tr className="border-b border-white/5">
                   <td className="text-gray-300 py-4">Clio CRM Integration</td>
                   <td className="text-center text-red-400 py-4">❌</td>
-                  <td className="text-center text-red-400 py-4">❌</td>
+                  <td className="text-center text-green-400 py-4">✅</td>
                   <td className="text-center text-green-400 py-4">✅</td>
                 </tr>
                 <tr className="border-b border-white/5">
