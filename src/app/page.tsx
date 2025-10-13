@@ -65,7 +65,9 @@ export default function Home() {
                     ? '1 case per month • Basic case information only'
                     : userProfile?.plan === 'pro'
                     ? 'Unlimited searches • AI summaries • Calendar integration'
-                    : 'Everything in Professional • Up to 5 team members • Clio integration'
+                    : userProfile?.plan === 'team'
+                    ? 'Everything in Professional • Up to 5 team members • Clio integration'
+                    : 'Custom solution • Unlimited team members • Enterprise features'
                   }
                 </p>
               </div>

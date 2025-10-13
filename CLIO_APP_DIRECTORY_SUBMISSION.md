@@ -82,13 +82,24 @@ Perfect for family law, civil litigation, and criminal defense attorneys practic
 
 ### Team Plan - $299/month
 - Everything in Professional
-- Up to 10 team members
+- Up to 5 team members
 - Team collaboration tools
 - Advanced Clio CRM features
 - Custom reporting
 - Dedicated account manager
 - Phone support
 - Custom integrations
+
+### Enterprise Plan - Custom Pricing
+- Everything in Team
+- Unlimited team members (6+ users)
+- Custom user limits and pricing
+- Advanced security features
+- White-label options
+- Priority implementation
+- 24/7 phone support
+- Custom integrations
+- Dedicated success manager
 
 ## Screenshots & Media Assets
 

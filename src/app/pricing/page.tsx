@@ -63,7 +63,7 @@ export default function PricingPage() {
       name: 'Team',
       price: '$299',
       period: 'per month',
-      description: 'For law firms and teams',
+      description: 'For law firms and teams (up to 5 users)',
       features: [
         'Everything in Professional',
         'Up to 5 team members',
@@ -75,13 +75,45 @@ export default function PricingPage() {
         'Custom integrations'
       ],
       limitations: [],
-      cta: !user ? 'Get Team Plan' : currentPlan === 'team' ? 'Current Plan' : 'Upgrade to Team',
-      popular: false, // Only show popular for pro when not logged in
-      isCurrent: currentPlan === 'team'
+      cta: !user ? 'Contact Sales' : currentPlan === 'team' ? 'Current Plan' : 'Contact Sales',
+      popular: false,
+      isCurrent: currentPlan === 'team',
+      requiresContact: true
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: 'Custom',
+      period: 'pricing',
+      description: 'For large firms (6+ users)',
+      features: [
+        'Everything in Team',
+        'Unlimited team members',
+        'Custom user limits',
+        'Advanced security features',
+        'White-label options',
+        'Priority implementation',
+        '24/7 phone support',
+        'Custom integrations',
+        'Dedicated success manager'
+      ],
+      limitations: [],
+      cta: 'Contact Sales',
+      popular: false,
+      isCurrent: false,
+      requiresContact: true
     }
   ]
 
   const handleSelectPlan = (planId: string) => {
+    const plan = plans.find(p => p.id === planId)
+    
+    // Handle contact sales plans
+    if (plan?.requiresContact) {
+      router.push('/contact-sales?plan=' + planId)
+      return
+    }
+    
     if (!user) {
       // Redirect to login with return URL
       router.push(`/login?returnUrl=/pricing&plan=${planId}`)
@@ -98,7 +130,7 @@ export default function PricingPage() {
       // Downgrade to free
       router.push('/billing?downgrade=true&tab=plans')
     } else {
-      // Upgrade to pro or team
+      // Upgrade to pro
       router.push(`/billing?plan=${planId}&tab=plans`)
     }
   }
@@ -124,7 +156,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {plans.map((plan) => (
             <div
               key={plan.id}
@@ -182,6 +214,8 @@ export default function PricingPage() {
                 className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-200 ${
                   user && plan.isCurrent
                     ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-not-allowed'
+                    : plan.requiresContact
+                    ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white hover:scale-105'
                     : plan.popular
                     ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white hover:scale-105'
                     : plan.id === 'free'
@@ -208,6 +242,7 @@ export default function PricingPage() {
                   <th className="text-center text-white font-semibold py-4">Free</th>
                   <th className="text-center text-white font-semibold py-4">Professional</th>
                   <th className="text-center text-white font-semibold py-4">Team</th>
+                  <th className="text-center text-white font-semibold py-4">Enterprise</th>
                 </tr>
               </thead>
               <tbody>
@@ -216,10 +251,12 @@ export default function PricingPage() {
                   <td className="text-center text-gray-300 py-4">1</td>
                   <td className="text-center text-green-400 py-4">Unlimited</td>
                   <td className="text-center text-green-400 py-4">Unlimited</td>
+                  <td className="text-center text-green-400 py-4">Unlimited</td>
                 </tr>
                 <tr className="border-b border-white/5">
                   <td className="text-gray-300 py-4">AI Case Summaries</td>
                   <td className="text-center text-red-400 py-4">❌</td>
+                  <td className="text-center text-green-400 py-4">✅</td>
                   <td className="text-center text-green-400 py-4">✅</td>
                   <td className="text-center text-green-400 py-4">✅</td>
                 </tr>
@@ -228,10 +265,12 @@ export default function PricingPage() {
                   <td className="text-center text-red-400 py-4">❌</td>
                   <td className="text-center text-green-400 py-4">✅</td>
                   <td className="text-center text-green-400 py-4">✅</td>
+                  <td className="text-center text-green-400 py-4">✅</td>
                 </tr>
                 <tr className="border-b border-white/5">
                   <td className="text-gray-300 py-4">Clio CRM Integration</td>
                   <td className="text-center text-red-400 py-4">❌</td>
+                  <td className="text-center text-green-400 py-4">✅</td>
                   <td className="text-center text-green-400 py-4">✅</td>
                   <td className="text-center text-green-400 py-4">✅</td>
                 </tr>
@@ -239,13 +278,15 @@ export default function PricingPage() {
                   <td className="text-gray-300 py-4">Team Members</td>
                   <td className="text-center text-gray-300 py-4">1</td>
                   <td className="text-center text-gray-300 py-4">1</td>
-                  <td className="text-center text-green-400 py-4">Up to 10</td>
+                  <td className="text-center text-green-400 py-4">Up to 5</td>
+                  <td className="text-center text-green-400 py-4">Unlimited</td>
                 </tr>
                 <tr className="border-b border-white/5">
                   <td className="text-gray-300 py-4">Support</td>
                   <td className="text-center text-gray-300 py-4">Community</td>
                   <td className="text-center text-gray-300 py-4">Email</td>
                   <td className="text-center text-green-400 py-4">Phone + Email</td>
+                  <td className="text-center text-green-400 py-4">24/7 Phone + Email</td>
                 </tr>
               </tbody>
             </table>
