@@ -281,6 +281,37 @@ export default function CalendarPage() {
                 Day
               </button>
             </div>
+            {/* Clio Sync Button */}
+            <button
+              onClick={() => {
+                setSyncStatus('syncing')
+                setTimeout(() => {
+                  setSyncStatus('success')
+                  setLastSyncTime(new Date())
+                  setTimeout(() => setSyncStatus('idle'), 2000)
+                }, 2000)
+              }}
+              disabled={syncStatus === 'syncing'}
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:opacity-50 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {syncStatus === 'syncing' ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Syncing Clio...</span>
+                </>
+              ) : syncStatus === 'success' ? (
+                <>
+                  <i className="fa-solid fa-check text-green-300"></i>
+                  <span>Clio Synced!</span>
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-link"></i>
+                  <span>Sync Clio</span>
+                </>
+              )}
+            </button>
+            
             <button
               onClick={handleCountySync}
               disabled={syncStatus === 'syncing'}

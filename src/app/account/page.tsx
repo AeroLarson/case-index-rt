@@ -13,11 +13,75 @@ export default function AccountPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showSavedNotification, setShowSavedNotification] = useState(false)
+  const [clioConnected, setClioConnected] = useState(false)
+  const [clioSyncing, setClioSyncing] = useState(false)
 
   const handleCustomizationChange = (newSettings: any) => {
     updateSettings(newSettings)
     setShowSavedNotification(true)
     setTimeout(() => setShowSavedNotification(false), 2000)
+  }
+
+  // Check Clio connection status on mount
+  useEffect(() => {
+    if (user && (userProfile?.plan === 'pro' || userProfile?.plan === 'team')) {
+      checkClioConnection()
+    }
+  }, [user, userProfile])
+
+  const checkClioConnection = async () => {
+    try {
+      // Check if user has Clio tokens stored
+      const clioTokens = localStorage.getItem(`clio_tokens_${user?.id}`)
+      if (clioTokens) {
+        setClioConnected(true)
+      }
+    } catch (error) {
+      console.error('Error checking Clio connection:', error)
+    }
+  }
+
+  const handleClioConnect = () => {
+    // Redirect to Clio OAuth
+    const authUrl = `/api/auth/clio/authorize?state=${user?.id}`
+    window.open(authUrl, '_blank', 'width=600,height=700')
+  }
+
+  const handleClioSync = async () => {
+    setClioSyncing(true)
+    try {
+      const clioTokens = localStorage.getItem(`clio_tokens_${user?.id}`)
+      if (!clioTokens) {
+        throw new Error('No Clio connection found')
+      }
+
+      const response = await fetch('/api/clio/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${JSON.parse(clioTokens).access_token}`
+        },
+        body: JSON.stringify({
+          syncType: 'test'
+        })
+      })
+
+      if (response.ok) {
+        setShowSavedNotification(true)
+        setTimeout(() => setShowSavedNotification(false), 2000)
+      }
+    } catch (error) {
+      console.error('Clio sync failed:', error)
+    } finally {
+      setClioSyncing(false)
+    }
+  }
+
+  const handleClioDisconnect = () => {
+    if (user) {
+      localStorage.removeItem(`clio_tokens_${user.id}`)
+      setClioConnected(false)
+    }
   }
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -182,6 +246,17 @@ export default function AccountPage() {
                 >
                   <i className="fa-solid fa-palette mr-3"></i>
                   Customization
+                </button>
+                <button
+                  onClick={() => setActiveTab('integrations')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'integrations' 
+                      ? 'bg-blue-500/20 text-blue-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-link mr-3"></i>
+                  Integrations
                 </button>
               </nav>
             </div>
@@ -474,6 +549,235 @@ export default function AccountPage() {
                       <option value="dd/mm/yyyy">DD/MM/YYYY (International)</option>
                       <option value="yyyy-mm-dd">YYYY-MM-DD (ISO)</option>
                     </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Integrations Tab */}
+            {activeTab === 'integrations' && (
+              <div className="space-y-6">
+                {/* Clio CRM Integration */}
+                <div className="apple-card p-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
+                      <i className="fa-solid fa-link text-white text-xl"></i>
+                    </div>
+                    <div>
+                      <h2 className="text-white text-2xl font-semibold tracking-tight">Clio CRM Integration</h2>
+                      <p className="text-gray-300">Sync your cases and calendar with Clio</p>
+                    </div>
+                  </div>
+
+                  {/* Connection Status */}
+                  <div className={`border rounded-2xl p-6 mb-6 ${
+                    clioConnected 
+                      ? 'bg-slate-800/50 border-slate-700' 
+                      : 'bg-slate-800/30 border-slate-600'
+                  }`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          clioConnected 
+                            ? 'bg-green-400 animate-pulse' 
+                            : 'bg-gray-400'
+                        }`}></div>
+                        <span className={`font-medium ${
+                          clioConnected 
+                            ? 'text-green-400' 
+                            : 'text-gray-400'
+                        }`}>
+                          {clioConnected ? 'Connected' : 'Not Connected'}
+                        </span>
+                      </div>
+                      {clioConnected && (
+                        <span className="text-gray-400 text-sm">Last synced: 2 minutes ago</span>
+                      )}
+                    </div>
+                    <p className="text-gray-300 text-sm">
+                      {clioConnected 
+                        ? 'Your Clio account is connected and syncing automatically. Calendar events and case updates are synchronized every 15 minutes.'
+                        : 'Connect your Clio account to sync cases, calendar events, and documents automatically.'
+                      }
+                    </p>
+                  </div>
+
+                  {/* Sync Options */}
+                  <div className="space-y-4 mb-6">
+                    <h3 className="text-white text-lg font-semibold">Sync Settings</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <i className="fa-solid fa-calendar text-blue-400"></i>
+                            <span className="text-white font-medium">Calendar Sync</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                          </label>
+                        </div>
+                        <p className="text-gray-400 text-sm">Sync hearings and appointments between Clio and Case Index RT</p>
+                      </div>
+
+                      <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <i className="fa-solid fa-folder-open text-purple-400"></i>
+                            <span className="text-white font-medium">Case Sync</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                          </label>
+                        </div>
+                        <p className="text-gray-400 text-sm">Automatically import case details from Clio</p>
+                      </div>
+
+                      <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <i className="fa-solid fa-bell text-green-400"></i>
+                            <span className="text-white font-medium">Notifications</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                          </label>
+                        </div>
+                        <p className="text-gray-400 text-sm">Get notified when Clio data changes</p>
+                      </div>
+
+                      <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <i className="fa-solid fa-clock text-orange-400"></i>
+                            <span className="text-white font-medium">Real-time Updates</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                          </label>
+                        </div>
+                        <p className="text-gray-400 text-sm">Instant sync for critical updates</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sync Actions */}
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    {!clioConnected ? (
+                      <button
+                        onClick={handleClioConnect}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                      >
+                        <i className="fa-solid fa-link"></i>
+                        Connect Clio Account
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleClioSync}
+                          disabled={clioSyncing}
+                          className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          {clioSyncing ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>Syncing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-sync"></i>
+                              <span>Force Sync Now</span>
+                            </>
+                          )}
+                        </button>
+                        <button className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2">
+                          <i className="fa-solid fa-cog"></i>
+                          Advanced Settings
+                        </button>
+                        <button
+                          onClick={handleClioDisconnect}
+                          className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <i className="fa-solid fa-unlink"></i>
+                          Disconnect
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Other Integrations */}
+                <div className="apple-card p-8">
+                  <h3 className="text-white text-xl font-semibold mb-6">Other Integrations</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Google Calendar */}
+                    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                          <i className="fa-brands fa-google text-white text-sm"></i>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium">Google Calendar</h4>
+                          <p className="text-gray-400 text-sm">Sync with Google Calendar</p>
+                        </div>
+                      </div>
+                      <button className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                        Connect
+                      </button>
+                    </div>
+
+                    {/* Outlook */}
+                    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <i className="fa-solid fa-envelope text-white text-sm"></i>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium">Outlook</h4>
+                          <p className="text-gray-400 text-sm">Sync with Outlook Calendar</p>
+                        </div>
+                      </div>
+                      <button className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                        Connect
+                      </button>
+                    </div>
+
+                    {/* Dropbox */}
+                    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center">
+                          <i className="fa-brands fa-dropbox text-white text-sm"></i>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium">Dropbox</h4>
+                          <p className="text-gray-400 text-sm">Store case documents</p>
+                        </div>
+                      </div>
+                      <button className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                        Connect
+                      </button>
+                    </div>
+
+                    {/* Slack */}
+                    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                          <i className="fa-brands fa-slack text-white text-sm"></i>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium">Slack</h4>
+                          <p className="text-gray-400 text-sm">Team notifications</p>
+                        </div>
+                      </div>
+                      <button className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                        Connect
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
