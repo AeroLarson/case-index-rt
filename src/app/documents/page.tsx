@@ -95,6 +95,86 @@ export default function DocumentsPage() {
     setUploadingFiles([])
   }
 
+  const handleDownload = (document: Document) => {
+    // Create a demo PDF content
+    const pdfContent = `
+      Case Document: ${document.name}
+      Case Number: ${document.caseNumber}
+      Uploaded by: ${document.uploadedBy}
+      Upload Date: ${document.uploadDate}
+      
+      This is a demo document for ${document.caseNumber}.
+      In a real implementation, this would be the actual document content.
+      
+      AI Summary: ${document.aiSummary || 'No summary available'}
+    `
+    
+    // Create a blob and download
+    const blob = new Blob([pdfContent], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = document.name
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    // Show success message
+    alert(`Downloaded: ${document.name}`)
+  }
+
+  const handleView = (document: Document) => {
+    // Open document in a new tab with demo content
+    const pdfContent = `
+      <html>
+        <head>
+          <title>${document.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+            .document { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .header { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+            .content { line-height: 1.6; }
+          </style>
+        </head>
+        <body>
+          <div class="document">
+            <div class="header">
+              <h1>${document.name}</h1>
+              <p><strong>Case Number:</strong> ${document.caseNumber}</p>
+              <p><strong>Uploaded by:</strong> ${document.uploadedBy}</p>
+              <p><strong>Date:</strong> ${new Date(document.uploadDate).toLocaleDateString()}</p>
+            </div>
+            <div class="content">
+              <h2>Document Content</h2>
+              <p>This is a preview of the document for case ${document.caseNumber}.</p>
+              <p>In a real implementation, this would show the actual document content.</p>
+              
+              ${document.aiSummary ? `
+                <h3>AI Summary</h3>
+                <p><em>${document.aiSummary}</em></p>
+              ` : ''}
+              
+              <h3>Document Details</h3>
+              <ul>
+                <li><strong>Type:</strong> ${document.type}</li>
+                <li><strong>Size:</strong> ${document.size}</li>
+                <li><strong>Status:</strong> ${document.status}</li>
+                <li><strong>Public:</strong> ${document.isPublic ? 'Yes' : 'No'}</li>
+              </ul>
+            </div>
+          </div>
+        </body>
+      </html>
+    `
+    
+    const newWindow = window.open()
+    if (newWindow) {
+      newWindow.document.write(pdfContent)
+      newWindow.document.close()
+    }
+  }
+
   const getDocumentIcon = (type: string) => {
     switch (type) {
       case 'motion':
@@ -263,11 +343,17 @@ export default function DocumentsPage() {
                     <p>{new Date(document.uploadDate).toLocaleDateString()}</p>
                   </div>
                   <div className="flex gap-2">
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                    <button 
+                      onClick={() => handleDownload(document)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                    >
                       <i className="fa-solid fa-download mr-1"></i>
                       Download
                     </button>
-                    <button className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                    <button 
+                      onClick={() => handleView(document)}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                    >
                       <i className="fa-solid fa-eye mr-1"></i>
                       View
                     </button>
