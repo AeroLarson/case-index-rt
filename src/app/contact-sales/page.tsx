@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function ContactSalesPage() {
+function ContactSalesForm() {
   const searchParams = useSearchParams()
   const selectedPlan = searchParams.get('plan') || 'team'
   const [formData, setFormData] = useState({
@@ -316,5 +316,29 @@ export default function ContactSalesPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function ContactSalesPage() {
+  return (
+    <Suspense fallback={
+      <main 
+        className="min-h-screen animated-aura flex items-center justify-center"
+        style={{
+          background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
+          padding: '40px 24px'
+        }}
+      >
+        <div className="apple-card p-8 max-w-2xl w-full text-center">
+          <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <h1 className="text-white text-3xl font-bold mb-4">Loading...</h1>
+          <p className="text-gray-300 text-lg">Preparing your contact form</p>
+        </div>
+      </main>
+    }>
+      <ContactSalesForm />
+    </Suspense>
   )
 }
