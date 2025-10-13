@@ -87,11 +87,11 @@ export default function Header() {
           {/* Hamburger Menu Button - Mobile Only */}
           {!user && (
             <button 
-              className="lg:hidden text-white p-3 -mr-2 min-w-[48px] min-h-[48px] flex items-center justify-center"
+              className="lg:hidden text-white p-3 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg hover:bg-white/10 transition-all"
               onClick={toggleMobileMenu}
               aria-label="Toggle menu"
             >
-              <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-2xl`}></i>
+              <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-xl`}></i>
             </button>
           )}
 
@@ -110,7 +110,7 @@ export default function Header() {
               
               {/* Menu Panel */}
               <div 
-                className={`absolute top-0 right-0 h-full w-64 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 ${
+                className={`absolute top-0 right-0 h-full w-72 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 border-l border-slate-700/50 ${
                   mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
                 }`}
               >
@@ -126,41 +126,41 @@ export default function Header() {
                 </div>
 
                 {/* Menu Items */}
-                <nav className="flex flex-col gap-2 px-4 pt-4">
+                <nav className="flex flex-col gap-1 px-4 pt-4">
                   <button 
                     onClick={() => { router.push('/'); setMobileMenuOpen(false); }}
-                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                    className="text-purple-300 text-left px-4 py-4 rounded-xl hover:bg-white/10 transition-all font-medium min-h-[52px] flex items-center gap-3 text-base"
                   >
-                    <i className="fa-solid fa-house w-5"></i>
+                    <i className="fa-solid fa-house w-5 text-center"></i>
                     Home
                   </button>
                   <button 
                     onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}
-                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                    className="text-purple-300 text-left px-4 py-4 rounded-xl hover:bg-white/10 transition-all font-medium min-h-[52px] flex items-center gap-3 text-base"
                   >
-                    <i className="fa-solid fa-circle-info w-5"></i>
+                    <i className="fa-solid fa-circle-info w-5 text-center"></i>
                     About
                   </button>
                   <button 
                     onClick={() => { router.push('/pricing'); setMobileMenuOpen(false); }}
-                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                    className="text-purple-300 text-left px-4 py-4 rounded-xl hover:bg-white/10 transition-all font-medium min-h-[52px] flex items-center gap-3 text-base"
                   >
-                    <i className="fa-solid fa-dollar-sign w-5"></i>
+                    <i className="fa-solid fa-dollar-sign w-5 text-center"></i>
                     Pricing
                   </button>
                   <button 
                     onClick={() => { router.push('/privacy'); setMobileMenuOpen(false); }}
-                    className="text-purple-300 text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all font-medium min-h-[48px] flex items-center gap-3"
+                    className="text-purple-300 text-left px-4 py-4 rounded-xl hover:bg-white/10 transition-all font-medium min-h-[52px] flex items-center gap-3 text-base"
                   >
-                    <i className="fa-solid fa-shield-halved w-5"></i>
+                    <i className="fa-solid fa-shield-halved w-5 text-center"></i>
                     Privacy
                   </button>
                   
-                  <div className="h-px bg-purple-400/20 my-4"></div>
+                  <div className="h-px bg-purple-400/20 my-6 mx-4"></div>
                   
                   <button 
                     onClick={() => { handleSignIn(); setMobileMenuOpen(false); }}
-                    className="px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 font-medium transition-all min-h-[48px] flex items-center justify-center gap-2 shadow-lg"
+                    className="mx-4 px-4 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 font-medium transition-all min-h-[52px] flex items-center justify-center gap-2 shadow-lg text-base"
                   >
                     <i className="fa-solid fa-arrow-right-to-bracket"></i>
                     Sign In

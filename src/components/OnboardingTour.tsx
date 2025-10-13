@@ -120,11 +120,11 @@ export default function OnboardingTour() {
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black/60 z-[100]" onClick={handleSkip}></div>
+      <div className="fixed inset-0 bg-black/60 z-[200]" onClick={handleSkip}></div>
 
       {/* Tour Card */}
       <div
-        className="fixed z-[101] apple-card p-6 max-w-sm shadow-2xl"
+        className="fixed z-[201] apple-card p-6 max-w-sm shadow-2xl"
         style={{
           top: `${position.top}px`,
           left: `${position.left}px`,
