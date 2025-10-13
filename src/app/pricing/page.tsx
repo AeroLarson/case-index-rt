@@ -32,7 +32,7 @@ export default function PricingPage() {
         'No calendar integration',
         'No advanced analytics'
       ],
-      cta: currentPlan === 'free' ? 'Current Plan' : 'Downgrade to Free',
+      cta: !user ? 'Get Started Free' : currentPlan === 'free' ? 'Current Plan' : 'Downgrade to Free',
       popular: false,
       isCurrent: currentPlan === 'free'
     },
@@ -53,8 +53,8 @@ export default function PricingPage() {
         'Case timeline visualization'
       ],
       limitations: [],
-      cta: currentPlan === 'pro' ? 'Current Plan' : currentPlan === 'free' ? 'Upgrade to Pro' : 'Downgrade to Pro',
-      popular: currentPlan !== 'team',
+      cta: !user ? 'Get Professional' : currentPlan === 'pro' ? 'Current Plan' : currentPlan === 'free' ? 'Upgrade to Pro' : 'Downgrade to Pro',
+      popular: !user || currentPlan !== 'team',
       isCurrent: currentPlan === 'pro'
     },
     {
@@ -74,8 +74,8 @@ export default function PricingPage() {
         'Custom integrations'
       ],
       limitations: [],
-      cta: currentPlan === 'team' ? 'Current Plan' : 'Upgrade to Team',
-      popular: currentPlan === 'team',
+      cta: !user ? 'Get Team Plan' : currentPlan === 'team' ? 'Current Plan' : 'Upgrade to Team',
+      popular: false, // Only show popular for pro when not logged in
       isCurrent: currentPlan === 'team'
     }
   ]
