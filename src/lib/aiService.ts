@@ -52,43 +52,142 @@ export class AIService {
   private static generateMockResponse(prompt: string): string {
     const lowerPrompt = prompt.toLowerCase()
     
+    // Case start date questions
+    if (lowerPrompt.includes('when') && (lowerPrompt.includes('start') || lowerPrompt.includes('filed') || lowerPrompt.includes('begin'))) {
+      return `According to the case records, this case was filed on March 1, 2024. The initial complaint was submitted to the San Diego Superior Court, and the case has been active since then. The case number FL-2024-TEST001 indicates it's a 2024 family law case.`
+    }
+    
+    // Case date questions
+    if (lowerPrompt.includes('date') || lowerPrompt.includes('when')) {
+      return `Based on the case information:
+- Case filed: March 1, 2024
+- Last activity: March 15, 2024 (Motion Hearing)
+- Next hearing: January 27, 2026 at 9:00 AM
+- Case status: Active
+
+The case has been ongoing for about 9 months and has several key dates to track.`
+    }
+    
     // Case status questions
     if (lowerPrompt.includes('status') || lowerPrompt.includes('current')) {
-      return `Based on the case information, this case is currently in an active status. The case appears to be proceeding normally through the court system. I recommend monitoring any upcoming deadlines and ensuring all required documents are filed on time.`
+      return `Case FL-2024-TEST001 is currently in Active status. This is a family law case (Larson v. Test Defendant) that was filed on March 1, 2024. The case is assigned to Hon. Test Judge in Department 602 at San Diego Superior Court. 
+
+Recent activity includes a Motion Hearing on March 15, 2024, and the next scheduled hearing is a Request for Order Hearing on January 27, 2026 at 9:00 AM.`
     }
     
     // Deadline questions
-    if (lowerPrompt.includes('deadline') || lowerPrompt.includes('due')) {
-      return `Looking at the case timeline, there are several important deadlines to track. I recommend setting up calendar reminders for any upcoming filing deadlines and ensuring you have sufficient time to prepare responses. California family law typically requires responses within 30 days of service.`
+    if (lowerPrompt.includes('deadline') || lowerPrompt.includes('due') || lowerPrompt.includes('response')) {
+      return `Looking at the case timeline, here are the key deadlines:
+- Response to Complaint: Filed on March 10, 2024
+- Next hearing preparation: January 27, 2026 (Request for Order Hearing)
+
+For the upcoming Request for Order Hearing on January 27, 2026, you typically need to file any supporting documents at least 10 court days before the hearing date. California Family Code requires responses to most motions within 30 days of service.`
     }
     
     // Hearing questions
     if (lowerPrompt.includes('hearing') || lowerPrompt.includes('court')) {
-      return `The upcoming hearing is scheduled for the date shown in the case details. I recommend preparing thoroughly by reviewing all case documents, organizing evidence, and preparing any necessary witnesses. Virtual attendance is available via the provided Zoom link.`
+      return `The upcoming hearing details:
+- Date: January 27, 2026
+- Time: 9:00 AM
+- Type: Request for Order Hearing
+- Location: San Diego Superior Court
+- Judge: Hon. Test Judge, Department 602
+- Virtual attendance: Zoom ID 123-456-7890, Passcode: 123456
+
+This is a Request for Order hearing, which typically involves temporary orders for custody, support, or other interim relief. I recommend preparing your evidence and witnesses well in advance.`
     }
     
     // Document questions
-    if (lowerPrompt.includes('document') || lowerPrompt.includes('file')) {
-      return `The case includes several important documents that should be reviewed carefully. I recommend organizing them chronologically and ensuring you have copies of all filings. Consider creating a document index for easy reference during hearings.`
+    if (lowerPrompt.includes('document') || lowerPrompt.includes('file') || lowerPrompt.includes('paperwork')) {
+      return `The case includes these key documents:
+- Complaint for Divorce (filed March 1, 2024)
+- Summons (served March 1, 2024)
+- Response to Complaint (filed March 10, 2024)
+- Motion for Temporary Custody (filed March 15, 2024)
+- Declaration of Service (filed March 15, 2024)
+
+The most recent filing was the Declaration of Service on March 15, 2024, related to the Motion for Temporary Custody hearing.`
+    }
+    
+    // Parties questions
+    if (lowerPrompt.includes('party') || lowerPrompt.includes('plaintiff') || lowerPrompt.includes('defendant') || lowerPrompt.includes('who')) {
+      return `The parties in this case are:
+- Plaintiff/Petitioner: Aero Larson
+- Defendant/Respondent: Test Defendant
+
+This is a family law case between Aero Larson (plaintiff) and Test Defendant (defendant). The case involves family law matters, likely including divorce proceedings based on the case type.`
+    }
+    
+    // Judge questions
+    if (lowerPrompt.includes('judge') || lowerPrompt.includes('courtroom') || lowerPrompt.includes('department')) {
+      return `Case FL-2024-TEST001 is assigned to:
+- Judge: Hon. Test Judge
+- Department: 602
+- Court: San Diego Superior Court
+
+Department 602 typically handles family law matters in San Diego County. Judge Test Judge will preside over all hearings in this case, including the upcoming Request for Order Hearing on January 27, 2026.`
     }
     
     // Strategy questions
-    if (lowerPrompt.includes('strategy') || lowerPrompt.includes('next') || lowerPrompt.includes('should')) {
-      return `Based on the case facts, I recommend focusing on the key legal issues and ensuring all procedural requirements are met. Consider consulting with opposing counsel about potential settlement options, and prepare thoroughly for any upcoming hearings.`
+    if (lowerPrompt.includes('strategy') || lowerPrompt.includes('next') || lowerPrompt.includes('should') || lowerPrompt.includes('recommend')) {
+      return `Based on the case timeline, here's what I recommend:
+
+1. **Immediate**: Prepare for the Request for Order Hearing on January 27, 2026
+2. **Evidence**: Gather documentation for the temporary custody motion
+3. **Timeline**: File any supporting declarations at least 10 court days before the hearing
+4. **Communication**: Consider settlement discussions with opposing counsel
+5. **Documents**: Ensure all case documents are organized and accessible
+
+The case has been active since March 2024, so focus on moving toward resolution while protecting your client's interests.`
     }
     
     // Timeline questions
-    if (lowerPrompt.includes('timeline') || lowerPrompt.includes('schedule')) {
-      return `The case timeline shows the progression of events and upcoming dates. I recommend creating a detailed calendar with all important dates and deadlines. This will help ensure nothing is missed and all filings are timely.`
+    if (lowerPrompt.includes('timeline') || lowerPrompt.includes('schedule') || lowerPrompt.includes('history')) {
+      return `Here's the complete case timeline:
+
+**March 1, 2024**: Case filed - Initial complaint and summons
+**March 10, 2024**: Response to motion filed by defendant
+**March 15, 2024**: Motion for Temporary Custody hearing scheduled
+**January 27, 2026**: Next hearing - Request for Order Hearing at 9:00 AM
+
+The case has been active for approximately 9 months with steady progression through the court system.`
+    }
+    
+    // Case number questions
+    if (lowerPrompt.includes('number') || lowerPrompt.includes('case number')) {
+      return `The case number is FL-2024-TEST001. This breaks down as:
+- FL: Family Law case type
+- 2024: Year filed
+- TEST001: Sequential case identifier
+
+This is a 2024 family law case in the San Diego Superior Court system.`
     }
     
     // General case questions
-    if (lowerPrompt.includes('case') || lowerPrompt.includes('overview')) {
-      return `This appears to be a family law case in the San Diego Superior Court system. The case is assigned to the specified judge and is proceeding through normal court procedures. I recommend staying current with all filings and maintaining communication with all parties involved.`
+    if (lowerPrompt.includes('case') || lowerPrompt.includes('overview') || lowerPrompt.includes('summary')) {
+      return `Case FL-2024-TEST001 (Larson v. Test Defendant) is an active family law case filed on March 1, 2024. 
+
+**Key Details:**
+- Court: San Diego Superior Court
+- Judge: Hon. Test Judge, Department 602
+- Status: Active
+- Next hearing: January 27, 2026 at 9:00 AM (Request for Order Hearing)
+- Virtual access: Zoom ID 123-456-7890
+
+The case involves family law matters with recent motion activity and an upcoming hearing for temporary orders.`
     }
     
     // Default response
-    return `I understand you're asking about this case. Based on the case information available, I can help you understand the legal procedures, deadlines, and next steps. Could you be more specific about what aspect of the case you'd like me to focus on? I can help with case strategy, document analysis, deadline tracking, or hearing preparation.`
+    return `I can help you with specific information about Case FL-2024-TEST001. Based on the case records, I can provide details about:
+
+- Case dates and timeline (filed March 1, 2024)
+- Parties involved (Aero Larson v. Test Defendant)
+- Upcoming hearing (January 27, 2026 at 9:00 AM)
+- Court and judge information (Hon. Test Judge, Department 602)
+- Case documents and filings
+- Deadlines and procedural requirements
+
+What specific aspect of the case would you like me to explain?`
   }
 
   // Generate case summary

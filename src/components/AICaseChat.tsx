@@ -139,17 +139,18 @@ export default function AICaseChat({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
+      e.stopPropagation()
       handleSendMessage()
     }
   }
 
   const suggestedQuestions = [
-    "What's the next deadline in this case?",
-    "Explain the current case status",
-    "What should I prepare for the upcoming hearing?",
-    "Are there any important documents I should review?",
-    "What's the timeline for this case?",
-    "What are the key legal issues here?"
+    "When was this case filed?",
+    "What's the next hearing date?",
+    "Who are the parties in this case?",
+    "What documents are in this case?",
+    "What's the case timeline?",
+    "Who is the judge assigned to this case?"
   ]
 
   return (
@@ -225,7 +226,7 @@ export default function AICaseChat({
 
       {/* Input */}
       <div className="p-4 border-t border-white/10">
-        <div className="flex gap-2">
+        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2">
           <textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
@@ -236,7 +237,7 @@ export default function AICaseChat({
             style={{ minHeight: '40px', maxHeight: '120px' }}
           />
           <button
-            onClick={handleSendMessage}
+            type="submit"
             disabled={!inputMessage.trim() || isLoading}
             className="bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
           >
@@ -246,7 +247,7 @@ export default function AICaseChat({
               <i className="fa-solid fa-paper-plane text-sm"></i>
             )}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   )
