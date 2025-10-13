@@ -98,38 +98,33 @@ export default function CalendarPage() {
     
     setSyncStatus('syncing')
     
-    // Simulate county API sync
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Mock new county events
-    const newCountyEvents: CalendarEvent[] = [
-      {
-        id: `county-${Date.now()}`,
-        title: 'Status Conference - New Case',
-        date: '2024-03-28',
-        time: '10:00',
-        type: 'county_hearing',
-        caseNumber: 'FL-2024-001240',
-        location: 'San Diego Superior Court, Room 205',
-        description: 'Status conference for newly filed case',
-        duration: 30,
-        priority: 'medium',
-        status: 'scheduled',
-        source: 'county_api',
-        countyData: {
-          court: 'San Diego Superior Court',
-          judge: 'Hon. Davis',
-          department: 'Family Law',
-          caseType: 'Family Law',
-          filingDate: '2024-03-15',
-          lastActivity: '2024-03-15'
+    try {
+      // Sync with real San Diego County API
+      const response = await fetch('/api/san-diego-court/sync-calendar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          userCases: userProfile?.savedCases || []
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.events && data.events.length > 0) {
+          setEvents(prev => [...prev, ...data.events])
         }
+        setLastSyncTime(new Date())
+        setSyncStatus('success')
+      } else {
+        setSyncStatus('error')
       }
-    ]
-    
-    setEvents(prev => [...prev, ...newCountyEvents])
-    setLastSyncTime(new Date())
-    setSyncStatus('success')
+    } catch (error) {
+      console.error('County sync failed:', error)
+      setSyncStatus('error')
+    }
     
     setTimeout(() => setSyncStatus('idle'), 3000)
   }

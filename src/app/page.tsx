@@ -117,42 +117,52 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Clio Integration Status */}
-          {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && (
-            <div className="apple-card p-6 mb-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
-                    <i className="fa-solid fa-link text-white text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 className="text-white text-lg font-semibold mb-1">Clio CRM Integration</h3>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-green-400 text-sm font-medium">Connected</span>
-                      <span className="text-gray-400 text-sm">• Last synced 2 minutes ago</span>
+          {/* Clio Integration Status - Only show if user has Clio connected */}
+          {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && user?.id && (() => {
+            try {
+              const clioTokens = localStorage.getItem(`clio_tokens_${user.id}`)
+              if (clioTokens) {
+                return (
+                  <div className="apple-card p-6 mb-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
+                          <i className="fa-solid fa-link text-white text-xl"></i>
+                        </div>
+                        <div>
+                          <h3 className="text-white text-lg font-semibold mb-1">Clio CRM Integration</h3>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span className="text-green-400 text-sm font-medium">Connected</span>
+                            <span className="text-gray-400 text-sm">• Ready to sync</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => router.push('/calendar')}
+                          className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                        >
+                          <i className="fa-solid fa-calendar mr-2"></i>
+                          View Calendar
+                        </button>
+                        <button
+                          onClick={() => router.push('/account?tab=integrations')}
+                          className="bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                        >
+                          <i className="fa-solid fa-cog mr-2"></i>
+                          Settings
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => router.push('/calendar')}
-                    className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                  >
-                    <i className="fa-solid fa-calendar mr-2"></i>
-                    View Calendar
-                  </button>
-                  <button
-                    onClick={() => router.push('/account?tab=integrations')}
-                    className="bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                  >
-                    <i className="fa-solid fa-cog mr-2"></i>
-                    Settings
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+                )
+              }
+            } catch (error) {
+              // Silently fail if localStorage is not available (SSR)
+            }
+            return null
+          })()}
 
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
