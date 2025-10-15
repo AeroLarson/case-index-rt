@@ -10,11 +10,14 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
     if (isLoggingOut) return // Prevent multiple logout calls
     
     // Add confirmation dialog to prevent accidental logouts
-    const confirmed = window.confirm('Are you sure you want to log out?')
+    const confirmed = window.confirm('Are you sure you want to log out of Case Index RT?')
     if (!confirmed) return
     
     setIsLoggingOut(true)
@@ -22,7 +25,7 @@ export default function Sidebar() {
     router.push('/')
     
     // Reset after a delay to prevent rapid clicking
-    setTimeout(() => setIsLoggingOut(false), 1000)
+    setTimeout(() => setIsLoggingOut(false), 2000)
   }, [logout, router, isLoggingOut])
 
   const isActive = (path: string) => {
@@ -192,11 +195,17 @@ export default function Sidebar() {
           // Logout button for authenticated users
           <button 
             onClick={handleLogout}
+            onDoubleClick={(e) => e.preventDefault()}
             id="nav-logout"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-purple-300 text-sm font-medium transition-colors hover:bg-purple-900/20 cursor-pointer border-none bg-transparent"
+            disabled={isLoggingOut}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors border-none ${
+              isLoggingOut 
+                ? 'text-gray-500 cursor-not-allowed bg-gray-800/20' 
+                : 'text-purple-300 hover:bg-purple-900/20 cursor-pointer bg-transparent'
+            }`}
           >
             <i className="fa-solid fa-right-from-bracket text-base" />
-            <span>Log Out</span>
+            <span>{isLoggingOut ? 'Logging out...' : 'Log Out'}</span>
           </button>
         ) : (
               // Sign In button for public users

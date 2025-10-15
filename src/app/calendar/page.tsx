@@ -213,6 +213,195 @@ export default function CalendarPage() {
     return events.filter(event => event.source === 'county_api')
   }
 
+  // Calendar view render functions
+  const renderMonthView = () => {
+    const today = new Date()
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const startDate = new Date(firstDay)
+    startDate.setDate(startDate.getDate() - firstDay.getDay())
+    
+    const days = []
+    const current = new Date(startDate)
+    
+    for (let i = 0; i < 42; i++) {
+      const dayEvents = events.filter(event => {
+        const eventDate = new Date(event.date)
+        return eventDate.toDateString() === current.toDateString()
+      })
+      
+      days.push({
+        date: new Date(current),
+        events: dayEvents,
+        isCurrentMonth: current.getMonth() === month,
+        isToday: current.toDateString() === today.toDateString()
+      })
+      current.setDate(current.getDate() + 1)
+    }
+    
+    return (
+      <div className="month-view">
+        <div className="grid grid-cols-7 gap-1 mb-4">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="p-3 text-center text-gray-400 font-medium text-sm">
+              {day}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((day, index) => (
+            <div
+              key={index}
+              className={`min-h-[100px] p-2 rounded-lg border ${
+                day.isCurrentMonth 
+                  ? 'bg-white/5 border-white/10' 
+                  : 'bg-white/2 border-white/5'
+              } ${day.isToday ? 'ring-2 ring-blue-500' : ''}`}
+            >
+              <div className={`text-sm font-medium mb-1 ${
+                day.isCurrentMonth ? 'text-white' : 'text-gray-500'
+              }`}>
+                {day.date.getDate()}
+              </div>
+              <div className="space-y-1">
+                {day.events.slice(0, 3).map(event => (
+                  <div
+                    key={event.id}
+                    className="text-xs p-1 rounded bg-blue-500/20 text-blue-300 truncate cursor-pointer hover:bg-blue-500/30"
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    {event.title}
+                  </div>
+                ))}
+                {day.events.length > 3 && (
+                  <div className="text-xs text-gray-400">
+                    +{day.events.length - 3} more
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderWeekView = () => {
+    const today = new Date()
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay())
+    
+    const weekDays = []
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startOfWeek)
+      day.setDate(startOfWeek.getDate() + i)
+      const dayEvents = events.filter(event => {
+        const eventDate = new Date(event.date)
+        return eventDate.toDateString() === day.toDateString()
+      })
+      
+      weekDays.push({
+        date: day,
+        events: dayEvents,
+        isToday: day.toDateString() === today.toDateString()
+      })
+    }
+    
+    return (
+      <div className="week-view">
+        <div className="grid grid-cols-7 gap-4">
+          {weekDays.map((day, index) => (
+            <div key={index} className="min-h-[400px]">
+              <div className={`p-3 rounded-lg mb-3 ${
+                day.isToday ? 'bg-blue-500/20 border border-blue-500' : 'bg-white/5'
+              }`}>
+                <div className="text-sm font-medium text-white">
+                  {day.date.toLocaleDateString('en-US', { weekday: 'short' })}
+                </div>
+                <div className="text-lg font-bold text-white">
+                  {day.date.getDate()}
+                </div>
+              </div>
+              <div className="space-y-2">
+                {day.events.map(event => (
+                  <div
+                    key={event.id}
+                    className="p-2 rounded bg-white/5 hover:bg-white/10 cursor-pointer"
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    <div className="text-sm font-medium text-white truncate">
+                      {event.title}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {formatTime(event.time)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderDayView = () => {
+    const today = new Date()
+    const dayEvents = events.filter(event => {
+      const eventDate = new Date(event.date)
+      return eventDate.toDateString() === today.toDateString()
+    }).sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+    
+    return (
+      <div className="day-view">
+        <div className="mb-4">
+          <h4 className="text-xl font-semibold text-white">
+            {today.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </h4>
+        </div>
+        <div className="space-y-4">
+          {dayEvents.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              No events scheduled for today
+            </div>
+          ) : (
+            dayEvents.map(event => (
+              <div
+                key={event.id}
+                className="p-4 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer"
+                onClick={() => setSelectedEvent(event)}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`w-10 h-10 ${getEventColor(event.type)} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    <i className={`fa-solid ${getEventIcon(event.type)} text-white text-sm`}></i>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-white font-semibold text-lg">{event.title}</h4>
+                    <p className="text-gray-300 text-sm mb-2">{event.description}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <i className="fa-solid fa-clock"></i>
+                        {formatTime(event.time)}
+                      </span>
+                      <span className="text-blue-300">{event.caseNumber}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    )
+  }
+
   if (!user) {
     return null
   }
@@ -372,99 +561,21 @@ export default function CalendarPage() {
           {/* Calendar View */}
           <div className="lg:col-span-3">
             <div className="apple-card p-6">
-              <h3 className="text-white text-2xl font-semibold mb-6">Upcoming Events</h3>
+              <h3 className="text-white text-2xl font-semibold mb-6">
+                {view === 'month' ? 'Monthly Calendar' : 
+                 view === 'week' ? 'Weekly Calendar' : 
+                 'Daily Calendar'}
+              </h3>
               
               {isLoading ? (
                 <div className="h-96 flex items-center justify-center">
                   <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {(() => {
-                    // Group events by date
-                    const upcomingEvents = getUpcomingEvents()
-                    const eventsByDate: { [key: string]: typeof upcomingEvents } = {}
-                    
-                    upcomingEvents.forEach(event => {
-                      if (!eventsByDate[event.date]) {
-                        eventsByDate[event.date] = []
-                      }
-                      eventsByDate[event.date].push(event)
-                    })
-                    
-                    // Sort dates
-                    const sortedDates = Object.keys(eventsByDate).sort()
-                    
-                    return sortedDates.map(date => (
-                      <div key={date}>
-                        {/* Date Header */}
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex flex-col items-center justify-center">
-                            <span className="text-white text-xl font-bold">
-                              {new Date(date).getDate()}
-                            </span>
-                            <span className="text-white text-xs">
-                              {new Date(date).toLocaleDateString('en-US', { month: 'short' })}
-                            </span>
-                          </div>
-                          <div>
-                            <h3 className="text-white text-lg font-semibold">
-                              {new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                            </h3>
-                            <p className="text-gray-400 text-sm">{eventsByDate[date].length} event{eventsByDate[date].length !== 1 ? 's' : ''}</p>
-                          </div>
-                        </div>
-                        
-                        {/* Events for this date */}
-                        <div className="space-y-3 ml-4">
-                          {eventsByDate[date].map((event) => (
-                            <div
-                              key={event.id}
-                              onClick={() => setSelectedEvent(event)}
-                              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer transition-all duration-200 hover:scale-[1.02]"
-                            >
-                              <div className="flex items-start gap-4">
-                                <div className={`w-10 h-10 ${getEventColor(event.type)} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                                  <i className={`fa-solid ${getEventIcon(event.type)} text-white text-sm`}></i>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between mb-2">
-                                    <h4 className="text-white font-semibold text-lg">{event.title}</h4>
-                                    <div className="flex items-center gap-2">
-                                      <i className={`fa-solid ${getSourceIcon(event.source)} ${getSourceColor(event.source)} text-sm`}></i>
-                                      <span className="text-gray-400 text-sm">{event.source === 'county_api' ? 'County' : 'Manual'}</span>
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-300 text-sm mb-2">{event.description}</p>
-                                  <div className="flex items-center gap-4 text-sm text-gray-400">
-                                    <span className="flex items-center gap-1">
-                                      <i className="fa-solid fa-clock"></i>
-                                      {formatTime(event.time)}
-                                    </span>
-                                    <span className="text-blue-300">{event.caseNumber}</span>
-                                  </div>
-                                  {event.location && (
-                                    <p className="text-gray-400 text-sm mt-2">
-                                      <i className="fa-solid fa-map-marker-alt mr-1"></i>
-                                      {event.location}
-                                    </p>
-                                  )}
-                                  {event.countyData && (
-                                    <div className="mt-2 p-2 bg-green-500/10 rounded-lg">
-                                      <p className="text-green-300 text-sm">
-                                        <i className="fa-solid fa-building mr-1"></i>
-                                        {event.countyData.court} • {event.countyData.judge}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  })()}
+                <div className="calendar-container">
+                  {view === 'month' && renderMonthView()}
+                  {view === 'week' && renderWeekView()}
+                  {view === 'day' && renderDayView()}
                 </div>
               )}
             </div>
