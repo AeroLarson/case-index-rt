@@ -371,7 +371,28 @@ function SearchPageContent() {
     }
     
     try {
-      // Toggle star status in database
+      // First, save the case to savedCases if it's not already there
+      const isAlreadySaved = userProfile?.savedCases?.some(c => c.id === case_.id)
+      if (!isAlreadySaved) {
+        const savedCase = {
+          id: case_.id,
+          caseNumber: case_.caseNumber,
+          caseTitle: case_.title,
+          caseType: 'Family Law', // Default type
+          caseStatus: case_.status,
+          dateFiled: new Date().toISOString(),
+          court: case_.court,
+          judge: case_.judge,
+          parties: {
+            petitioner: case_.parties.plaintiff,
+            respondent: case_.parties.defendant
+          },
+          savedAt: new Date().toISOString()
+        }
+        userProfileManager.saveCase(user.id, savedCase)
+      }
+      
+      // Toggle star status
       const isStarred = userProfileManager.toggleStarredCase(user.id, case_.id)
       await refreshProfile()
       
@@ -381,7 +402,7 @@ function SearchPageContent() {
         alert(`Case ${case_.caseNumber} unstarred!`)
       }
     } catch (error) {
-      console.error('Failed to toggle star status in database:', error)
+      console.error('Failed to toggle star status:', error)
     }
   }
 
@@ -751,45 +772,32 @@ function SearchPageContent() {
                     {userProfile.starredCases.map((caseId) => {
                       const case_ = userProfile.savedCases?.find(c => c.id === caseId)
                       if (!case_) {
-                        // If case not found in savedCases, create a basic display
-                        return (
-                          <div
-                            key={caseId}
-                            onClick={() => handleCaseClick({ id: caseId, caseNumber: caseId, title: `Case ${caseId}` })}
-                            className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
-                          >
-                            <div className="flex justify-between items-start mb-4">
-                              <div>
-                                <h3 className="text-white text-xl font-semibold mb-2 flex items-center gap-2">
-                                  Case {caseId}
-                                  <i className="fa-solid fa-star text-yellow-400"></i>
-                                </h3>
-                                <p className="text-blue-300 font-medium">{caseId}</p>
-                              </div>
-                              <div className="text-right">
-                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
-                                  Unknown Status
-                                </span>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-gray-400 text-sm mb-1">Case Type</p>
-                                <p className="text-white">Unknown</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400 text-sm mb-1">Date Filed</p>
-                                <p className="text-white">Unknown</p>
-                              </div>
-                            </div>
-                          </div>
-                        )
+                        console.warn(`Starred case ${caseId} not found in savedCases`)
+                        return null
+                      }
+                      
+                      // Convert SavedCase to CaseResult for handleCaseClick
+                      const caseResult: CaseResult = {
+                        id: case_.id,
+                        caseNumber: case_.caseNumber,
+                        title: case_.caseTitle,
+                        court: case_.court,
+                        judge: case_.judge,
+                        status: case_.caseStatus,
+                        lastActivity: new Date(case_.savedAt).toLocaleDateString(),
+                        parties: {
+                          plaintiff: case_.parties.petitioner,
+                          defendant: case_.parties.respondent
+                        },
+                        documents: 0,
+                        hearings: 0,
+                        isDetailed: true
                       }
                       
                       return (
                         <div
                           key={case_.id}
-                          onClick={() => handleCaseClick(case_)}
+                          onClick={() => handleCaseClick(caseResult)}
                           className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
                         >
                           <div className="flex justify-between items-start mb-4">
@@ -824,7 +832,7 @@ function SearchPageContent() {
                           </div>
                         </div>
                       )
-                    })}
+                    }).filter(Boolean)}
                   </div>
                 ) : (
                   <div className="apple-card p-8 text-center">
