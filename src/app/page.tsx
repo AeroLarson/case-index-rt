@@ -201,8 +201,7 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                )
-              }
+                )}
 
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
