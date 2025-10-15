@@ -19,6 +19,10 @@ model User {
   createdAt DateTime @default(now())
   lastLogin DateTime @default(now())
   previousLogin DateTime?
+  
+  // Integration tokens
+  clioTokens Json? // Store Clio OAuth tokens
+  tourCompleted Boolean @default(false) // Track onboarding tour completion
 
   // Relations
   savedCases     SavedCase[]
@@ -27,6 +31,7 @@ model User {
   calendarEvents CalendarEvent[]
   notifications  Notification[]
   usageTracking  UsageTracking[]
+  payments       Payment[]
 
   @@map("users")
 }
@@ -135,4 +140,25 @@ model UsageTracking {
 
   @@unique([userId, month])
   @@map("usage_tracking")
+}
+
+model Payment {
+  id                String   @id @default(cuid())
+  userId            String
+  userEmail         String
+  userName          String
+  planId            String
+  amount            Float
+  status            String   // completed, pending, failed, refunded
+  stripeSessionId   String?
+  stripePaymentId   String?
+  nextBillingDate   DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }

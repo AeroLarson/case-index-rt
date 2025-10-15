@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
 
 interface TourStep {
   target: string
@@ -46,11 +47,18 @@ export default function OnboardingTour() {
   useEffect(() => {
     // Check if user has seen the tour
     if (user) {
-      const hasSeenTour = localStorage.getItem(`tour_completed_${user.id}`)
-      if (!hasSeenTour) {
-        // Wait a bit before showing tour
-        setTimeout(() => setShowTour(true), 1000)
+      const checkTourStatus = async () => {
+        try {
+          const hasSeenTour = await databaseUserProfileManager.isTourCompleted(user.id)
+          if (!hasSeenTour) {
+            // Wait a bit before showing tour
+            setTimeout(() => setShowTour(true), 1000)
+          }
+        } catch (error) {
+          console.error('Error checking tour status:', error)
+        }
       }
+      checkTourStatus()
     }
   }, [user])
 
@@ -116,10 +124,14 @@ export default function OnboardingTour() {
     completeTour()
   }
 
-  const completeTour = () => {
+  const completeTour = async () => {
     setShowTour(false)
     if (user) {
-      localStorage.setItem(`tour_completed_${user.id}`, 'true')
+      try {
+        await databaseUserProfileManager.markTourCompleted(user.id)
+      } catch (error) {
+        console.error('Error marking tour as completed:', error)
+      }
     }
   }
 

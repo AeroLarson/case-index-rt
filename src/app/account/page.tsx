@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
 
 export default function AccountPage() {
   const { user, logout, userProfile, clearAllUserData, debugUserData } = useAuth()
@@ -31,8 +32,8 @@ export default function AccountPage() {
 
   const checkClioConnection = async () => {
     try {
-      // Check if user has Clio tokens stored
-      const clioTokens = localStorage.getItem(`clio_tokens_${user?.id}`)
+      // Check if user has Clio tokens stored in database
+      const clioTokens = await databaseUserProfileManager.getClioTokens(user?.id || '')
       if (clioTokens) {
         setClioConnected(true)
       }
@@ -50,7 +51,7 @@ export default function AccountPage() {
   const handleClioSync = async () => {
     setClioSyncing(true)
     try {
-      const clioTokens = localStorage.getItem(`clio_tokens_${user?.id}`)
+      const clioTokens = await databaseUserProfileManager.getClioTokens(user?.id || '')
       if (!clioTokens) {
         throw new Error('No Clio connection found')
       }
@@ -77,10 +78,14 @@ export default function AccountPage() {
     }
   }
 
-  const handleClioDisconnect = () => {
+  const handleClioDisconnect = async () => {
     if (user) {
-      localStorage.removeItem(`clio_tokens_${user.id}`)
-      setClioConnected(false)
+      try {
+        await databaseUserProfileManager.updateClioTokens(user.id, null)
+        setClioConnected(false)
+      } catch (error) {
+        console.error('Error disconnecting Clio:', error)
+      }
     }
   }
   const [formData, setFormData] = useState({

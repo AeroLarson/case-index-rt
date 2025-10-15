@@ -135,11 +135,7 @@ export default function Home() {
           </div>
 
           {/* Clio Integration Status - Only show if user has Clio connected */}
-          {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && user?.id && (() => {
-            try {
-              const clioTokens = localStorage.getItem(`clio_tokens_${user.id}`)
-              if (clioTokens) {
-                return (
+          {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && user?.id && userProfile?.clioTokens && (
                   <div className="apple-card p-6 mb-8">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -175,11 +171,7 @@ export default function Home() {
                   </div>
                 )
               }
-            } catch (error) {
-              // Silently fail if localStorage is not available (SSR)
-            }
-            return null
-          })()}
+          )}
 
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

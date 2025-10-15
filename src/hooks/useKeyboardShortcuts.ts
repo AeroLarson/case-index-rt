@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Shortcut {
   key: string
@@ -50,13 +51,12 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[]) {
 // Global shortcuts hook - only enabled when user is logged in
 export function useGlobalShortcuts() {
   const router = useRouter()
+  const { user } = useAuth()
 
   useEffect(() => {
-    // Check if user is logged in by checking localStorage
+    // Check if user is logged in using AuthContext
     const checkAuth = () => {
-      if (typeof window === 'undefined') return false
-      const savedUser = localStorage.getItem('user')
-      return !!savedUser
+      return !!user
     }
 
     if (!checkAuth()) {

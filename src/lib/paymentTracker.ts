@@ -1,4 +1,6 @@
 // Payment Tracking Service
+import { databasePaymentTracker } from './databasePaymentTracker'
+
 export interface PaymentRecord {
   id: string
   userId: string
@@ -15,70 +17,115 @@ export interface PaymentRecord {
 }
 
 export class PaymentTracker {
-  private static getStorageKey() {
-    return 'payment_records'
-  }
-
-  static addPaymentRecord(record: Omit<PaymentRecord, 'id' | 'paymentDate'>): PaymentRecord {
-    const paymentRecord: PaymentRecord = {
-      ...record,
-      id: `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      paymentDate: new Date().toISOString()
-    }
-
-    const records = this.getAllPayments()
-    records.push(paymentRecord)
-    localStorage.setItem(this.getStorageKey(), JSON.stringify(records))
-    
-    return paymentRecord
-  }
-
-  static getAllPayments(): PaymentRecord[] {
-    if (typeof window === 'undefined') return []
-    
-    const stored = localStorage.getItem(this.getStorageKey())
-    return stored ? JSON.parse(stored) : []
-  }
-
-  static getPaymentsByUser(userId: string): PaymentRecord[] {
-    return this.getAllPayments().filter(payment => payment.userId === userId)
-  }
-
-  static updatePaymentStatus(paymentId: string, status: PaymentRecord['status'], notes?: string): void {
-    const records = this.getAllPayments()
-    const record = records.find(r => r.id === paymentId)
-    
-    if (record) {
-      record.status = status
-      if (notes) record.notes = notes
-      localStorage.setItem(this.getStorageKey(), JSON.stringify(records))
+  static async addPaymentRecord(record: Omit<PaymentRecord, 'id' | 'paymentDate'>): Promise<PaymentRecord> {
+    try {
+      const newRecord = await databasePaymentTracker.addPaymentRecord({
+        userId: record.userId,
+        userEmail: record.userEmail,
+        userName: record.userName,
+        planId: record.planId,
+        amount: record.amount,
+        status: record.status,
+        stripeSessionId: record.stripeSessionId,
+        stripePaymentId: record.stripeCustomerId,
+        nextBillingDate: record.nextBillingDate ? new Date(record.nextBillingDate) : undefined,
+        notes: record.notes
+      })
+      
+      return {
+        id: newRecord.id,
+        userId: newRecord.userId,
+        userEmail: newRecord.userEmail,
+        userName: newRecord.userName,
+        planId: newRecord.planId as 'pro' | 'team',
+        amount: newRecord.amount,
+        status: newRecord.status as 'pending' | 'completed' | 'failed' | 'refunded',
+        stripeSessionId: newRecord.stripeSessionId,
+        stripeCustomerId: newRecord.stripePaymentId,
+        paymentDate: newRecord.createdAt.toISOString(),
+        nextBillingDate: newRecord.nextBillingDate?.toISOString(),
+        notes: newRecord.notes
+      }
+    } catch (error) {
+      console.error('Error adding payment record:', error)
+      throw error
     }
   }
 
-  static getPaymentStats() {
-    const payments = this.getAllPayments()
-    const completedPayments = payments.filter(p => p.status === 'completed')
-    
-    // Exclude admin account from revenue calculations
-    const adminEmail = 'aero.larson@gmail.com'
-    const nonAdminCompletedPayments = completedPayments.filter(p => p.userEmail !== adminEmail)
-    
-    return {
-      totalPayments: payments.length,
-      completedPayments: completedPayments.length,
-      totalRevenue: nonAdminCompletedPayments.reduce((sum, p) => sum + p.amount, 0),
-      pendingPayments: payments.filter(p => p.status === 'pending').length,
-      failedPayments: payments.filter(p => p.status === 'failed').length,
-      proSubscriptions: nonAdminCompletedPayments.filter(p => p.planId === 'pro').length,
-      teamSubscriptions: nonAdminCompletedPayments.filter(p => p.planId === 'team').length,
-      recentPayments: payments
-        .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
-        .slice(0, 10)
+  static async getAllPayments(): Promise<PaymentRecord[]> {
+    try {
+      const payments = await databasePaymentTracker.getAllPayments()
+      return payments.map(payment => ({
+        id: payment.id,
+        userId: payment.userId,
+        userEmail: payment.userEmail,
+        userName: payment.userName,
+        planId: payment.planId as 'pro' | 'team',
+        amount: payment.amount,
+        status: payment.status as 'pending' | 'completed' | 'failed' | 'refunded',
+        stripeSessionId: payment.stripeSessionId,
+        stripeCustomerId: payment.stripePaymentId,
+        paymentDate: payment.createdAt.toISOString(),
+        nextBillingDate: payment.nextBillingDate?.toISOString(),
+        notes: payment.notes
+      }))
+    } catch (error) {
+      console.error('Error getting all payments:', error)
+      return []
     }
   }
 
-  static clearAllPayments(): void {
-    localStorage.removeItem(this.getStorageKey())
+  static async getPaymentsByUser(userId: string): Promise<PaymentRecord[]> {
+    try {
+      const payments = await databasePaymentTracker.getPaymentsByUser(userId)
+      return payments.map(payment => ({
+        id: payment.id,
+        userId: payment.userId,
+        userEmail: payment.userEmail,
+        userName: payment.userName,
+        planId: payment.planId as 'pro' | 'team',
+        amount: payment.amount,
+        status: payment.status as 'pending' | 'completed' | 'failed' | 'refunded',
+        stripeSessionId: payment.stripeSessionId,
+        stripeCustomerId: payment.stripePaymentId,
+        paymentDate: payment.createdAt.toISOString(),
+        nextBillingDate: payment.nextBillingDate?.toISOString(),
+        notes: payment.notes
+      }))
+    } catch (error) {
+      console.error('Error getting user payments:', error)
+      return []
+    }
+  }
+
+  static async updatePaymentStatus(paymentId: string, status: PaymentRecord['status'], notes?: string): Promise<void> {
+    try {
+      await databasePaymentTracker.updatePaymentStatus(paymentId, status, notes)
+    } catch (error) {
+      console.error('Error updating payment status:', error)
+      throw error
+    }
+  }
+
+  static async getPaymentStats() {
+    try {
+      return await databasePaymentTracker.getPaymentStats()
+    } catch (error) {
+      console.error('Error getting payment stats:', error)
+      return {
+        totalPayments: 0,
+        totalRevenue: 0,
+        monthlyRevenue: 0
+      }
+    }
+  }
+
+  static async clearAllPayments(): Promise<void> {
+    try {
+      await databasePaymentTracker.clearAllPayments()
+    } catch (error) {
+      console.error('Error clearing all payments:', error)
+      throw error
+    }
   }
 }
-

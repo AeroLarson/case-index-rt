@@ -9,6 +9,8 @@ export interface DatabaseUserProfile {
   createdAt: Date
   lastLogin: Date
   previousLogin?: Date
+  clioTokens?: any
+  tourCompleted: boolean
   savedCases: any[]
   recentSearches: any[]
   starredCases: any[]
@@ -360,6 +362,56 @@ export class DatabaseUserProfileManager {
     } catch (error) {
       console.error('Error incrementing monthly usage:', error)
       throw error
+    }
+  }
+
+  async updateClioTokens(userId: string, tokens: any) {
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { clioTokens: tokens }
+      })
+    } catch (error) {
+      console.error('Error updating Clio tokens:', error)
+      throw error
+    }
+  }
+
+  async getClioTokens(userId: string) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { clioTokens: true }
+      })
+      return user?.clioTokens
+    } catch (error) {
+      console.error('Error getting Clio tokens:', error)
+      throw error
+    }
+  }
+
+  async markTourCompleted(userId: string) {
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { tourCompleted: true }
+      })
+    } catch (error) {
+      console.error('Error marking tour as completed:', error)
+      throw error
+    }
+  }
+
+  async isTourCompleted(userId: string) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { tourCompleted: true }
+      })
+      return user?.tourCompleted || false
+    } catch (error) {
+      console.error('Error checking tour completion:', error)
+      return false
     }
   }
 }
