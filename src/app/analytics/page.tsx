@@ -21,8 +21,26 @@ export default function AnalyticsPage() {
     }
   }, [user, router])
 
+  // Don't render anything during prerendering or if no user
+  if (!user || !userProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    )
+  }
+
   // Calculate real stats from user profile
   const stats = useMemo(() => {
+    if (!userProfile) {
+      return {
+        totalSearches: 0,
+        savedCasesCount: 0,
+        starredCasesCount: 0,
+        upcomingHearings: 0
+      }
+    }
+
     const totalSearches = userProfile.recentSearches?.length || 0
     const savedCasesCount = userProfile.savedCases?.length || 0
     const starredCasesCount = userProfile.starredCases?.length || 0
@@ -40,6 +58,10 @@ export default function AnalyticsPage() {
 
   // Calculate search trends by month (last 6 months)
   const searchTrends = useMemo(() => {
+    if (!userProfile) {
+      return []
+    }
+
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const now = new Date()
     const last6Months = []
@@ -66,6 +88,10 @@ export default function AnalyticsPage() {
 
   // Calculate case type distribution from saved cases
   const caseTypeData = useMemo(() => {
+    if (!userProfile) {
+      return []
+    }
+
     const types: { [key: string]: number } = {}
     
     userProfile.savedCases?.forEach(savedCase => {
@@ -83,6 +109,10 @@ export default function AnalyticsPage() {
 
   // Calculate weekly activity (searches by day of week)
   const weeklyActivity = useMemo(() => {
+    if (!userProfile) {
+      return []
+    }
+
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const activityByDay = days.map(day => ({ day, cases: 0 }))
 
