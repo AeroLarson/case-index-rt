@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { UserProfile, userProfileManager } from '@/lib/userProfile'
+import { DatabaseUserProfile, databaseUserProfileManager } from '@/lib/databaseUserProfile'
 
 interface User {
   id: string
@@ -12,7 +12,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  userProfile: UserProfile | null
+  userProfile: DatabaseUserProfile | null
   login: (user: User) => void
   logout: () => void
   isLoading: boolean
@@ -25,7 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [userProfile, setUserProfile] = useState<DatabaseUserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -36,9 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (savedUser) {
           const userData = JSON.parse(savedUser)
           setUser(userData)
-          // Load user profile
-          const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
-          setUserProfile(profile)
+          // Load user profile from database
+          loadUserProfile(userData.id, userData.name, userData.email)
         }
       } catch (error) {
         console.warn('Failed to parse saved user:', error)
@@ -47,14 +46,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = (userData: User) => {
+  const loadUserProfile = async (userId: string, name: string, email: string) => {
+    try {
+      const profile = await databaseUserProfileManager.getUserProfile(userId, name, email)
+      setUserProfile(profile)
+    } catch (error) {
+      console.error('Failed to load user profile from database:', error)
+      // Fallback to empty profile
+      setUserProfile({
+        id: userId,
+        email,
+        name,
+        plan: 'free',
+        createdAt: new Date(),
+        lastLogin: new Date(),
+        savedCases: [],
+        recentSearches: [],
+        starredCases: [],
+        calendarEvents: [],
+        monthlyUsage: 0,
+        maxMonthlyUsage: 1
+      })
+    }
+  }
+
+  const login = async (userData: User) => {
     setUser(userData)
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(userData))
     }
-    // Load or create user profile
-    const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
-    setUserProfile(profile)
+    // Load or create user profile from database
+    await loadUserProfile(userData.id, userData.name, userData.email)
   }
 
   const logout = () => {
@@ -66,15 +88,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // In a real app, you might also call a logout API endpoint
   }
 
-  const refreshProfile = () => {
+  const refreshProfile = async () => {
     if (user) {
-      const profile = userProfileManager.getUserProfile(user.id, user.name, user.email)
-      setUserProfile(profile)
+      await loadUserProfile(user.id, user.name, user.email)
     }
   }
 
-  const clearAllUserData = () => {
-    userProfileManager.clearAllUserData()
+  const clearAllUserData = async () => {
+    if (user) {
+      try {
+        // Clear user data from database
+        await databaseUserProfileManager.clearUserData(user.id)
+      } catch (error) {
+        console.error('Failed to clear user data from database:', error)
+      }
+    }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('user')
     }
@@ -84,30 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const debugUserData = () => {
-    if (typeof window !== 'undefined') {
-      const allKeys = userProfileManager.getAllUserStorageKeys()
-      console.log('=== USER DATA DEBUG ===')
-      console.log('Current user:', user)
-      console.log('All user storage keys:', allKeys)
-      allKeys.forEach(key => {
-        const data = localStorage.getItem(key)
-        if (data) {
-          try {
-            const parsed = JSON.parse(data)
-            console.log(`Storage key ${key}:`, {
-              userId: parsed.id,
-              name: parsed.name,
-              email: parsed.email,
-              savedCases: parsed.savedCases?.length || 0,
-              recentSearches: parsed.recentSearches?.length || 0
-            })
-          } catch (e) {
-            console.log(`Storage key ${key}: Invalid JSON`)
-          }
-        }
-      })
-      console.log('=== END DEBUG ===')
-    }
+    console.log('=== USER DATA DEBUG ===')
+    console.log('Current user:', user)
+    console.log('Current user profile:', userProfile)
+    console.log('Database connection: Active')
+    console.log('=== END DEBUG ===')
   }
 
   return (

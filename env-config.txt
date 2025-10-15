@@ -1,0 +1,6 @@
+# Neon Database Connection
+DATABASE_URL=postgresql://neondb_owner:npg_Ti3bxaNhupy0@ep-nameless-salad-adrdr1ir-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+
+# NextAuth Configuration for Production Domain
+NEXTAUTH_URL=https://caseindexrt.com
+NEXTAUTH_SECRET=NCjTsoYiixt4zIbDF53ZGvL7mE/gq8b1YPW98uOx5+g=

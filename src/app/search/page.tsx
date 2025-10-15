@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
 import AIOverview from '@/components/AIOverview'
 import CaseTimeline from '@/components/CaseTimeline'
-import { userProfileManager } from '@/lib/userProfile'
+import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
 import EmptyState from '@/components/EmptyState'
 
 interface CaseResult {
@@ -195,13 +195,17 @@ function SearchPageContent() {
     
     setIsSearching(false)
 
-    // Save search to user profile
-    userProfileManager.addRecentSearch(user.id, {
-      query: searchQuery,
-      searchType: 'case',
-      resultsCount: searchResults.length
-    })
-    refreshProfile()
+    // Save search to user profile in database
+    try {
+      await databaseUserProfileManager.addRecentSearch(user.id, {
+        query: searchQuery,
+        searchType: 'case',
+        resultsCount: searchResults.length
+      })
+      await refreshProfile()
+    } catch (error) {
+      console.error('Failed to save search to database:', error)
+    }
   }
 
   const handleGetCaseDetails = async (case_: CaseResult) => {
@@ -277,7 +281,7 @@ function SearchPageContent() {
     
     // Increment monthly usage in user profile
     if (user) {
-      const success = userProfileManager.incrementMonthlyUsage(user.id)
+      const success = await databaseUserProfileManager.incrementMonthlyUsage(user.id)
       if (success) {
         refreshProfile()
       }
@@ -300,27 +304,28 @@ function SearchPageContent() {
   }
 
 
-  const handleAddToCalendar = (case_: CaseResult) => {
+  const handleAddToCalendar = async (case_: CaseResult) => {
     if (!user) return
     
-    // Save case to user profile
-    userProfileManager.addSavedCase(user.id, {
-      caseNumber: case_.caseNumber,
-      caseTitle: case_.title,
-      caseType: 'Family Law',
-      caseStatus: case_.status,
-      dateFiled: '2024-01-15',
-      department: '602',
-      courtLocation: case_.court,
-      judicialOfficer: case_.judge,
-      parties: {
-        petitioner: case_.parties.plaintiff,
-        respondent: case_.parties.defendant
-      }
-    })
-    
-    // Add calendar event for the case hearing
-    userProfileManager.addCalendarEvent(user.id, {
+    // Save case to user profile in database
+    try {
+      await databaseUserProfileManager.addSavedCase(user.id, {
+        caseNumber: case_.caseNumber,
+        caseTitle: case_.title,
+        caseType: 'Family Law',
+        caseStatus: case_.status,
+        dateFiled: '2024-01-15',
+        department: '602',
+        courtLocation: case_.court,
+        judicialOfficer: case_.judge,
+        parties: {
+          petitioner: case_.parties.plaintiff,
+          respondent: case_.parties.defendant
+        }
+      })
+      
+      // Add calendar event for the case hearing
+      await databaseUserProfileManager.addCalendarEvent(user.id, {
       title: `Hearing - ${case_.title}`,
       date: '2026-01-27', // Format: YYYY-MM-DD
       time: '09:00',
@@ -332,23 +337,30 @@ function SearchPageContent() {
       priority: 'high',
       status: 'scheduled',
       virtualMeetingInfo: 'Zoom ID: 123-456-7890, Passcode: 123456'
-    })
-    
-    refreshProfile()
-    alert(`Case ${case_.caseNumber} and hearing added to your calendar!`)
+      })
+      
+      await refreshProfile()
+      alert(`Case ${case_.caseNumber} and hearing added to your calendar!`)
+    } catch (error) {
+      console.error('Failed to save case and calendar event to database:', error)
+    }
   }
 
-  const handleStarCase = (case_: CaseResult) => {
+  const handleStarCase = async (case_: CaseResult) => {
     if (!user) return
     
-    // Toggle star status
-    const isStarred = userProfileManager.toggleStarredCase(user.id, case_.id)
-    refreshProfile()
-    
-    if (isStarred) {
-      alert(`Case ${case_.caseNumber} starred!`)
-    } else {
-      alert(`Case ${case_.caseNumber} unstarred!`)
+    try {
+      // Toggle star status in database
+      const isStarred = await databaseUserProfileManager.toggleStarredCase(user.id, case_.id)
+      await refreshProfile()
+      
+      if (isStarred) {
+        alert(`Case ${case_.caseNumber} starred!`)
+      } else {
+        alert(`Case ${case_.caseNumber} unstarred!`)
+      }
+    } catch (error) {
+      console.error('Failed to toggle star status in database:', error)
     }
   }
 
@@ -753,7 +765,7 @@ function SearchPageContent() {
                       court={selectedCase.court}
                       judge={selectedCase.judge}
                       parties={selectedCase.parties}
-                      lastLogin={userProfile?.previousLogin}
+                      lastLogin={userProfile?.previousLogin?.toISOString()}
                       className="mb-6"
                     />
                 <CaseTimeline 

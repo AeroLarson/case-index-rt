@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,140 +10,129 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Authentication & Profile
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  password      String?   // Hashed password for email/password auth
-  emailVerified DateTime?
-  image         String?
-  
-  // OAuth accounts (Google, etc.)
-  accounts      Account[]
-  sessions      Session[]
-  
-  // Password reset
-  passwordResetToken   String?   @unique
-  passwordResetExpires DateTime?
-  
-  // User profile data
-  avatar        String?
-  plan          String    @default("free") // free, pro, team
-  monthlyUsage  Int       @default(0)
-  maxMonthlyUsage Int     @default(10)
-  
-  // Tracking
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLogin     DateTime  @default(now())
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  avatar    String?
+  plan      String   @default("free") // free, pro, team
+  createdAt DateTime @default(now())
+  lastLogin DateTime @default(now())
   previousLogin DateTime?
-  
+
   // Relations
-  savedCases    SavedCase[]
+  savedCases     SavedCase[]
   recentSearches RecentSearch[]
-  starredCases  StarredCase[]
+  starredCases   StarredCase[]
   calendarEvents CalendarEvent[]
-  
-  @@index([email])
+  notifications  Notification[]
+  usageTracking  UsageTracking[]
+
+  @@map("users")
 }
 
-// NextAuth Account model (for OAuth providers)
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-// NextAuth Session model
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// Saved Cases
 model SavedCase {
-  id          String   @id @default(cuid())
-  userId      String
-  caseNumber  String
-  caseTitle   String
-  caseType    String
-  caseStatus  String
-  dateFiled   String
-  court       String
-  judge       String?
-  parties     String?
-  savedAt     DateTime @default(now())
-  notes       String?  @db.Text
-  
+  id           String   @id @default(cuid())
+  userId       String
+  caseNumber   String
+  caseTitle    String
+  caseType     String
+  caseStatus   String
+  dateFiled    String
+  department   String
+  courtLocation String
+  judicialOfficer String
+  parties      Json // { petitioner: string, respondent: string, etc. }
+  notes        String?
+  tags         String[] @default([])
+  aiSummary    String?
+  aiGeneratedAt DateTime?
+  savedAt      DateTime @default(now())
+
+  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([caseNumber])
+
+  @@map("saved_cases")
 }
 
-// Recent Searches
 model RecentSearch {
   id          String   @id @default(cuid())
   userId      String
   query       String
-  searchType  String   // party, case, attorney
+  searchType  String
+  resultsCount Int
   searchedAt  DateTime @default(now())
-  
+
+  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
+
+  @@map("recent_searches")
 }
 
-// Starred Cases
 model StarredCase {
-  id         String   @id @default(cuid())
-  userId     String
-  caseNumber String
-  starredAt  DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  userId    String
+  caseId    String // References saved case ID
+  starredAt DateTime @default(now())
+
+  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, caseNumber])
-  @@index([userId])
+
+  @@map("starred_cases")
 }
 
-// Calendar Events
 model CalendarEvent {
-  id          String   @id @default(cuid())
-  userId      String
-  title       String
-  description String?  @db.Text
-  startDate   DateTime
-  endDate     DateTime?
-  location    String?
-  eventType   String   // hearing, filing, deadline, meeting
-  caseNumber  String?
-  court       String?
-  judge       String?
-  zoomLink    String?
-  zoomId      String?
-  zoomPasscode String?
-  createdAt   DateTime @default(now())
-  
+  id                String   @id @default(cuid())
+  userId            String
+  title             String
+  date              String
+  time              String
+  type              String // hearing, deadline, meeting, etc.
+  caseNumber        String?
+  location          String?
+  description       String
+  duration          Int
+  priority          String // low, medium, high, urgent
+  status            String // scheduled, completed, cancelled
+  virtualMeetingInfo String?
+  createdAt         DateTime @default(now())
+
+  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([startDate])
+
+  @@map("calendar_events")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String // hearing, document, case_update, etc.
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  actionUrl String?
+  caseNumber String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model UsageTracking {
+  id              String   @id @default(cuid())
+  userId          String
+  month           String // YYYY-MM format
+  usageCount      Int     @default(0)
+  maxUsage        Int     @default(1) // Based on plan
+  plan            String  @default("free")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@map("usage_tracking")
 }
