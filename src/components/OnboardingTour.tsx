@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
 
 interface TourStep {
   target: string
@@ -47,39 +46,11 @@ export default function OnboardingTour() {
   useEffect(() => {
     // Check if user has seen the tour
     if (user) {
-      const checkTourStatus = async () => {
-        try {
-          console.log('Checking tour status for user:', user.id)
-          const hasSeenTour = await databaseUserProfileManager.isTourCompleted(user.id)
-          console.log('Database tour status:', hasSeenTour)
-          if (!hasSeenTour) {
-            // Wait a bit before showing tour
-            setTimeout(() => setShowTour(true), 1000)
-          }
-        } catch (error) {
-          console.error('Failed to check tour status from database:', error)
-          
-          // Fallback to localStorage
-          try {
-            const localTourStatus = localStorage.getItem(`tour_completed_${user.id}`)
-            if (localTourStatus) {
-              const hasSeenTour = JSON.parse(localTourStatus)
-              console.log('Using localStorage tour status:', hasSeenTour)
-              if (!hasSeenTour) {
-                setTimeout(() => setShowTour(true), 1000)
-              }
-            } else {
-              // No tour status found, show tour
-              setTimeout(() => setShowTour(true), 1000)
-            }
-          } catch (localError) {
-            console.error('Failed to check localStorage tour status:', localError)
-            // Show tour as fallback
-            setTimeout(() => setShowTour(true), 1000)
-          }
-        }
+      const hasSeenTour = localStorage.getItem(`tour_completed_${user.id}`)
+      if (!hasSeenTour) {
+        // Wait a bit before showing tour
+        setTimeout(() => setShowTour(true), 1000)
       }
-      checkTourStatus()
     }
   }, [user])
 
@@ -145,24 +116,10 @@ export default function OnboardingTour() {
     completeTour()
   }
 
-  const completeTour = async () => {
+  const completeTour = () => {
     setShowTour(false)
     if (user) {
-      try {
-        console.log('Marking tour as completed for user:', user.id)
-        await databaseUserProfileManager.markTourCompleted(user.id)
-        console.log('Tour marked as completed in database')
-      } catch (error) {
-        console.error('Error marking tour as completed in database:', error)
-      }
-      
-      // Also save to localStorage as backup
-      try {
-        localStorage.setItem(`tour_completed_${user.id}`, 'true')
-        console.log('Tour marked as completed in localStorage')
-      } catch (localError) {
-        console.error('Error saving tour status to localStorage:', localError)
-      }
+      localStorage.setItem(`tour_completed_${user.id}`, 'true')
     }
   }
 
