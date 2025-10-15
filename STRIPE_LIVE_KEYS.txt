@@ -1,0 +1,55 @@
+═══════════════════════════════════════════════════════════════
+  🔑 LIVE STRIPE KEYS - ADD TO YOUR .env.local FILE
+═══════════════════════════════════════════════════════════════
+
+Add these Stripe environment variables to your existing .env.local file:
+
+─────────────────────────────────────────────────────────────
+
+# Stripe Live Keys (Production)
+STRIPE_SECRET_KEY=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
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_51SIPXzLng9ZTfDuZTxzd3YxD6kPhvczXbw60f4iqdvYlY2NsfkLbkNPP4gxktvFPlgJZiA34cB5d49Hfd2Nluj0200n2xPDozu
+
+# Stripe Product Price IDs (You'll need to create these in Stripe Dashboard)
+STRIPE_PRO_PRICE_ID=price_your_pro_price_id_here
+STRIPE_TEAM_PRICE_ID=price_your_team_price_id_here
+
+# Stripe Webhook Secret (You'll get this when you set up webhooks)
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+─────────────────────────────────────────────────────────────
+
+📌 NEXT STEPS TO COMPLETE STRIPE SETUP:
+
+1. ✅ Your live keys are ready (copy them above!)
+
+2. Create Products & Prices in Stripe Dashboard:
+   
+   🟢 Go to https://dashboard.stripe.com/products
+   🟢 Create "Case Index RT Professional" product
+   🟢 Set price to $99/month recurring
+   🟢 Copy the price ID (starts with "price_")
+   🟢 Paste into STRIPE_PRO_PRICE_ID
+   
+   🟢 Create "Case Index RT Team" product  
+   🟢 Set price to $299/month recurring
+   🟢 Copy the price ID (starts with "price_")
+   🟢 Paste into STRIPE_TEAM_PRICE_ID
+
+3. Set up Webhooks:
+   
+   🔗 Go to https://dashboard.stripe.com/webhooks
+   🔗 Add endpoint: https://caseindexrt.com/api/stripe/webhook
+   🔗 Select events: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted
+   🔗 Copy webhook secret (starts with "whsec_")
+   🔗 Paste into STRIPE_WEBHOOK_SECRET
+
+4. Update your .env.local file with all the values above
+
+5. Deploy to production and test payments!
+
+═══════════════════════════════════════════════════════════════
+
+🚀 Your Stripe integration is ready for live payments!
+
+═══════════════════════════════════════════════════════════════

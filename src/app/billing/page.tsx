@@ -417,13 +417,13 @@ export default function BillingPage() {
               <div className="space-y-6">
                 <div className="apple-card p-8">
                   <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Available Plans</h2>
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    <div className="border border-white/10 rounded-2xl p-8">
-                      <div className="mb-6">
-                        <h3 className="text-white text-xl font-semibold mb-2">Free</h3>
-                        <p className="text-gray-400 text-lg">$0/month</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                    <div className="border border-white/10 rounded-2xl p-6">
+                      <div className="mb-4">
+                        <h3 className="text-white text-lg font-semibold mb-1">Free</h3>
+                        <p className="text-gray-400 text-base">$0/month</p>
                       </div>
-                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                      <ul className="space-y-2 text-xs text-gray-300 mb-4">
                         <li>• 1 case search per month</li>
                         <li>• Basic case information</li>
                         <li>• Limited features</li>
@@ -432,18 +432,18 @@ export default function BillingPage() {
                       <button
                         onClick={() => handleUpgrade('free')}
                         disabled={isLoading || subscription.plan === 'Free'}
-                        className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-500 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-base"
+                        className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-500 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-sm"
                       >
                         {isLoading ? 'Processing...' : subscription.plan === 'Free' ? 'Current Plan' : 'Downgrade'}
                       </button>
                     </div>
 
-                    <div className="border border-white/10 rounded-2xl p-8">
-                      <div className="mb-6">
-                        <h3 className="text-white text-xl font-semibold mb-2">Professional</h3>
-                        <p className="text-gray-400 text-lg">$99/month</p>
+                    <div className="border border-white/10 rounded-2xl p-6">
+                      <div className="mb-4">
+                        <h3 className="text-white text-lg font-semibold mb-1">Professional</h3>
+                        <p className="text-gray-400 text-base">$99/month</p>
                       </div>
-                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                      <ul className="space-y-2 text-xs text-gray-300 mb-4">
                         <li>• Unlimited case searches</li>
                         <li>• AI-powered case summaries</li>
                         <li>• Calendar integration</li>
@@ -452,18 +452,18 @@ export default function BillingPage() {
                       <button
                         onClick={() => handleUpgrade('pro')}
                         disabled={isLoading || subscription.plan === 'Professional'}
-                        className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-base"
+                        className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-sm"
                       >
                         {isLoading ? 'Processing...' : subscription.plan === 'Professional' ? 'Current Plan' : 'Upgrade'}
                       </button>
                     </div>
 
-                    <div className="border border-white/10 rounded-2xl p-8">
-                      <div className="mb-6">
-                        <h3 className="text-white text-xl font-semibold mb-2">Team</h3>
-                        <p className="text-gray-400 text-lg">$299/month</p>
+                    <div className="border border-white/10 rounded-2xl p-6">
+                      <div className="mb-4">
+                        <h3 className="text-white text-lg font-semibold mb-1">Team</h3>
+                        <p className="text-gray-400 text-base">$299/month</p>
                       </div>
-                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                      <ul className="space-y-2 text-xs text-gray-300 mb-4">
                         <li>• Everything in Professional</li>
                         <li>• Up to 5 team members</li>
                         <li>• Clio CRM integration</li>
@@ -471,19 +471,19 @@ export default function BillingPage() {
                       </ul>
                       <button
                         onClick={() => window.location.href = '/contact-sales'}
-                        className="w-full bg-purple-500 hover:bg-purple-600 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 text-base"
+                        className="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm"
                       >
                         Contact Sales
                       </button>
                     </div>
 
                     {/* Enterprise Plan */}
-                    <div className="border border-white/10 rounded-2xl p-8">
-                      <div className="mb-6">
-                        <h3 className="text-white text-xl font-semibold mb-2">Enterprise</h3>
-                        <p className="text-gray-400 text-lg">Custom pricing</p>
+                    <div className="border border-white/10 rounded-2xl p-6">
+                      <div className="mb-4">
+                        <h3 className="text-white text-lg font-semibold mb-1">Enterprise</h3>
+                        <p className="text-gray-400 text-base">Custom pricing</p>
                       </div>
-                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                      <ul className="space-y-2 text-xs text-gray-300 mb-4">
                         <li>• Everything in Team</li>
                         <li>• Unlimited team members</li>
                         <li>• SSO/SAML, audit logs</li>
@@ -491,7 +491,7 @@ export default function BillingPage() {
                       </ul>
                       <button
                         onClick={() => window.location.href = '/contact-sales'}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 text-base"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm"
                       >
                         Contact Sales
                       </button>

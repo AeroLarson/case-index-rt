@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
 
     const plan = planId === 'pro' ? 'pro' : 'team'
     const priceId = plan === 'pro' 
-      ? process.env.STRIPE_PRO_PRICE_ID || 'price_pro_monthly'
-      : process.env.STRIPE_TEAM_PRICE_ID || 'price_team_monthly'
+      ? process.env.STRIPE_PRO_PRICE_ID || 'price_1SIPXzLng9ZTfDuZYourProPriceId'
+      : process.env.STRIPE_TEAM_PRICE_ID || 'price_1SIPXzLng9ZTfDuZYourTeamPriceId'
 
     const session = await stripe.checkout.sessions.create({
       customer_email: userEmail,
