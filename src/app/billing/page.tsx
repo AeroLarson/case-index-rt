@@ -6,14 +6,12 @@ import { useState, useEffect } from 'react'
 import { userProfileManager } from '@/lib/userProfile'
 import { PaymentService } from '@/lib/stripe'
 import { PaymentTracker } from '@/lib/paymentTracker'
-import { InvoiceGenerator } from '@/lib/invoiceGenerator'
 
 export default function BillingPage() {
   const { user, userProfile, refreshProfile } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
   const [isLoading, setIsLoading] = useState(false)
-  const [billingHistory, setBillingHistory] = useState<any[]>([])
 
   // Get subscription data from user profile
   const [subscription, setSubscription] = useState({
@@ -92,8 +90,6 @@ export default function BillingPage() {
       setActiveTab('plans')
     }
 
-    // Load billing history
-    loadBillingHistory()
   }, [user, router])
 
   const handlePaymentSuccess = async (sessionId: string) => {
@@ -117,8 +113,6 @@ export default function BillingPage() {
         userProfileManager.updatePlan(user.id, result.planId as 'pro' | 'team')
         refreshProfile()
         
-        // Reload billing history
-        loadBillingHistory()
         
         alert('Payment successful! Your plan has been upgraded.')
         // Clean up URL
@@ -130,30 +124,7 @@ export default function BillingPage() {
     }
   }
 
-  const loadBillingHistory = () => {
-    if (user) {
-      console.log('Loading billing history for user:', user.email)
-      const userPayments = PaymentTracker.getPaymentsByUser(user.id)
-      console.log('User payments found:', userPayments.length)
-      
-      // Show all payments (both admin and regular users get invoices when they upgrade)
-      console.log('Setting billing history:', userPayments)
-      setBillingHistory(userPayments)
-    }
-  }
 
-  const downloadInvoice = (payment: any) => {
-    try {
-      console.log('Generating invoice for payment:', payment)
-      const invoiceData = InvoiceGenerator.generateInvoiceFromPayment(payment)
-      console.log('Invoice data:', invoiceData)
-      InvoiceGenerator.generateInvoice(invoiceData)
-      console.log('PDF generation completed')
-    } catch (error) {
-      console.error('Error generating PDF:', error)
-      alert('Failed to generate PDF. Please try again.')
-    }
-  }
 
   const handleUpgrade = async (planId: string) => {
     setIsLoading(true)
@@ -181,8 +152,6 @@ export default function BillingPage() {
             nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
           })
           
-          // Reload billing history to show new invoice
-          loadBillingHistory()
         }
         
         const planDetails = {
@@ -269,7 +238,7 @@ export default function BillingPage() {
         {/* Header */}
         <div className="mb-6 md:mb-8">
           <h1 className="text-white text-2xl md:text-4xl font-bold mb-3 md:mb-4 tracking-tight">Billing & Subscription</h1>
-          <p className="text-gray-300 text-sm md:text-lg">Manage your subscription and payment methods</p>
+          <p className="text-gray-300 text-sm md:text-lg">Manage your subscription and billing</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-8">
