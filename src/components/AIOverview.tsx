@@ -95,13 +95,23 @@ export default function AIOverview({
       const simpleCaseType = caseType.toLowerCase()
       
       if (lastLogin) {
-        const timeSinceLogin = Date.now() - new Date(lastLogin).getTime()
-        const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
-        
-        if (daysSinceLogin > 0) {
-          formattedOverview += `Welcome back! It's been ${daysSinceLogin} day${daysSinceLogin > 1 ? 's' : ''} since your last login. Here's what's happening with your case:\n\n`
-        } else {
-          formattedOverview += `Welcome back! Here's the latest on your case:\n\n`
+        try {
+          const lastLoginDate = typeof lastLogin === 'string' ? new Date(lastLogin) : lastLogin
+          if (!isNaN(lastLoginDate.getTime())) {
+            const timeSinceLogin = Date.now() - lastLoginDate.getTime()
+            const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
+            
+            if (daysSinceLogin > 0) {
+              formattedOverview += `Welcome back! It's been ${daysSinceLogin} day${daysSinceLogin > 1 ? 's' : ''} since your last login. Here's what's happening with your case:\n\n`
+            } else {
+              formattedOverview += `Welcome back! Here's the latest on your case:\n\n`
+            }
+          } else {
+            formattedOverview += `Here's an overview of your case:\n\n`
+          }
+        } catch (error) {
+          console.warn('Error parsing lastLogin date:', error)
+          formattedOverview += `Here's an overview of your case:\n\n`
         }
       } else {
         formattedOverview += `Here's an overview of your case:\n\n`
@@ -153,13 +163,23 @@ export default function AIOverview({
     let fallbackText = ''
     
     if (lastLogin) {
-      const timeSinceLogin = Date.now() - new Date(lastLogin).getTime()
-      const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
-      
-      if (daysSinceLogin > 0) {
-        fallbackText += `Welcome back! It's been ${daysSinceLogin} day${daysSinceLogin > 1 ? 's' : ''} since your last login. Here's what's happening with your case:\n\n`
-      } else {
-        fallbackText += `Welcome back! Here's the latest on your case:\n\n`
+      try {
+        const lastLoginDate = typeof lastLogin === 'string' ? new Date(lastLogin) : lastLogin
+        if (!isNaN(lastLoginDate.getTime())) {
+          const timeSinceLogin = Date.now() - lastLoginDate.getTime()
+          const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
+          
+          if (daysSinceLogin > 0) {
+            fallbackText += `Welcome back! It's been ${daysSinceLogin} day${daysSinceLogin > 1 ? 's' : ''} since your last login. Here's what's happening with your case:\n\n`
+          } else {
+            fallbackText += `Welcome back! Here's the latest on your case:\n\n`
+          }
+        } else {
+          fallbackText += `Here's an overview of your case:\n\n`
+        }
+      } catch (error) {
+        console.warn('Error parsing lastLogin date in fallback:', error)
+        fallbackText += `Here's an overview of your case:\n\n`
       }
     } else {
       fallbackText += `Here's an overview of your case:\n\n`

@@ -857,7 +857,7 @@ function SearchPageContent() {
                     court={selectedCase.court}
                     judge={selectedCase.judge}
                     parties={selectedCase.parties}
-                    lastLogin={userProfile?.previousLogin?.toISOString()}
+                    lastLogin={userProfile?.previousLogin}
                     className="mb-6"
                   />
                 </SimpleErrorBoundary>
