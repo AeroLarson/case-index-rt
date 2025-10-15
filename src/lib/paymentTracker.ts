@@ -82,7 +82,9 @@ export class PaymentTracker {
 
   static getPaymentStats() {
     try {
-      const payments = this.getAllPayments()
+      const ADMIN_EMAIL = 'aero.larson@gmail.com'
+      // Exclude admin payments from stats
+      const payments = this.getAllPayments().filter(p => p.userEmail !== ADMIN_EMAIL)
       const completedPayments = payments.filter(p => p.status === 'completed')
       const totalRevenue = completedPayments.reduce((sum, p) => sum + p.amount, 0)
       

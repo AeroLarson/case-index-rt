@@ -417,7 +417,7 @@ export default function BillingPage() {
               <div className="space-y-6">
                 <div className="apple-card p-8">
                   <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Available Plans</h2>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     <div className="border border-white/10 rounded-2xl p-8">
                       <div className="mb-6">
                         <h3 className="text-white text-xl font-semibold mb-2">Free</h3>
@@ -470,11 +470,30 @@ export default function BillingPage() {
                         <li>• Dedicated support</li>
                       </ul>
                       <button
-                        onClick={() => handleUpgrade('team')}
-                        disabled={isLoading || subscription.plan === 'Team'}
-                        className="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-gray-500 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed text-base"
+                        onClick={() => window.location.href = '/contact-sales'}
+                        className="w-full bg-purple-500 hover:bg-purple-600 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 text-base"
                       >
-                        {isLoading ? 'Processing...' : subscription.plan === 'Team' ? 'Current Plan' : 'Upgrade'}
+                        Contact Sales
+                      </button>
+                    </div>
+
+                    {/* Enterprise Plan */}
+                    <div className="border border-white/10 rounded-2xl p-8">
+                      <div className="mb-6">
+                        <h3 className="text-white text-xl font-semibold mb-2">Enterprise</h3>
+                        <p className="text-gray-400 text-lg">Custom pricing</p>
+                      </div>
+                      <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                        <li>• Everything in Team</li>
+                        <li>• Unlimited team members</li>
+                        <li>• SSO/SAML, audit logs</li>
+                        <li>• Priority support & SLA</li>
+                      </ul>
+                      <button
+                        onClick={() => window.location.href = '/contact-sales'}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 text-base"
+                      >
+                        Contact Sales
                       </button>
                     </div>
                   </div>
