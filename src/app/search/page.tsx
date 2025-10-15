@@ -87,40 +87,6 @@ function SearchPageContent() {
   // Don't render anything if not logged in
   if (!user) return null
 
-  const mockSearchResults: CaseResult[] = [
-    {
-      id: '1',
-      caseNumber: 'FL-2024-001234',
-      title: 'Johnson v. Martinez - Dissolution with Minor Children',
-      court: 'San Diego Superior Court - Central (Department 602)',
-      judge: 'Hon. Rebecca Kanter',
-      status: 'Post-Judgment - Request for Order',
-      lastActivity: 'October 12, 2025',
-      parties: {
-        plaintiff: 'Sarah Johnson (Petitioner)',
-        defendant: 'Michael Martinez (Respondent)'
-      },
-      documents: 23,
-      hearings: 7,
-      isDetailed: isProUser
-    },
-    {
-      id: '2',
-      caseNumber: 'FL-2024-002847',
-      title: 'Anderson v. Chen - Custody Modification',
-      court: 'San Diego Superior Court - North County (Department 403)',
-      judge: 'Hon. James Patterson',
-      status: 'Active - Mediation Scheduled',
-      lastActivity: 'October 10, 2025',
-      parties: {
-        plaintiff: 'David Anderson (Petitioner)',
-        defendant: 'Lisa Chen (Respondent)'
-      },
-      documents: 18,
-      hearings: 4,
-      isDetailed: isProUser
-    },
-  ]
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()

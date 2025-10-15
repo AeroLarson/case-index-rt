@@ -32,97 +32,21 @@ export default function CaseTimeline({ caseNumber, className = '' }: CaseTimelin
   const loadTimeline = async () => {
     try {
       setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    const mockTimeline: TimelineEvent[] = [
-      {
-        id: '1',
-        date: '2024-01-15',
-        title: 'Case Filed',
-        description: 'Initial complaint filed with San Diego Superior Court',
-        type: 'filing',
-        status: 'completed',
-        documents: ['Complaint.pdf', 'Civil Case Cover Sheet.pdf'],
-        participants: ['Plaintiff Attorney', 'Court Clerk']
-      },
-      {
-        id: '2',
-        date: '2024-01-22',
-        title: 'Service of Process',
-        description: 'Defendant served with summons and complaint',
-        type: 'filing',
-        status: 'completed',
-        documents: ['Proof of Service.pdf', 'Summons.pdf'],
-        participants: ['Process Server', 'Defendant']
-      },
-      {
-        id: '3',
-        date: '2024-02-15',
-        title: 'Defendant Response Due',
-        description: 'Deadline for defendant to file answer or demurrer',
-        type: 'deadline',
-        status: 'completed',
-        documents: ['Answer.pdf'],
-        participants: ['Defendant Attorney']
-      },
-      {
-        id: '4',
-        date: '2024-02-28',
-        title: 'Case Management Conference',
-        description: 'Initial case management conference scheduled',
-        type: 'hearing',
-        status: 'completed',
-        documents: ['Case Management Statement.pdf'],
-        participants: ['Judge Martinez', 'Plaintiff Attorney', 'Defendant Attorney'],
-        outcome: 'Discovery plan established, trial date set for June 2024'
-      },
-      {
-        id: '5',
-        date: '2024-03-15',
-        title: 'Motion for Summary Judgment',
-        description: 'Plaintiff files motion for summary judgment',
-        type: 'motion',
-        status: 'pending',
-        documents: ['Motion for Summary Judgment.pdf', 'Memorandum of Points and Authorities.pdf'],
-        participants: ['Plaintiff Attorney'],
-        nextAction: 'Response due March 29, 2024'
-      },
-      {
-        id: '6',
-        date: '2024-03-29',
-        title: 'Response to Motion Due',
-        description: 'Defendant must file opposition to motion for summary judgment',
-        type: 'deadline',
-        status: 'upcoming',
-        participants: ['Defendant Attorney'],
-        nextAction: 'File opposition brief and supporting evidence'
-      },
-      {
-        id: '7',
-        date: '2024-04-15',
-        title: 'Motion Hearing',
-        description: 'Hearing on motion for summary judgment',
-        type: 'hearing',
-        status: 'upcoming',
-        participants: ['Judge Martinez', 'Plaintiff Attorney', 'Defendant Attorney'],
-        nextAction: 'Prepare oral arguments and supporting case law'
-      },
-      {
-        id: '8',
-        date: '2024-06-10',
-        title: 'Jury Trial',
-        description: 'Scheduled jury trial commencement',
-        type: 'trial',
-        status: 'upcoming',
-        participants: ['Judge Martinez', 'Jury', 'Plaintiff Attorney', 'Defendant Attorney'],
-        nextAction: 'Final trial preparation and witness coordination'
+      
+      // Load timeline from API
+      const response = await fetch(`/api/cases/${caseNumber}/timeline`)
+      if (response.ok) {
+        const timelineData = await response.json()
+        setTimeline(timelineData.timeline || [])
+      } else {
+        // If no timeline data available, show empty state
+        setTimeline([])
       }
-    ]
-    
-    setTimeline(mockTimeline)
-    setIsLoading(false)
+      
+      setIsLoading(false)
     } catch (error) {
       console.error('Timeline loading error:', error)
+      setTimeline([])
       setIsLoading(false)
     }
   }

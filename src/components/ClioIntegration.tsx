@@ -23,56 +23,17 @@ export default function ClioIntegration({ className = '' }: ClioIntegrationProps
   const [events, setEvents] = useState<ClioEvent[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
-  // Mock Clio events
-  const mockEvents: ClioEvent[] = [
-    {
-      id: '1',
-      title: 'Motion Hearing - Smith v. Johnson',
-      date: '2024-03-15',
-      time: '09:00 AM',
-      type: 'hearing',
-      caseNumber: 'FL-2024-001234',
-      description: 'Motion for temporary custody hearing',
-      location: 'San Diego Superior Court, Room 201'
-    },
-    {
-      id: '2',
-      title: 'Discovery Deadline',
-      date: '2024-03-20',
-      time: '05:00 PM',
-      type: 'deadline',
-      caseNumber: 'FL-2024-001235',
-      description: 'Response to interrogatories due'
-    },
-    {
-      id: '3',
-      title: 'Client Meeting - Davis Case',
-      date: '2024-03-18',
-      time: '02:00 PM',
-      type: 'meeting',
-      caseNumber: 'FL-2024-001236',
-      description: 'Strategy discussion for upcoming trial'
-    },
-    {
-      id: '4',
-      title: 'Deposition - Wilson',
-      date: '2024-03-22',
-      time: '10:00 AM',
-      type: 'deposition',
-      caseNumber: 'FL-2024-001235',
-      description: 'Defendant deposition at law office',
-      location: 'Smith & Associates, Conference Room A'
-    }
-  ]
 
   const handleConnect = async () => {
     setIsConnecting(true)
     
-    // Simulate Clio OAuth connection
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsConnected(true)
-    setIsConnecting(false)
+    try {
+      // Redirect to Clio OAuth
+      window.location.href = '/api/auth/clio/authorize'
+    } catch (error) {
+      console.error('Clio connection error:', error)
+      setIsConnecting(false)
+    }
   }
 
   const handleDisconnect = async () => {
@@ -85,11 +46,27 @@ export default function ClioIntegration({ className = '' }: ClioIntegrationProps
     
     setIsLoading(true)
     
-    // Simulate API call to sync events
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    setEvents(mockEvents)
-    setIsLoading(false)
+    try {
+      const response = await fetch('/api/clio/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setEvents(data.events || [])
+      } else {
+        console.error('Failed to sync Clio events')
+        setEvents([])
+      }
+    } catch (error) {
+      console.error('Clio sync error:', error)
+      setEvents([])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getEventIcon = (type: string) => {

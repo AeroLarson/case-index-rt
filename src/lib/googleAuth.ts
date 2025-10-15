@@ -82,16 +82,3 @@ const initializeGoogleAuth = (resolve: (user: GoogleUser) => void, reject: (erro
   }
 }
 
-// Fallback simulation for development
-export const simulateGoogleAuth = async (): Promise<GoogleUser> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  // Return a mock user for demo (you can customize this with your info)
-  return {
-    id: 'google_' + Math.random().toString(36).substr(2, 9),
-    name: 'Your Name', // Change this to your name
-    email: 'your.email@gmail.com', // Change this to your email
-    picture: 'https://via.placeholder.com/40'
-  }
-}

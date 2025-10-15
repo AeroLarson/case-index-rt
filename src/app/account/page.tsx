@@ -16,6 +16,7 @@ export default function AccountPage() {
   const [showSavedNotification, setShowSavedNotification] = useState(false)
   const [clioConnected, setClioConnected] = useState(false)
   const [clioSyncing, setClioSyncing] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
   const handleCustomizationChange = (newSettings: any) => {
     updateSettings(newSettings)
@@ -108,21 +109,50 @@ export default function AccountPage() {
   const handleDeleteAccount = async () => {
     if (!user) return
     
-    // Cancel subscription if user has one
-    if (userProfile?.plan === 'pro' || userProfile?.plan === 'team') {
-      // In a real app, this would call your backend to cancel the Stripe subscription
-      console.log('Cancelling subscription for user:', user.id)
-      // await fetch('/api/stripe/cancel-subscription', { method: 'POST', body: JSON.stringify({ userId: user.id }) })
-    }
+    setIsDeletingAccount(true)
     
-    // Clear all user data
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(`user_profile_${user.id}`)
+    try {
+      // Cancel subscription if user has one
+      if (userProfile?.plan === 'pro' || userProfile?.plan === 'team') {
+        console.log('Cancelling subscription for user:', user.id)
+        
+        const response = await fetch('/api/stripe/cancel-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            userId: user.id,
+            userEmail: user.email 
+          })
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Subscription cancelled:', result)
+        } else {
+          const error = await response.json()
+          console.error('Failed to cancel subscription:', error)
+          // Continue with account deletion even if subscription cancellation fails
+        }
+      }
+      
+      // Clear all user data
+      clearAllUserData()
+      
+      // Log out and redirect
+      logout()
+      router.push('/')
+      
+    } catch (error) {
+      console.error('Error during account deletion:', error)
+      // Still proceed with account deletion even if there's an error
+      clearAllUserData()
+      logout()
+      router.push('/')
+    } finally {
+      setIsDeletingAccount(false)
     }
-    
-    // Log out and redirect
-    logout()
-    router.push('/')
   }
 
   const handleSave = () => {
@@ -1140,9 +1170,17 @@ export default function AccountPage() {
             <div className="space-y-3">
               <button
                 onClick={handleDeleteAccount}
-                className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                disabled={isDeletingAccount}
+                className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
               >
-                Yes, Delete My Account
+                {isDeletingAccount ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting Account...
+                  </>
+                ) : (
+                  'Yes, Delete My Account'
+                )}
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}

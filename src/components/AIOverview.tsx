@@ -139,63 +139,13 @@ export default function AIOverview({
       setIsComplete(true)
     } catch (error) {
       console.error('AI Overview Error:', error)
-      // Fallback to mock data if AI fails
-      const fallbackOverview = generateFallbackOverview(caseId, lastLogin)
-      setOverview(fallbackOverview)
+      setOverview('AI insights are currently unavailable. Please try again later.')
       setIsComplete(true)
     } finally {
       setIsThinking(false)
     }
   }
 
-  const generateFallbackOverview = (caseId: string, lastLogin?: string) => {
-    const courtData = {
-      caseNumber: caseId,
-      courtLocation: 'San Diego Superior Court - Central',
-      department: '602',
-      judge: 'Hon. Rebecca Kanter',
-      nextHearing: '1/27/2026 at 9:00 AM',
-      hearingType: 'Request for Order Hearing',
-      zoomId: '123-456-7890',
-      passcode: '123456'
-    }
-
-    let fallbackText = ''
-    
-    if (lastLogin) {
-      try {
-        const lastLoginDate = typeof lastLogin === 'string' ? new Date(lastLogin) : lastLogin
-        if (!isNaN(lastLoginDate.getTime())) {
-          const timeSinceLogin = Date.now() - lastLoginDate.getTime()
-          const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
-          
-          if (daysSinceLogin > 0) {
-            fallbackText += `Welcome back! It's been ${daysSinceLogin} day${daysSinceLogin > 1 ? 's' : ''} since your last login. Here's what's happening with your case:\n\n`
-          } else {
-            fallbackText += `Welcome back! Here's the latest on your case:\n\n`
-          }
-        } else {
-          fallbackText += `Here's an overview of your case:\n\n`
-        }
-      } catch (error) {
-        console.warn('Error parsing lastLogin date in fallback:', error)
-        fallbackText += `Here's an overview of your case:\n\n`
-      }
-    } else {
-      fallbackText += `Here's an overview of your case:\n\n`
-    }
-    
-    fallbackText += `Case ${courtData.caseNumber} is currently active in the San Diego Superior Court system. The case is assigned to ${courtData.judge} in Department ${courtData.department}.\n\n`
-    fallbackText += `Your next hearing is scheduled for ${courtData.nextHearing} - ${courtData.hearingType}. Virtual attendance is available via Zoom ID: ${courtData.zoomId}, Passcode: ${courtData.passcode}.\n\n`
-    fallbackText += `Key points to remember:\n`
-    fallbackText += `• Bring all relevant documents to the hearing\n`
-    fallbackText += `• Arrive 15 minutes early for virtual hearings\n`
-    fallbackText += `• Contact your attorney if you have questions\n`
-    fallbackText += `• Keep all case-related communications documented\n\n`
-    fallbackText += `This case involves family law matters and will be handled according to California Family Code. The court's primary concern is the best interests of any children involved.`
-    
-    return fallbackText
-  }
 
   return (
     <div className={`apple-card p-6 ${className}`}>
