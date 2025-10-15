@@ -30,12 +30,14 @@ export async function POST(request: NextRequest) {
     if (session.payment_status === 'paid') {
       const { userId, planId } = session.metadata || {}
       
-      // Update user plan in your database
-      // For now, we'll return success - the frontend will handle the plan update
+      console.log('Payment successful for user:', userId, 'plan:', planId)
+      
+      // Return success - the frontend will handle the plan update via localStorage
       return NextResponse.json({ 
         success: true, 
         planId,
-        userId 
+        userId,
+        message: 'Payment processed successfully'
       })
     }
 

@@ -49,7 +49,7 @@ const nextConfig = {
     ]
   },
   // External packages for server components
-  serverExternalPackages: ['@prisma/client'],
+  serverExternalPackages: [],
   // Experimental optimizations
   experimental: {
     optimizeCss: true,
