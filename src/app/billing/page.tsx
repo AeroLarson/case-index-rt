@@ -299,17 +299,6 @@ export default function BillingPage() {
                   <i className="fa-solid fa-crown mr-2 md:mr-3"></i>
                   Plans
                 </button>
-                <button
-                  onClick={() => setActiveTab('history')}
-                  className={`w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-2xl transition-all duration-200 text-sm md:text-base ${
-                    activeTab === 'history' 
-                      ? 'bg-blue-500/20 text-blue-300' 
-                      : 'text-gray-300 hover:bg-white/5'
-                  }`}
-                >
-                  <i className="fa-solid fa-file-invoice mr-2 md:mr-3"></i>
-                  Billing History
-                </button>
               </nav>
             </div>
           </div>
@@ -484,100 +473,6 @@ export default function BillingPage() {
             )}
 
 
-            {/* Billing History Tab */}
-            {activeTab === 'history' && (
-              <div className="space-y-6">
-                {/* Subscription Management */}
-                {subscription.plan !== 'Free' && (
-                  <div className="apple-card p-8">
-                    <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Subscription Management</h2>
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <i className="fa-solid fa-exclamation-triangle text-red-400 text-xl"></i>
-                        <h3 className="text-white text-lg font-semibold">Cancel Subscription</h3>
-                      </div>
-                      <p className="text-gray-300 mb-4">
-                        Canceling your subscription will stop all future charges. You'll retain access until the end of your current billing period.
-                      </p>
-                      <button
-                        onClick={() => {
-                          if (confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.')) {
-                            // Handle subscription cancellation
-                            alert('Subscription cancellation feature will be implemented with Stripe integration.')
-                          }
-                        }}
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
-                      >
-                        <i className="fa-solid fa-times mr-2"></i>
-                        Cancel Subscription
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="apple-card p-8">
-                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Billing History</h2>
-                  
-                  {billingHistory.length > 0 ? (
-                    <div className="space-y-4">
-                      {billingHistory.map((payment, index) => (
-                        <div key={payment.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                              <i className="fa-solid fa-receipt text-white text-lg"></i>
-                            </div>
-                            <div>
-                              <h3 className="text-white font-semibold">
-                                {payment.planId === 'pro' ? 'Professional Plan' : 'Team Plan'}
-                              </h3>
-                              <p className="text-gray-400 text-sm">
-                                {new Date(payment.paymentDate).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
-                              </p>
-                              <p className="text-gray-500 text-xs">
-                                Status: <span className={`capitalize ${
-                                  payment.status === 'completed' ? 'text-green-400' : 
-                                  payment.status === 'pending' ? 'text-yellow-400' : 
-                                  'text-red-400'
-                                }`}>
-                                  {payment.status}
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-white text-xl font-bold">${payment.amount}</div>
-                            <button
-                              onClick={() => downloadInvoice(payment)}
-                              className="mt-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center"
-                            >
-                              <i className="fa-solid fa-download mr-2"></i>
-                              Download PDF
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i className="fa-solid fa-file-invoice text-gray-400 text-2xl"></i>
-                      </div>
-                      <h3 className="text-white text-lg font-semibold mb-2">No Billing History</h3>
-                      <p className="text-gray-400">
-                        {user?.email === 'aero.larson@gmail.com' 
-                          ? 'No payment history found. Test invoice should appear above.'
-                          : 'Your payment history will appear here once you make your first payment.'
-                        }
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
           </div>
         </div>
