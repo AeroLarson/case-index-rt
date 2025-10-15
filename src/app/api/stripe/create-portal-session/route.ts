@@ -1,27 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-// Initialize Stripe with fallback for development
-let stripe: Stripe | null = null
-try {
-  if (process.env.STRIPE_SECRET_KEY) {
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-09-30.clover',
-    })
+// Initialize Stripe only if secret key is available
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return null
   }
-} catch (error) {
-  console.warn('Stripe not configured - payment features disabled')
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-12-18.acacia',
+  })
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await request.json()
 
-    // Check if Stripe is configured
+    // Get Stripe instance
+    const stripe = getStripe()
     if (!stripe) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Payment system not configured',
+        error: 'Stripe not configured',
         message: 'Customer portal is currently unavailable. Please contact support.'
       }, { status: 503 })
     }
