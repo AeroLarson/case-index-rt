@@ -119,22 +119,6 @@ function SearchPageContent() {
       hearings: 4,
       isDetailed: isProUser
     },
-    {
-      id: '3',
-      caseNumber: 'FL-2024-TEST001',
-      title: 'Larson v. Test Defendant',
-      court: 'San Diego Superior Court',
-      judge: 'Hon. Test Judge',
-      status: 'Active',
-      lastActivity: 'Just now',
-      parties: {
-        plaintiff: 'Aero Larson',
-        defendant: 'Test Defendant'
-      },
-      documents: 5,
-      hearings: 2,
-      isDetailed: isProUser
-    }
   ]
 
   const handleSearch = async (e: React.FormEvent) => {
