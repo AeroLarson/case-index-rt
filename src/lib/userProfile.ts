@@ -107,7 +107,14 @@ class UserProfileManager {
       const stored = localStorage.getItem(storageKey)
       if (stored) {
         const profile = JSON.parse(stored) as UserProfile
-        console.log(`Found existing profile for user ${userId} with ${profile.savedCases.length} saved cases`)
+        console.log(`Found existing profile for user ${userId} with ${profile.savedCases?.length || 0} saved cases`)
+        
+        // Ensure all arrays are initialized for existing profiles
+        if (!profile.savedCases) profile.savedCases = []
+        if (!profile.recentSearches) profile.recentSearches = []
+        if (!profile.starredCases) profile.starredCases = []
+        if (!profile.calendarEvents) profile.calendarEvents = []
+        
         // Save previous login time before updating
         profile.previousLogin = profile.lastLogin
         // Update last login to current time
@@ -222,6 +229,12 @@ class UserProfileManager {
 
   toggleStarredCase(userId: string, caseId: string): boolean {
     const profile = this.getUserProfile(userId, '', '')
+    
+    // Ensure starredCases array exists
+    if (!profile.starredCases) {
+      profile.starredCases = []
+    }
+    
     const isStarred = profile.starredCases.includes(caseId)
     
     if (isStarred) {

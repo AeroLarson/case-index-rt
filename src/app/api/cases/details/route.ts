@@ -19,8 +19,9 @@ export async function POST(request: NextRequest) {
 
     // TODO: Integrate with actual San Diego County Court API
     
-    // Return mock case details for Aero Larson test case
-    if (caseNumber.trim().toUpperCase() === 'FL-2024-001234') {
+    // Only return details for the specific test case
+    const cleanCaseNumber = caseNumber.trim().toUpperCase()
+    if (cleanCaseNumber === 'FL-2024-001234' || cleanCaseNumber === 'FL2024001234') {
       const caseDetails = {
         caseNumber: 'FL-2024-001234',
         title: 'Larson v. Test Defendant - Dissolution with Minor Children',

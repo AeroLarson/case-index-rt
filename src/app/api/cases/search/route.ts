@@ -22,43 +22,63 @@ export async function POST(request: NextRequest) {
     
     console.log(`Searching for: "${query}" by user: ${userId}`)
     
-    // Return one mock case for Aero Larson testing
-    const mockCase = {
-      id: 'case_aero_larson_test',
-      caseNumber: 'FL-2024-001234',
-      title: 'Larson v. Test Defendant - Dissolution with Minor Children',
-      court: 'San Diego Superior Court - Central (Department 602)',
-      judge: 'Hon. Rebecca Kanter',
-      status: 'Active - Post-Judgment Proceedings',
-      lastActivity: 'October 15, 2024',
-      parties: {
-        plaintiff: 'Aero Larson (Petitioner)',
-        defendant: 'Test Defendant (Respondent)'
-      },
-      documents: 23,
-      hearings: 7,
-      isDetailed: true,
-      caseType: 'Family Law',
-      department: 'Department 602',
-      courtLocation: 'San Diego Superior Court - Central',
-      judicialOfficer: 'Hon. Rebecca Kanter',
-      dateFiled: '2024-03-15',
-      countyData: {
-        court: 'San Diego Superior Court',
-        department: 'Department 602',
-        judicialOfficer: 'Hon. Rebecca Kanter',
-        caseType: 'Family Law',
-        status: 'Active',
-        lastUpdated: new Date().toISOString()
-      }
-    }
+    // Only return results for specific searches that match our test case
+    const searchQuery = query.trim().toLowerCase()
     
-    return NextResponse.json({
-      success: true,
-      cases: [mockCase],
-      total: 1,
-      source: 'test_data'
-    })
+    // Check if search matches our test case criteria
+    const matchesCaseNumber = searchQuery === 'fl-2024-001234' || searchQuery === 'fl2024001234'
+    const matchesPlaintiff = searchQuery.includes('aero') && searchQuery.includes('larson')
+    const matchesDefendant = searchQuery.includes('test') && searchQuery.includes('defendant')
+    const matchesCaseTitle = searchQuery.includes('larson') && searchQuery.includes('test')
+    
+    if (matchesCaseNumber || matchesPlaintiff || matchesDefendant || matchesCaseTitle) {
+      // Return the test case only for matching searches
+      const mockCase = {
+        id: 'case_aero_larson_test',
+        caseNumber: 'FL-2024-001234',
+        title: 'Larson v. Test Defendant - Dissolution with Minor Children',
+        court: 'San Diego Superior Court - Central (Department 602)',
+        judge: 'Hon. Rebecca Kanter',
+        status: 'Active - Post-Judgment Proceedings',
+        lastActivity: 'October 15, 2024',
+        parties: {
+          plaintiff: 'Aero Larson (Petitioner)',
+          defendant: 'Test Defendant (Respondent)'
+        },
+        documents: 23,
+        hearings: 7,
+        isDetailed: true,
+        caseType: 'Family Law',
+        department: 'Department 602',
+        courtLocation: 'San Diego Superior Court - Central',
+        judicialOfficer: 'Hon. Rebecca Kanter',
+        dateFiled: '2024-03-15',
+        countyData: {
+          court: 'San Diego Superior Court',
+          department: 'Department 602',
+          judicialOfficer: 'Hon. Rebecca Kanter',
+          caseType: 'Family Law',
+          status: 'Active',
+          lastUpdated: new Date().toISOString()
+        }
+      }
+      
+      return NextResponse.json({
+        success: true,
+        cases: [mockCase],
+        total: 1,
+        source: 'test_data'
+      })
+    } else {
+      // Return empty results for non-matching searches
+      return NextResponse.json({
+        success: true,
+        cases: [],
+        total: 0,
+        message: 'No cases found matching your search criteria',
+        source: 'test_data'
+      })
+    }
 
   } catch (error) {
     console.error('Case search error:', error)
