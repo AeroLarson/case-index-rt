@@ -20,28 +20,28 @@ export default function Footer() {
           <p className="text-gray-400 text-sm mb-4">Trusted by Professionals and Teams</p>
           <div className="flex justify-center items-center gap-4 sm:gap-6 lg:gap-12 flex-wrap opacity-60">
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-layer-group text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Layers</span>
+              <i className="fa-solid fa-gavel text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">Clio</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-feather text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">FeatherDev</span>
+              <i className="fa-solid fa-briefcase text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">MyCase</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-arrow-up-right-dots text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Alt+Shift</span>
+              <i className="fa-solid fa-balance-scale text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">PracticePanther</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-box text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Lightbox</span>
+              <i className="fa-solid fa-file-contract text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">Smokeball</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-chart-pie text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Segment</span>
+              <i className="fa-solid fa-chart-line text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">TimeSolv</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-cloud text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Sisyphus</span>
+              <i className="fa-solid fa-shield-halved text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">Rocket Matter</span>
             </div>
           </div>
         </div>

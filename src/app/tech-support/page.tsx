@@ -320,10 +320,10 @@ export default function TechSupportPage() {
                               className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white text-sm"
                               defaultValue={user.plan}
                             >
-                              <option value="free">Free</option>
-                              <option value="pro">Pro</option>
-                              <option value="team">Team</option>
-                              <option value="enterprise">Enterprise</option>
+                              <option value="free" className="bg-gray-800 text-white">Free</option>
+                              <option value="pro" className="bg-gray-800 text-white">Pro</option>
+                              <option value="team" className="bg-gray-800 text-white">Team</option>
+                              <option value="enterprise" className="bg-gray-800 text-white">Enterprise</option>
                             </select>
                             <button
                               onClick={() => handleResetUserData(user.id)}
@@ -363,10 +363,10 @@ export default function TechSupportPage() {
                       onChange={(e) => setNewTicket(prev => ({ ...prev, priority: e.target.value }))}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
                     >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
+                      <option value="low" className="bg-gray-800 text-white">Low</option>
+                      <option value="medium" className="bg-gray-800 text-white">Medium</option>
+                      <option value="high" className="bg-gray-800 text-white">High</option>
+                      <option value="urgent" className="bg-gray-800 text-white">Urgent</option>
                     </select>
                   </div>
                   <div className="md:col-span-2">
@@ -429,10 +429,10 @@ export default function TechSupportPage() {
                           onChange={(e) => handleUpdateTicketStatus(ticket.id, e.target.value)}
                           className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white text-sm"
                         >
-                          <option value="open">Open</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="resolved">Resolved</option>
-                          <option value="closed">Closed</option>
+                          <option value="open" className="bg-gray-800 text-white">Open</option>
+                          <option value="in_progress" className="bg-gray-800 text-white">In Progress</option>
+                          <option value="resolved" className="bg-gray-800 text-white">Resolved</option>
+                          <option value="closed" className="bg-gray-800 text-white">Closed</option>
                         </select>
                       </div>
                     </div>

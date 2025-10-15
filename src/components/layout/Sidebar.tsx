@@ -2,27 +2,59 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, usePathname } from 'next/navigation'
+import { useState, useCallback } from 'react'
 
 export default function Sidebar() {
   const { user, logout } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    if (isLoggingOut) return // Prevent multiple logout calls
+    
+    // Add confirmation dialog to prevent accidental logouts
+    const confirmed = window.confirm('Are you sure you want to log out?')
+    if (!confirmed) return
+    
+    setIsLoggingOut(true)
     logout()
     router.push('/')
-  }
+    
+    // Reset after a delay to prevent rapid clicking
+    setTimeout(() => setIsLoggingOut(false), 1000)
+  }, [logout, router, isLoggingOut])
 
   const isActive = (path: string) => {
     return pathname === path
   }
 
+  const [clickedButtons, setClickedButtons] = useState<Set<string>>(new Set())
+
+  const handleNavigation = useCallback((path: string) => {
+    if (clickedButtons.has(path)) return // Prevent rapid clicking
+    
+    setClickedButtons(prev => new Set(prev).add(path))
+    router.push(path)
+    
+    // Reset after navigation
+    setTimeout(() => {
+      setClickedButtons(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(path)
+        return newSet
+      })
+    }, 500)
+  }, [router, clickedButtons])
+
   const getButtonClasses = (path: string) => {
     const baseClasses = "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium no-underline transition-colors border-none cursor-pointer w-full text-left hover-lift hover-glow"
     const activeClasses = "accent-gradient text-white"
     const inactiveClasses = "text-purple-300 hover:bg-purple-900/20"
+    const disabledClasses = "opacity-50 cursor-not-allowed"
     
-    return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
+    const isDisabled = clickedButtons.has(path)
+    return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses} ${isDisabled ? disabledClasses : ''}`
   }
 
   // Only show sidebar when user is logged in
@@ -50,7 +82,7 @@ export default function Sidebar() {
       {/* Navigation */}
           <nav className="flex flex-col gap-2">
             <button 
-              onClick={() => router.push('/')}
+              onClick={() => handleNavigation('/')}
               id="nav-dashboard"
               className={getButtonClasses('/')}
             >
@@ -58,7 +90,7 @@ export default function Sidebar() {
               <span>Dashboard</span>
             </button>
             <button 
-              onClick={() => router.push('/search')}
+              onClick={() => handleNavigation('/search')}
               id="nav-search"
               className={getButtonClasses('/search')}
             >
@@ -66,7 +98,7 @@ export default function Sidebar() {
               <span>Case Search</span>
             </button>
             <button 
-              onClick={() => router.push('/analytics')}
+              onClick={() => handleNavigation('/analytics')}
               id="nav-analytics"
               className={getButtonClasses('/analytics')}
             >
@@ -74,7 +106,7 @@ export default function Sidebar() {
               <span>Analytics</span>
             </button>
             <button 
-              onClick={() => router.push('/notifications')}
+              onClick={() => handleNavigation('/notifications')}
               id="nav-notifications"
               className={getButtonClasses('/notifications')}
             >
@@ -82,7 +114,7 @@ export default function Sidebar() {
               <span>Notifications</span>
             </button>
             <button 
-              onClick={() => router.push('/documents')}
+              onClick={() => handleNavigation('/documents')}
               id="nav-documents"
               className={getButtonClasses('/documents')}
             >
@@ -90,7 +122,7 @@ export default function Sidebar() {
               <span>Documents</span>
             </button>
             <button 
-              onClick={() => router.push('/calendar')}
+              onClick={() => handleNavigation('/calendar')}
               id="nav-calendar"
               className={getButtonClasses('/calendar')}
             >
@@ -98,7 +130,7 @@ export default function Sidebar() {
               <span>Calendar</span>
             </button>
             <button 
-              onClick={() => router.push('/billing')}
+              onClick={() => handleNavigation('/billing')}
               id="nav-billing"
               className={getButtonClasses('/billing')}
             >
@@ -106,7 +138,7 @@ export default function Sidebar() {
               <span>Billing</span>
             </button>
             <button 
-              onClick={() => router.push('/account')}
+              onClick={() => handleNavigation('/account')}
               id="nav-account"
               className={getButtonClasses('/account')}
             >
@@ -114,7 +146,7 @@ export default function Sidebar() {
               <span>Account</span>
             </button>
             <button 
-              onClick={() => router.push('/help')}
+              onClick={() => handleNavigation('/help')}
               id="nav-help"
               className={getButtonClasses('/help')}
             >
@@ -122,7 +154,7 @@ export default function Sidebar() {
               <span>Help Center</span>
             </button>
             <button 
-              onClick={() => router.push('/support')}
+              onClick={() => handleNavigation('/support')}
               id="nav-support"
               className={getButtonClasses('/support')}
             >
@@ -135,7 +167,7 @@ export default function Sidebar() {
               <>
                 <div className="h-px bg-purple-400/20 my-4"></div>
                 <button 
-                  onClick={() => router.push('/admin')}
+                  onClick={() => handleNavigation('/admin')}
                   id="nav-admin"
                   className={getButtonClasses('/admin')}
                 >
@@ -143,7 +175,7 @@ export default function Sidebar() {
                   <span>Admin Panel</span>
                 </button>
                 <button 
-                  onClick={() => router.push('/tech-support')}
+                  onClick={() => handleNavigation('/tech-support')}
                   id="nav-tech-support"
                   className={getButtonClasses('/tech-support')}
                 >

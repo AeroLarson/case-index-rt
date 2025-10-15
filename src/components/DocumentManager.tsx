@@ -207,11 +207,11 @@ export default function DocumentManager({ caseNumber }: DocumentManagerProps) {
           onChange={(e) => setFilterType(e.target.value)}
           className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
         >
-          <option value="all">All Types</option>
-          <option value="pdf">PDF</option>
-          <option value="doc">Word Document</option>
-          <option value="image">Image</option>
-          <option value="other">Other</option>
+          <option value="all" className="bg-gray-800 text-white">All Types</option>
+          <option value="pdf" className="bg-gray-800 text-white">PDF</option>
+          <option value="doc" className="bg-gray-800 text-white">Word Document</option>
+          <option value="image" className="bg-gray-800 text-white">Image</option>
+          <option value="other" className="bg-gray-800 text-white">Other</option>
         </select>
       </div>
 

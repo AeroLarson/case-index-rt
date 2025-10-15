@@ -739,27 +739,27 @@ export default function AccountPage() {
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2">Language</label>
                     <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                      <option value="en">English</option>
-                      <option value="es">Spanish</option>
-                      <option value="fr">French</option>
+                      <option value="en" className="bg-gray-800 text-white">English</option>
+                      <option value="es" className="bg-gray-800 text-white">Spanish</option>
+                      <option value="fr" className="bg-gray-800 text-white">French</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2">Time Zone</label>
                     <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                      <option value="pst">Pacific Standard Time</option>
-                      <option value="est">Eastern Standard Time</option>
-                      <option value="cst">Central Standard Time</option>
+                      <option value="pst" className="bg-gray-800 text-white">Pacific Standard Time</option>
+                      <option value="est" className="bg-gray-800 text-white">Eastern Standard Time</option>
+                      <option value="cst" className="bg-gray-800 text-white">Central Standard Time</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2">Date Format</label>
                     <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                      <option value="mm/dd/yyyy">MM/DD/YYYY (US)</option>
-                      <option value="dd/mm/yyyy">DD/MM/YYYY (International)</option>
-                      <option value="yyyy-mm-dd">YYYY-MM-DD (ISO)</option>
+                      <option value="mm/dd/yyyy" className="bg-gray-800 text-white">MM/DD/YYYY (US)</option>
+                      <option value="dd/mm/yyyy" className="bg-gray-800 text-white">DD/MM/YYYY (International)</option>
+                      <option value="yyyy-mm-dd" className="bg-gray-800 text-white">YYYY-MM-DD (ISO)</option>
                     </select>
                   </div>
                 </div>

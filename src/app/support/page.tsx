@@ -227,11 +227,11 @@ export default function SupportPage() {
                     onChange={(e) => setNewTicket(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 min-h-[48px] text-base"
                   >
-                    <option value="general">General</option>
-                    <option value="billing">Billing</option>
-                    <option value="technical">Technical</option>
-                    <option value="feature">Feature Request</option>
-                    <option value="bug">Bug Report</option>
+                    <option value="general" className="bg-gray-800 text-white">General</option>
+                    <option value="billing" className="bg-gray-800 text-white">Billing</option>
+                    <option value="technical" className="bg-gray-800 text-white">Technical</option>
+                    <option value="feature" className="bg-gray-800 text-white">Feature Request</option>
+                    <option value="bug" className="bg-gray-800 text-white">Bug Report</option>
                   </select>
                 </div>
                 
@@ -242,10 +242,10 @@ export default function SupportPage() {
                     onChange={(e) => setNewTicket(prev => ({ ...prev, priority: e.target.value }))}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 min-h-[48px] text-base"
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low" className="bg-gray-800 text-white">Low</option>
+                    <option value="medium" className="bg-gray-800 text-white">Medium</option>
+                    <option value="high" className="bg-gray-800 text-white">High</option>
+                    <option value="urgent" className="bg-gray-800 text-white">Urgent</option>
                   </select>
                 </div>
               </div>

@@ -219,12 +219,12 @@ function ContactSalesForm() {
                     required
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
                   >
-                    <option value="">Select team size</option>
-                    <option value="2-5">2-5 users</option>
-                    <option value="6-10">6-10 users</option>
-                    <option value="11-25">11-25 users</option>
-                    <option value="26-50">26-50 users</option>
-                    <option value="50+">50+ users</option>
+                    <option value="" className="bg-gray-800 text-white">Select team size</option>
+                    <option value="2-5" className="bg-gray-800 text-white">2-5 users</option>
+                    <option value="6-10" className="bg-gray-800 text-white">6-10 users</option>
+                    <option value="11-25" className="bg-gray-800 text-white">11-25 users</option>
+                    <option value="26-50" className="bg-gray-800 text-white">26-50 users</option>
+                    <option value="50+" className="bg-gray-800 text-white">50+ users</option>
                   </select>
                 </div>
                 <div>
@@ -235,12 +235,12 @@ function ContactSalesForm() {
                     onChange={handleInputChange}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
                   >
-                    <option value="">When do you need this?</option>
-                    <option value="immediately">Immediately</option>
-                    <option value="1-month">Within 1 month</option>
-                    <option value="3-months">Within 3 months</option>
-                    <option value="6-months">Within 6 months</option>
-                    <option value="just-exploring">Just exploring options</option>
+                    <option value="" className="bg-gray-800 text-white">When do you need this?</option>
+                    <option value="immediately" className="bg-gray-800 text-white">Immediately</option>
+                    <option value="1-month" className="bg-gray-800 text-white">Within 1 month</option>
+                    <option value="3-months" className="bg-gray-800 text-white">Within 3 months</option>
+                    <option value="6-months" className="bg-gray-800 text-white">Within 6 months</option>
+                    <option value="just-exploring" className="bg-gray-800 text-white">Just exploring options</option>
                   </select>
                 </div>
               </div>
@@ -253,13 +253,13 @@ function ContactSalesForm() {
                   onChange={handleInputChange}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
                 >
-                  <option value="">Select budget range</option>
-                  <option value="under-500">Under $500/month</option>
-                  <option value="500-1000">$500 - $1,000/month</option>
-                  <option value="1000-2500">$1,000 - $2,500/month</option>
-                  <option value="2500-5000">$2,500 - $5,000/month</option>
-                  <option value="5000+">$5,000+/month</option>
-                  <option value="discuss">Let's discuss</option>
+                  <option value="" className="bg-gray-800 text-white">Select budget range</option>
+                  <option value="under-500" className="bg-gray-800 text-white">Under $500/month</option>
+                  <option value="500-1000" className="bg-gray-800 text-white">$500 - $1,000/month</option>
+                  <option value="1000-2500" className="bg-gray-800 text-white">$1,000 - $2,500/month</option>
+                  <option value="2500-5000" className="bg-gray-800 text-white">$2,500 - $5,000/month</option>
+                  <option value="5000+" className="bg-gray-800 text-white">$5,000+/month</option>
+                  <option value="discuss" className="bg-gray-800 text-white">Let's discuss</option>
                 </select>
               </div>
 

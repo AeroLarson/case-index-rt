@@ -91,10 +91,10 @@ export default function CourtRulesAI({ caseNumber, onResults }: CourtRulesAIProp
               onChange={(e) => setCounty(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
             >
-              <option value="san-diego">San Diego County</option>
-              <option value="sonoma">Sonoma County</option>
-              <option value="los-angeles">Los Angeles County</option>
-              <option value="orange">Orange County</option>
+              <option value="san-diego" className="bg-gray-800 text-white">San Diego County</option>
+              <option value="sonoma" className="bg-gray-800 text-white">Sonoma County</option>
+              <option value="los-angeles" className="bg-gray-800 text-white">Los Angeles County</option>
+              <option value="orange" className="bg-gray-800 text-white">Orange County</option>
             </select>
           </div>
           <div>
@@ -104,10 +104,10 @@ export default function CourtRulesAI({ caseNumber, onResults }: CourtRulesAIProp
               onChange={(e) => setPracticeArea(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
             >
-              <option value="family">Family Law</option>
-              <option value="probate">Probate</option>
-              <option value="civil">Civil</option>
-              <option value="criminal">Criminal</option>
+              <option value="family" className="bg-gray-800 text-white">Family Law</option>
+              <option value="probate" className="bg-gray-800 text-white">Probate</option>
+              <option value="civil" className="bg-gray-800 text-white">Civil</option>
+              <option value="criminal" className="bg-gray-800 text-white">Criminal</option>
             </select>
           </div>
         </div>

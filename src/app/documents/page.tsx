@@ -279,12 +279,12 @@ export default function DocumentsPage() {
               onChange={(e) => setFilterType(e.target.value as any)}
               className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
             >
-              <option value="all">All Types</option>
-              <option value="motion">Motions</option>
-              <option value="brief">Briefs</option>
-              <option value="evidence">Evidence</option>
-              <option value="correspondence">Correspondence</option>
-              <option value="other">Other</option>
+              <option value="all" className="bg-gray-800 text-white">All Types</option>
+              <option value="motion" className="bg-gray-800 text-white">Motions</option>
+              <option value="brief" className="bg-gray-800 text-white">Briefs</option>
+              <option value="evidence" className="bg-gray-800 text-white">Evidence</option>
+              <option value="correspondence" className="bg-gray-800 text-white">Correspondence</option>
+              <option value="other" className="bg-gray-800 text-white">Other</option>
             </select>
           </div>
         </div>
