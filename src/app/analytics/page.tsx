@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, Suspense, lazy } from 'react'
-import { LazyComponent } from '@/components/LazyComponent'
+import LazyComponent from '@/components/LazyComponent'
 
 // Lazy load heavy chart components
 const SearchTrendChart = lazy(() => import('@/components/AnalyticsCharts').then(module => ({ default: module.SearchTrendChart })))
@@ -136,6 +136,10 @@ export default function AnalyticsPage() {
 
   // Calculate recent activity from user profile
   const recentActivity = useMemo(() => {
+    if (!userProfile) {
+      return []
+    }
+    
     const activities: any[] = []
 
     // Add recent searches
