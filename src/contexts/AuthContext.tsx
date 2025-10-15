@@ -32,15 +32,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check for existing session on mount (client-side only)
     if (typeof window !== 'undefined') {
       try {
+        console.log('AuthContext: Checking for saved user session')
         const savedUser = localStorage.getItem('user')
         if (savedUser) {
           const userData = JSON.parse(savedUser)
+          console.log('AuthContext: Found saved user:', userData.email)
           setUser(userData)
           // Load user profile from database
-          loadUserProfile(userData.id, userData.name, userData.email)
+          loadUserProfile(userData.id, userData.name, userData.email).catch(error => {
+            console.error('AuthContext: Failed to load user profile:', error)
+          })
+        } else {
+          console.log('AuthContext: No saved user found')
         }
       } catch (error) {
-        console.warn('Failed to parse saved user:', error)
+        console.error('AuthContext: Failed to parse saved user:', error)
       }
     }
     setIsLoading(false)
