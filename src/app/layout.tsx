@@ -7,7 +7,6 @@ import GlobalComponents from '@/components/GlobalComponents'
 import OnboardingTour from '@/components/OnboardingTour'
 import MobileNav from '@/components/MobileNav'
 import PerformanceMonitor from '@/components/PerformanceMonitor'
-import ErrorBoundary from '@/components/ErrorBoundary'
 import { Metadata } from 'next'
 
 // SEO and Performance Metadata
@@ -107,20 +106,18 @@ export default function RootLayout({
             <link rel="prefetch" href="/calendar" />
           </head>
           <body className="bg-gray-900 text-white" suppressHydrationWarning>
-            <ErrorBoundary>
-              <PerformanceMonitor />
-              <AuthProvider>
-                <CustomizationProvider>
-                  <GlobalComponents />
-                  <KeyboardShortcutsModal />
-                  <OnboardingTour />
-                  <MobileNav />
-                  <LayoutWrapper>
-                    {children}
-                  </LayoutWrapper>
-                </CustomizationProvider>
-              </AuthProvider>
-            </ErrorBoundary>
+            <PerformanceMonitor />
+            <AuthProvider>
+              <CustomizationProvider>
+                <GlobalComponents />
+                <KeyboardShortcutsModal />
+                <OnboardingTour />
+                <MobileNav />
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+              </CustomizationProvider>
+            </AuthProvider>
           </body>
     </html>
   )

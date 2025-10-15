@@ -638,7 +638,7 @@ function SearchPageContent() {
                     {userProfile.savedCases.map((case_) => (
                       <div
                         key={case_.id}
-                        onClick={() => router.push(`/search?case=${encodeURIComponent(case_.caseNumber)}`)}
+                        onClick={() => handleCaseClick(case_)}
                         className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
                       >
                         <div className="flex justify-between items-start mb-4">
@@ -741,12 +741,46 @@ function SearchPageContent() {
                   <div className="space-y-4">
                     {userProfile.starredCases.map((caseId) => {
                       const case_ = userProfile.savedCases?.find(c => c.id === caseId)
-                      if (!case_) return null
+                      if (!case_) {
+                        // If case not found in savedCases, create a basic display
+                        return (
+                          <div
+                            key={caseId}
+                            onClick={() => handleCaseClick({ id: caseId, caseNumber: caseId, title: `Case ${caseId}` })}
+                            className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
+                          >
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-white text-xl font-semibold mb-2 flex items-center gap-2">
+                                  Case {caseId}
+                                  <i className="fa-solid fa-star text-yellow-400"></i>
+                                </h3>
+                                <p className="text-blue-300 font-medium">{caseId}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
+                                  Unknown Status
+                                </span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-gray-400 text-sm mb-1">Case Type</p>
+                                <p className="text-white">Unknown</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400 text-sm mb-1">Date Filed</p>
+                                <p className="text-white">Unknown</p>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      }
                       
                       return (
                         <div
                           key={case_.id}
-                          onClick={() => router.push(`/search?case=${encodeURIComponent(case_.caseNumber)}`)}
+                          onClick={() => handleCaseClick(case_)}
                           className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
                         >
                           <div className="flex justify-between items-start mb-4">
