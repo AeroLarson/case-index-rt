@@ -21,8 +21,10 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     <>
       <Header />
       <Sidebar />
-      <main className={user ? 'lg:ml-60' : ''}>
-        {children}
+      <main className={`${user ? 'lg:ml-60' : ''} min-h-screen`}>
+        <div className="pb-20 lg:pb-0">
+          {children}
+        </div>
       </main>
       <Footer />
     </>

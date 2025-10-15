@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile optimizations */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile touch improvements */
+@media (max-width: 768px) {
+  .apple-card {
+    padding: 1rem;
+  }
+  
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+  }
+}
+
 /* Your custom styles go after the Tailwind import */
 :root {
   --background: #0f0520;

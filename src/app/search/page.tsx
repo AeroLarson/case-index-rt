@@ -337,7 +337,7 @@ function SearchPageContent() {
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-        padding: '20px 12px 40px 12px'
+        padding: '16px 12px 40px 12px'
       }}
     >
       <div className="max-w-7xl mx-auto">
@@ -351,57 +351,57 @@ function SearchPageContent() {
           {/* Search Section */}
           <div className="lg:col-span-2">
             {/* Tabs */}
-            <div className="flex border-b border-white/10 mb-6 overflow-x-auto">
+            <div className="flex border-b border-white/10 mb-4 md:mb-6 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => setActiveTab('search')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 text-sm font-medium transition-colors whitespace-nowrap min-w-fit ${
                   activeTab === 'search'
                     ? 'text-blue-400 border-b-2 border-blue-400'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <i className="fa-solid fa-search"></i>
-                <span>Search</span>
+                <i className="fa-solid fa-search text-sm"></i>
+                <span className="hidden sm:inline">Search</span>
               </button>
               <button
                 onClick={() => setActiveTab('saved')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 text-sm font-medium transition-colors whitespace-nowrap min-w-fit ${
                   activeTab === 'saved'
                     ? 'text-blue-400 border-b-2 border-blue-400'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <i className="fa-solid fa-folder-open"></i>
-                <span>Saved Cases</span>
-                <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-xs">
+                <i className="fa-solid fa-folder-open text-sm"></i>
+                <span className="hidden sm:inline">Saved</span>
+                <span className="bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full text-xs">
                   {userProfile?.savedCases?.length || 0}
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab('recent')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 text-sm font-medium transition-colors whitespace-nowrap min-w-fit ${
                   activeTab === 'recent'
                     ? 'text-blue-400 border-b-2 border-blue-400'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <i className="fa-solid fa-clock-rotate-left"></i>
-                <span>Recent Searches</span>
-                <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">
+                <i className="fa-solid fa-clock-rotate-left text-sm"></i>
+                <span className="hidden sm:inline">Recent</span>
+                <span className="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-xs">
                   {userProfile?.recentSearches?.length || 0}
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab('starred')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 text-sm font-medium transition-colors whitespace-nowrap min-w-fit ${
                   activeTab === 'starred'
                     ? 'text-blue-400 border-b-2 border-blue-400'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <i className="fa-solid fa-star"></i>
-                <span>Starred Cases</span>
-                <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full text-xs">
+                <i className="fa-solid fa-star text-sm"></i>
+                <span className="hidden sm:inline">Starred</span>
+                <span className="bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full text-xs">
                   {userProfile?.starredCases?.length || 0}
                 </span>
               </button>
@@ -878,8 +878,8 @@ function SearchPageContent() {
 
         {/* Upgrade Modal */}
         {showUpgradeModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-32">
-            <div className="apple-card p-8 max-w-md w-full">
+          <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-16 sm:pt-32">
+            <div className="apple-card p-4 sm:p-8 max-w-md w-full mx-4 sm:mx-0">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
                   <i className="fa-solid fa-crown text-white text-2xl"></i>

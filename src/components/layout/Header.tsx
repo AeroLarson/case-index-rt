@@ -29,8 +29,8 @@ export default function Header() {
       style={{
         background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
         padding: user 
-          ? (pathname === '/' ? '10px 24px 40px' : '10px 24px 10px') // Much smaller purple area
-          : '10px 24px 80px', // Smaller header for non-authenticated users
+          ? (pathname === '/' ? '10px 16px 40px' : '10px 16px 10px') // Mobile-friendly padding
+          : '10px 16px 80px', // Mobile-friendly padding
       }}
     >
       {/* Background Effects */}
@@ -110,7 +110,7 @@ export default function Header() {
               
               {/* Menu Panel */}
               <div 
-                className={`absolute top-0 right-0 h-full w-72 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 border-l border-slate-700/50 ${
+                className={`absolute top-0 right-0 h-full w-80 sm:w-72 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 border-l border-slate-700/50 ${
                   mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
                 }`}
               >

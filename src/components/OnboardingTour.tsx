@@ -134,11 +134,11 @@ export default function OnboardingTour() {
 
       {/* Tour Card */}
       <div
-        className="fixed z-[201] apple-card p-6 max-w-sm shadow-2xl"
+        className="fixed z-[201] apple-card p-4 sm:p-6 max-w-sm shadow-2xl mx-4 sm:mx-0"
         style={{
-          top: `${position.top}px`,
-          left: `${position.left}px`,
-          transform: step.position === 'right' || step.position === 'left' ? 'translateY(-50%)' : 'translateX(-50%)',
+          top: `${Math.max(20, Math.min(position.top, window.innerHeight - 300))}px`,
+          left: window.innerWidth < 640 ? '50%' : `${position.left}px`,
+          transform: window.innerWidth < 640 ? 'translateX(-50%)' : (step.position === 'right' || step.position === 'left' ? 'translateY(-50%)' : 'translateX(-50%)'),
         }}
       >
         <div className="mb-4">
