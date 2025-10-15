@@ -2,8 +2,14 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo } from 'react'
-import { SearchTrendChart, CaseTypeDistribution, WeeklyActivityChart, StatsCard } from '@/components/AnalyticsCharts'
+import { useEffect, useMemo, Suspense, lazy } from 'react'
+import { LazyComponent } from '@/components/LazyComponent'
+
+// Lazy load heavy chart components
+const SearchTrendChart = lazy(() => import('@/components/AnalyticsCharts').then(module => ({ default: module.SearchTrendChart })))
+const CaseTypeDistribution = lazy(() => import('@/components/AnalyticsCharts').then(module => ({ default: module.CaseTypeDistribution })))
+const WeeklyActivityChart = lazy(() => import('@/components/AnalyticsCharts').then(module => ({ default: module.WeeklyActivityChart })))
+const StatsCard = lazy(() => import('@/components/AnalyticsCharts').then(module => ({ default: module.StatsCard })))
 
 export default function AnalyticsPage() {
   const { user, userProfile } = useAuth()
@@ -23,7 +29,7 @@ export default function AnalyticsPage() {
     const savedCasesCount = userProfile.savedCases?.length || 0
     const starredCasesCount = userProfile.starredCases?.length || 0
     const upcomingHearings = userProfile.calendarEvents?.filter(event => 
-      new Date(event.startDate) > new Date()
+      new Date(event.date) > new Date()
     ).length || 0
 
     return {
@@ -176,36 +182,50 @@ export default function AnalyticsPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard
-            icon="fa-solid fa-search"
-            title="Total Searches"
-            value={stats.totalSearches}
-          />
-          <StatsCard
-            icon="fa-solid fa-bookmark"
-            title="Saved Cases"
-            value={stats.savedCasesCount}
-          />
-          <StatsCard
-            icon="fa-solid fa-star"
-            title="Starred Cases"
-            value={stats.starredCasesCount}
-          />
-          <StatsCard
-            icon="fa-solid fa-calendar-check"
-            title="Upcoming Events"
-            value={stats.upcomingHearings}
-          />
+          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <StatsCard
+              icon="fa-solid fa-search"
+              title="Total Searches"
+              value={stats.totalSearches}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <StatsCard
+              icon="fa-solid fa-bookmark"
+              title="Saved Cases"
+              value={stats.savedCasesCount}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <StatsCard
+              icon="fa-solid fa-star"
+              title="Starred Cases"
+              value={stats.starredCasesCount}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <StatsCard
+              icon="fa-solid fa-calendar-check"
+              title="Upcoming Events"
+              value={stats.upcomingHearings}
+            />
+          </Suspense>
         </div>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <SearchTrendChart data={searchTrends} />
-          <CaseTypeDistribution data={caseTypeData} />
+          <Suspense fallback={<div className="apple-card p-6 h-80 flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <SearchTrendChart data={searchTrends} />
+          </Suspense>
+          <Suspense fallback={<div className="apple-card p-6 h-80 flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <CaseTypeDistribution data={caseTypeData} />
+          </Suspense>
         </div>
 
         <div className="grid grid-cols-1 gap-6 mb-8">
-          <WeeklyActivityChart data={weeklyActivity} />
+          <Suspense fallback={<div className="apple-card p-6 h-80 flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <WeeklyActivityChart data={weeklyActivity} />
+          </Suspense>
         </div>
 
         {/* Recent Activity */}
