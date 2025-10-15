@@ -7,6 +7,8 @@ import GlobalComponents from '@/components/GlobalComponents'
 import OnboardingTour from '@/components/OnboardingTour'
 import MobileNav from '@/components/MobileNav'
 import PerformanceMonitor from '@/components/PerformanceMonitor'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Metadata } from 'next'
 
 // SEO and Performance Metadata
@@ -140,6 +142,8 @@ export default function RootLayout({
                 </LayoutWrapper>
               </CustomizationProvider>
             </AuthProvider>
+            <Analytics />
+            <SpeedInsights />
           </body>
     </html>
   )
