@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
 import AIOverview from '@/components/AIOverview'
 import CaseTimeline from '@/components/CaseTimeline'
+import SimpleErrorBoundary from '@/components/SimpleErrorBoundary'
 import { userProfileManager } from '@/lib/userProfile'
 import EmptyState from '@/components/EmptyState'
 
@@ -296,11 +297,19 @@ function SearchPageContent() {
   }
 
   const handleCaseClick = (case_: CaseResult) => {
-    if (!isProUser && !case_.isDetailed) {
-      setShowUpgradeModal(true)
-      return
+    try {
+      console.log('handleCaseClick called with:', case_)
+      
+      if (!isProUser && !case_.isDetailed) {
+        setShowUpgradeModal(true)
+        return
+      }
+      
+      console.log('Setting selected case:', case_)
+      setSelectedCase(case_)
+    } catch (error) {
+      console.error('Error in handleCaseClick:', error)
     }
-    setSelectedCase(case_)
   }
 
 
@@ -832,20 +841,24 @@ function SearchPageContent() {
           <div className="lg:col-span-1">
             {selectedCase ? (
               <>
-                    <AIOverview 
-                      caseId={selectedCase.caseNumber}
-                      caseTitle={selectedCase.title}
-                      caseStatus={selectedCase.status}
-                      court={selectedCase.court}
-                      judge={selectedCase.judge}
-                      parties={selectedCase.parties}
-                      lastLogin={userProfile?.previousLogin?.toISOString()}
-                      className="mb-6"
-                    />
-                <CaseTimeline 
-                  caseNumber={selectedCase.caseNumber}
-                  className="mb-6"
-                />
+                <SimpleErrorBoundary>
+                  <AIOverview 
+                    caseId={selectedCase.caseNumber}
+                    caseTitle={selectedCase.title}
+                    caseStatus={selectedCase.status}
+                    court={selectedCase.court}
+                    judge={selectedCase.judge}
+                    parties={selectedCase.parties}
+                    lastLogin={userProfile?.previousLogin?.toISOString()}
+                    className="mb-6"
+                  />
+                </SimpleErrorBoundary>
+                <SimpleErrorBoundary>
+                  <CaseTimeline 
+                    caseNumber={selectedCase.caseNumber}
+                    className="mb-6"
+                  />
+                </SimpleErrorBoundary>
               </>
             ) : (
               <div className="apple-card p-6 mb-6">
