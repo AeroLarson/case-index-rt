@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
-import { databasePaymentTracker } from '@/lib/databasePaymentTracker'
+import { userProfileManager } from '@/lib/userProfile'
+import { PaymentTracker } from '@/lib/paymentTracker'
 
 // Initialize Stripe only if secret key is available
 const getStripe = () => {
@@ -86,11 +86,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     }
 
     // Update user plan
-    await databaseUserProfileManager.updatePlan(userId, planId as 'pro' | 'team')
+    userProfileManager.updatePlan(userId, planId as 'pro' | 'team')
 
     // Create payment record
     const amount = planId === 'pro' ? 99 : 299
-    await databasePaymentTracker.addPaymentRecord({
+    PaymentTracker.addPaymentRecord({
       userId,
       userEmail: session.customer_email || '',
       userName: session.customer_details?.name || '',
@@ -99,7 +99,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       status: 'completed',
       stripeSessionId: session.id,
       stripePaymentId: session.payment_intent as string,
-      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     })
 
     console.log(`Plan updated for user ${userId} to ${planId}`)
