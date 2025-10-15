@@ -49,15 +49,15 @@ export default function AboutPage() {
 
         {/* Features Section */}
         <div className="mb-16">
-          <h2 className="text-white text-3xl font-bold text-center mb-12">What We Offer</h2>
+          <h2 className="text-white text-3xl font-bold text-center mb-12">Revolutionary Legal Workflow Automation</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="apple-card p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i className="fa-solid fa-search text-white text-2xl"></i>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-3">AI-Powered Search</h3>
+              <h3 className="text-white text-xl font-semibold mb-3">Universal Case Search</h3>
               <p className="text-gray-300">
-                Find cases instantly with intelligent search that understands legal terminology and context.
+                Search by case number (FL-2024-123456) or party names with real-time San Diego County court data integration.
               </p>
             </div>
 
@@ -65,9 +65,9 @@ export default function AboutPage() {
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i className="fa-solid fa-calendar text-white text-2xl"></i>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-3">Smart Calendar</h3>
+              <h3 className="text-white text-xl font-semibold mb-3">Auto-Sync Calendar</h3>
               <p className="text-gray-300">
-                Auto-populate your calendar with court dates, deadlines, and hearings from San Diego County.
+                Automatically sync hearing dates, times, locations, and Zoom links from San Diego County courts to your calendar.
               </p>
             </div>
 
@@ -75,73 +75,131 @@ export default function AboutPage() {
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i className="fa-solid fa-robot text-white text-2xl"></i>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-3">AI Insights</h3>
+              <h3 className="text-white text-xl font-semibold mb-3">AI Case Analysis</h3>
               <p className="text-gray-300">
-                Get intelligent case summaries, trend analysis, and predictive insights powered by AI.
+                Get intelligent case summaries, timeline analysis, and court rules search powered by advanced AI.
               </p>
             </div>
 
             <div className="apple-card p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i className="fa-solid fa-database text-white text-2xl"></i>
+                <i className="fa-solid fa-file-download text-white text-2xl"></i>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-3">Real-Time Data</h3>
+              <h3 className="text-white text-xl font-semibold mb-3">Document Management</h3>
               <p className="text-gray-300">
-                Access live court data, case updates, and document filings as they happen.
+                Download real court documents, auto-download tentative rulings, and manage case files with county integration.
               </p>
             </div>
 
             <div className="apple-card p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i className="fa-solid fa-users text-white text-2xl"></i>
+                <i className="fa-solid fa-building text-white text-2xl"></i>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-3">Team Collaboration</h3>
+              <h3 className="text-white text-xl font-semibold mb-3">Clio CRM Integration</h3>
               <p className="text-gray-300">
-                Work seamlessly with your team using shared case files, notes, and real-time updates.
+                Seamlessly sync with Clio CRM for matters, calendar events, and client data with OAuth 2.0 security.
               </p>
             </div>
 
             <div className="apple-card p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i className="fa-solid fa-shield text-white text-2xl"></i>
+                <i className="fa-solid fa-chart-line text-white text-2xl"></i>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-3">Secure & Compliant</h3>
+              <h3 className="text-white text-xl font-semibold mb-3">Advanced Analytics</h3>
               <p className="text-gray-300">
-                Bank-level security with HIPAA compliance and encrypted data storage for your peace of mind.
+                Track case trends, monitor deadlines, and get insights with real-time analytics and reporting.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Revolutionary Features */}
+        <div className="apple-card p-8 mb-12">
+          <h2 className="text-white text-3xl font-bold text-center mb-8">Revolutionary Legal Workflow Features</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-white text-xl font-semibold mb-4">Phase 1: Hearing Auto-Sync System</h3>
+              <p className="text-gray-300 mb-4">
+                Automatically update your calendar with hearing dates, times, locations, judge information, 
+                and virtual meeting links directly from San Diego County court systems.
+              </p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Real-time hearing date synchronization</li>
+                <li>• Judge and department information</li>
+                <li>• Courthouse address and room details</li>
+                <li>• Zoom/Microsoft Teams meeting links</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white text-xl font-semibold mb-4">Phase 2: Tentative Ruling Auto-Download</h3>
+              <p className="text-gray-300 mb-4">
+                Automatically download tentative rulings from court websites and save them directly 
+                to your case document management system.
+              </p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Instant ruling notifications</li>
+                <li>• Automatic document download</li>
+                <li>• Case summary integration</li>
+                <li>• Document organization and tagging</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white text-xl font-semibold mb-4">Phase 3: AI-Powered Court Rules Search</h3>
+              <p className="text-gray-300 mb-4">
+                Search through county court rules PDFs with AI to find specific deadlines, 
+                procedures, and requirements for different case types.
+              </p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Natural language court rules search</li>
+                <li>• Deadline identification and tracking</li>
+                <li>• Filing requirement analysis</li>
+                <li>• County-specific rule guidance</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white text-xl font-semibold mb-4">Phase 4: Document Ordering Integration</h3>
+              <p className="text-gray-300 mb-4">
+                Direct integration with county document ordering systems for seamless 
+                document procurement and case file management.
+              </p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• One-click document ordering</li>
+                <li>• County website integration</li>
+                <li>• Document tracking and delivery</li>
+                <li>• Automated case file updates</li>
+              </ul>
             </div>
           </div>
         </div>
 
         {/* Technology Section */}
         <div className="apple-card p-8 mb-12">
-          <h2 className="text-white text-3xl font-bold text-center mb-8">Powered by Advanced Technology</h2>
+          <h2 className="text-white text-3xl font-bold text-center mb-8">Built with Modern Technology</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
               <h3 className="text-white text-xl font-semibold mb-4">AI & Machine Learning</h3>
               <p className="text-gray-300 mb-4">
-                Our platform uses advanced artificial intelligence to analyze case patterns, 
-                predict outcomes, and provide intelligent recommendations that help you make 
-                better legal decisions.
+                Our platform leverages advanced AI to provide intelligent case analysis, 
+                automated document processing, and smart insights that enhance legal practice efficiency.
               </p>
               <ul className="space-y-2 text-gray-300">
-                <li>• Natural language processing for document analysis</li>
-                <li>• Predictive analytics for case outcomes</li>
-                <li>• Intelligent case matching and recommendations</li>
-                <li>• Automated deadline tracking and alerts</li>
+                <li>• OpenAI integration for case summaries and analysis</li>
+                <li>• Natural language processing for court rules search</li>
+                <li>• Intelligent case timeline generation</li>
+                <li>• Automated document classification and tagging</li>
               </ul>
             </div>
             <div>
               <h3 className="text-white text-xl font-semibold mb-4">Real-Time Integration</h3>
               <p className="text-gray-300 mb-4">
-                Seamlessly connect with San Diego County court systems, Clio CRM, and other 
-                legal tools to keep your data synchronized and up-to-date.
+                Built with Next.js 15, React, and modern web technologies for seamless 
+                integration with court systems, CRM platforms, and legal tools.
               </p>
               <ul className="space-y-2 text-gray-300">
-                <li>• Direct San Diego court system integration</li>
-                <li>• Clio CRM synchronization</li>
-                <li>• Calendar and email integration</li>
-                <li>• Document management system connectivity</li>
+                <li>• San Diego County Court API integration</li>
+                <li>• Clio CRM OAuth 2.0 synchronization</li>
+                <li>• Google Calendar and Microsoft Outlook sync</li>
+                <li>• Real-time document download and management</li>
               </ul>
             </div>
           </div>
