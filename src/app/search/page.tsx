@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
 import AIOverview from '@/components/AIOverview'
 import CaseTimeline from '@/components/CaseTimeline'
-import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
+import { userProfileManager } from '@/lib/userProfile'
 import EmptyState from '@/components/EmptyState'
 
 interface CaseResult {
@@ -195,16 +195,16 @@ function SearchPageContent() {
     
     setIsSearching(false)
 
-    // Save search to user profile in database
+    // Save search to user profile in localStorage
     try {
-      await databaseUserProfileManager.addRecentSearch(user.id, {
+      userProfileManager.addRecentSearch(user.id, {
         query: searchQuery,
         searchType: 'case',
         resultsCount: searchResults.length
       })
-      await refreshProfile()
+      refreshProfile()
     } catch (error) {
-      console.error('Failed to save search to database:', error)
+      console.error('Failed to save search to localStorage:', error)
     }
   }
 
@@ -281,7 +281,7 @@ function SearchPageContent() {
     
     // Increment monthly usage in user profile
     if (user) {
-      const success = await databaseUserProfileManager.incrementMonthlyUsage(user.id)
+      const success = userProfileManager.incrementMonthlyUsage(user.id)
       if (success) {
         refreshProfile()
       }
@@ -309,7 +309,7 @@ function SearchPageContent() {
     
     // Save case to user profile in database
     try {
-      await databaseUserProfileManager.addSavedCase(user.id, {
+      userProfileManager.addSavedCase(user.id, {
         caseNumber: case_.caseNumber,
         caseTitle: case_.title,
         caseType: 'Family Law',
@@ -325,7 +325,7 @@ function SearchPageContent() {
       })
       
       // Add calendar event for the case hearing
-      await databaseUserProfileManager.addCalendarEvent(user.id, {
+      userProfileManager.addCalendarEvent(user.id, {
       title: `Hearing - ${case_.title}`,
       date: '2026-01-27', // Format: YYYY-MM-DD
       time: '09:00',
@@ -351,7 +351,7 @@ function SearchPageContent() {
     
     try {
       // Toggle star status in database
-      const isStarred = await databaseUserProfileManager.toggleStarredCase(user.id, case_.id)
+      const isStarred = userProfileManager.toggleStarredCase(user.id, case_.id)
       await refreshProfile()
       
       if (isStarred) {

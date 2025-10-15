@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
+import { userProfileManager } from '@/lib/userProfile'
 
 export default function AccountPage() {
   const { user, logout, userProfile, clearAllUserData, debugUserData } = useAuth()
@@ -33,7 +33,7 @@ export default function AccountPage() {
   const checkClioConnection = async () => {
     try {
       // Check if user has Clio tokens stored in database
-      const clioTokens = await databaseUserProfileManager.getClioTokens(user?.id || '')
+      const clioTokens = userProfileManager.getClioTokens(user?.id || '')
       if (clioTokens) {
         setClioConnected(true)
       }
@@ -51,7 +51,7 @@ export default function AccountPage() {
   const handleClioSync = async () => {
     setClioSyncing(true)
     try {
-      const clioTokens = await databaseUserProfileManager.getClioTokens(user?.id || '')
+      const clioTokens = userProfileManager.getClioTokens(user?.id || '')
       if (!clioTokens) {
         throw new Error('No Clio connection found')
       }
@@ -81,7 +81,7 @@ export default function AccountPage() {
   const handleClioDisconnect = async () => {
     if (user) {
       try {
-        await databaseUserProfileManager.updateClioTokens(user.id, null)
+        userProfileManager.updateClioTokens(user.id, null)
         setClioConnected(false)
       } catch (error) {
         console.error('Error disconnecting Clio:', error)
