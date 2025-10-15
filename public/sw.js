@@ -1,7 +1,7 @@
 // Service Worker for Case Index RT
-const CACHE_NAME = 'case-index-rt-v1'
-const STATIC_CACHE = 'static-v1'
-const DYNAMIC_CACHE = 'dynamic-v1'
+const CACHE_NAME = 'case-index-rt-v2'
+const STATIC_CACHE = 'static-v2'
+const DYNAMIC_CACHE = 'dynamic-v2'
 
 // Files to cache for offline functionality
 const STATIC_FILES = [
