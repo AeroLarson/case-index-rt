@@ -17,6 +17,8 @@ interface AuthContextType {
   logout: () => void
   isLoading: boolean
   refreshProfile: () => void
+  clearAllUserData: () => void
+  debugUserData: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -71,8 +73,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const clearAllUserData = () => {
+    userProfileManager.clearAllUserData()
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user')
+    }
+    setUser(null)
+    setUserProfile(null)
+    console.log('All user data cleared')
+  }
+
+  const debugUserData = () => {
+    if (typeof window !== 'undefined') {
+      const allKeys = userProfileManager.getAllUserStorageKeys()
+      console.log('=== USER DATA DEBUG ===')
+      console.log('Current user:', user)
+      console.log('All user storage keys:', allKeys)
+      allKeys.forEach(key => {
+        const data = localStorage.getItem(key)
+        if (data) {
+          try {
+            const parsed = JSON.parse(data)
+            console.log(`Storage key ${key}:`, {
+              userId: parsed.id,
+              name: parsed.name,
+              email: parsed.email,
+              savedCases: parsed.savedCases?.length || 0,
+              recentSearches: parsed.recentSearches?.length || 0
+            })
+          } catch (e) {
+            console.log(`Storage key ${key}: Invalid JSON`)
+          }
+        }
+      })
+      console.log('=== END DEBUG ===')
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, userProfile, login, logout, isLoading, refreshProfile }}>
+    <AuthContext.Provider value={{ user, userProfile, login, logout, isLoading, refreshProfile, clearAllUserData, debugUserData }}>
       {children}
     </AuthContext.Provider>
   )

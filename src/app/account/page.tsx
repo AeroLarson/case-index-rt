@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 export default function AccountPage() {
-  const { user, logout, userProfile } = useAuth()
+  const { user, logout, userProfile, clearAllUserData, debugUserData } = useAuth()
   const { settings, updateSettings } = useCustomization()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
@@ -257,6 +257,17 @@ export default function AccountPage() {
                 >
                   <i className="fa-solid fa-link mr-3"></i>
                   Integrations
+                </button>
+                <button
+                  onClick={() => setActiveTab('debug')}
+                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                    activeTab === 'debug' 
+                      ? 'bg-red-500/20 text-red-300' 
+                      : 'text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <i className="fa-solid fa-bug mr-3"></i>
+                  Debug
                 </button>
               </nav>
             </div>
@@ -777,6 +788,102 @@ export default function AccountPage() {
                       <button className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
                         Connect
                       </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Debug Tab */}
+            {activeTab === 'debug' && (
+              <div className="space-y-6">
+                <div className="apple-card p-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center">
+                      <i className="fa-solid fa-bug text-white text-xl"></i>
+                    </div>
+                    <div>
+                      <h2 className="text-white text-2xl font-semibold tracking-tight">Debug Tools</h2>
+                      <p className="text-gray-300">Debug user data and localStorage information</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Current User Info */}
+                    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6">
+                      <h3 className="text-white text-lg font-semibold mb-4">Current User Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">User ID:</span>
+                          <span className="text-white font-mono">{user?.id || 'Not logged in'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Name:</span>
+                          <span className="text-white">{user?.name || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Email:</span>
+                          <span className="text-white">{user?.email || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Plan:</span>
+                          <span className="text-white">{userProfile?.plan || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Saved Cases:</span>
+                          <span className="text-white">{userProfile?.savedCases?.length || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Recent Searches:</span>
+                          <span className="text-white">{userProfile?.recentSearches?.length || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Debug Actions */}
+                    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6">
+                      <h3 className="text-white text-lg font-semibold mb-4">Debug Actions</h3>
+                      <div className="space-y-4">
+                        <button
+                          onClick={debugUserData}
+                          className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <i className="fa-solid fa-search"></i>
+                          Debug User Data (Check Console)
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to clear ALL user data? This cannot be undone!')) {
+                              clearAllUserData()
+                            }
+                          }}
+                          className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                          Clear All User Data
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Storage Information */}
+                    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6">
+                      <h3 className="text-white text-lg font-semibold mb-4">LocalStorage Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Current User Storage Key:</span>
+                          <span className="text-white font-mono">user_profile_{user?.id || 'none'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">All User Storage Keys:</span>
+                          <span className="text-white">
+                            {typeof window !== 'undefined' ? 
+                              Object.keys(localStorage).filter(key => key.startsWith('user_profile_')).length : 
+                              'N/A (Server-side)'
+                            }
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
