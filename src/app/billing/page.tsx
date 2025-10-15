@@ -300,17 +300,6 @@ export default function BillingPage() {
                   Plans
                 </button>
                 <button
-                  onClick={() => setActiveTab('payment')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
-                    activeTab === 'payment' 
-                      ? 'bg-blue-500/20 text-blue-300' 
-                      : 'text-gray-300 hover:bg-white/5'
-                  }`}
-                >
-                  <i className="fa-solid fa-credit-card mr-3"></i>
-                  Payment Methods
-                </button>
-                <button
                   onClick={() => setActiveTab('history')}
                   className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
                     activeTab === 'history' 
@@ -320,17 +309,6 @@ export default function BillingPage() {
                 >
                   <i className="fa-solid fa-file-invoice mr-3"></i>
                   Billing History
-                </button>
-                <button
-                  onClick={() => setActiveTab('invoices')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
-                    activeTab === 'invoices' 
-                      ? 'bg-blue-500/20 text-blue-300' 
-                      : 'text-gray-300 hover:bg-white/5'
-                  }`}
-                >
-                  <i className="fa-solid fa-file-invoice mr-3"></i>
-                  Invoices
                 </button>
               </nav>
             </div>
@@ -505,80 +483,38 @@ export default function BillingPage() {
               </div>
             )}
 
-            {/* Payment Methods Tab */}
-            {activeTab === 'payment' && (
-              <div className="space-y-6">
-                <div className="apple-card p-8">
-                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Payment Methods</h2>
-                  
-                  {/* No Payment Methods State */}
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <i className="fa-solid fa-credit-card text-gray-400 text-2xl"></i>
-                    </div>
-                    <h3 className="text-white text-lg font-semibold mb-2">No Payment Methods</h3>
-                    <p className="text-gray-400 mb-6">Add a payment method to manage your subscription</p>
-                    
-                    <button 
-                      onClick={() => {
-                        alert('Payment system integration coming soon! This will connect to Stripe or similar payment processor.')
-                      }}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
-                    >
-                      <i className="fa-solid fa-plus mr-2"></i>
-                      Add Payment Method
-                    </button>
-                  </div>
-                  
-                  {/* Payment Method Form (Hidden for now) */}
-                  <div className="hidden">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-white text-sm font-medium mb-2">Card Number</label>
-                        <input 
-                          type="text" 
-                          placeholder="1234 5678 9012 3456"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-white text-sm font-medium mb-2">Expiry Date</label>
-                          <input 
-                            type="text" 
-                            placeholder="MM/YY"
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-white text-sm font-medium mb-2">CVV</label>
-                          <input 
-                            type="text" 
-                            placeholder="123"
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-white text-sm font-medium mb-2">Cardholder Name</label>
-                        <input 
-                          type="text" 
-                          placeholder="John Doe"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
-                      <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200">
-                        Save Payment Method
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Billing History Tab */}
             {activeTab === 'history' && (
               <div className="space-y-6">
+                {/* Subscription Management */}
+                {subscription.plan !== 'Free' && (
+                  <div className="apple-card p-8">
+                    <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Subscription Management</h2>
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <i className="fa-solid fa-exclamation-triangle text-red-400 text-xl"></i>
+                        <h3 className="text-white text-lg font-semibold">Cancel Subscription</h3>
+                      </div>
+                      <p className="text-gray-300 mb-4">
+                        Canceling your subscription will stop all future charges. You'll retain access until the end of your current billing period.
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.')) {
+                            // Handle subscription cancellation
+                            alert('Subscription cancellation feature will be implemented with Stripe integration.')
+                          }
+                        }}
+                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                      >
+                        <i className="fa-solid fa-times mr-2"></i>
+                        Cancel Subscription
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="apple-card p-8">
                   <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Billing History</h2>
                   
@@ -643,66 +579,6 @@ export default function BillingPage() {
               </div>
             )}
 
-            {/* Invoices Tab */}
-            {activeTab === 'invoices' && (
-              <div className="space-y-6">
-                <div className="apple-card p-8">
-                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Invoice Downloads</h2>
-                  
-                  {billingHistory.length > 0 ? (
-                    <div className="space-y-4">
-                      {billingHistory.map((payment, index) => (
-                        <div key={payment.id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
-                          <div>
-                            <h3 className="text-white font-medium">
-                              {payment.planId === 'pro' ? 'Professional Plan' : 'Team Plan'} - {new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                            </h3>
-                            <p className="text-gray-400 text-sm">
-                              {new Date(payment.paymentDate).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                              })}
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                              Status: <span className={`capitalize ${
-                                payment.status === 'completed' ? 'text-green-400' : 
-                                payment.status === 'pending' ? 'text-yellow-400' : 
-                                'text-red-400'
-                              }`}>
-                                {payment.status}
-                              </span>
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-white font-medium">${payment.amount.toFixed(2)}</p>
-                            <button 
-                              onClick={() => downloadInvoice(payment)}
-                              className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
-                            >
-                              Download PDF
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i className="fa-solid fa-file-invoice text-gray-400 text-2xl"></i>
-                      </div>
-                      <h3 className="text-white text-lg font-semibold mb-2">No Invoices Available</h3>
-                      <p className="text-gray-400">
-                        {user?.email === 'aero.larson@gmail.com' 
-                          ? 'No payment history found. Test invoice should appear above.'
-                          : 'Your invoice history will appear here once you make your first payment.'
-                        }
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
