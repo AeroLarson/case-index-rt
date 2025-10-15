@@ -112,47 +112,9 @@ function SearchPageContent() {
         const data = await response.json()
         setSearchResults(data.cases || [])
       } else {
-        // Fallback to mock data if API fails
-        console.log('API search failed, using fallback data')
-        const normalizedQuery = searchQuery.toLowerCase().trim()
-        
-        // Check if it looks like a case number (contains FL-, CV-, etc.)
-        const isCaseNumber = /^[A-Z]{2}-\d{4}-[A-Z0-9]+$/i.test(searchQuery.trim())
-        
-        if (isCaseNumber) {
-          // Generate a realistic case result for any case number
-          const caseResult: CaseResult = {
-            id: `case_${Date.now()}`,
-            caseNumber: searchQuery.trim().toUpperCase(),
-            title: 'Case Information Retrieved',
-            court: 'San Diego Superior Court',
-            judge: 'Court Information Available',
-            status: 'Active',
-            lastActivity: 'Recently updated',
-            parties: {
-              plaintiff: 'Case parties information available',
-              defendant: 'Contact court for full details'
-            },
-            documents: 0,
-            hearings: 0,
-            isDetailed: isProUser
-          }
-          setSearchResults([caseResult])
-        } else {
-          // For name searches, the API should handle this, but fallback to mock data
-          console.log('Name search fallback - this should be handled by API')
-          const filteredResults = mockSearchResults.filter(case_ => {
-            const titleMatch = case_.title.toLowerCase().includes(normalizedQuery)
-            const caseNumberMatch = case_.caseNumber.toLowerCase().includes(normalizedQuery)
-            const plaintiffMatch = case_.parties.plaintiff.toLowerCase().includes(normalizedQuery)
-            const defendantMatch = case_.parties.defendant.toLowerCase().includes(normalizedQuery)
-            const courtMatch = case_.court.toLowerCase().includes(normalizedQuery)
-            const judgeMatch = case_.judge.toLowerCase().includes(normalizedQuery)
-            
-            return titleMatch || caseNumberMatch || plaintiffMatch || defendantMatch || courtMatch || judgeMatch
-          })
-          setSearchResults(filteredResults)
-        }
+        // API search failed
+        console.log('API search failed')
+        setSearchResults([])
       }
     } catch (error) {
       console.error('Search error:', error)

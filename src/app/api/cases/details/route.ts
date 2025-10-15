@@ -17,16 +17,119 @@ export async function POST(request: NextRequest) {
 
     console.log(`Fetching details for case: ${caseNumber} by user: ${userId}`)
 
-    // In production, this would integrate with the actual San Diego County Court API
-    // For now, we'll simulate fetching detailed case information
+    // TODO: Integrate with actual San Diego County Court API
     
-    const caseDetails = await simulateCountyCaseDetails(caseNumber.trim().toUpperCase())
-    
-    if (caseDetails) {
+    // Return mock case details for Aero Larson test case
+    if (caseNumber.trim().toUpperCase() === 'FL-2024-001234') {
+      const caseDetails = {
+        caseNumber: 'FL-2024-001234',
+        title: 'Larson v. Test Defendant - Dissolution with Minor Children',
+        court: 'San Diego Superior Court - Central (Department 602)',
+        judge: 'Hon. Rebecca Kanter',
+        status: 'Active - Post-Judgment Proceedings',
+        lastActivity: 'October 15, 2024',
+        parties: {
+          plaintiff: 'Aero Larson (Petitioner)',
+          defendant: 'Test Defendant (Respondent)'
+        },
+        documents: 23,
+        hearings: 7,
+        isDetailed: true,
+        detailedInfo: {
+          caseNumber: 'FL-2024-001234',
+          title: 'Larson v. Test Defendant - Dissolution with Minor Children',
+          court: 'San Diego Superior Court - Central (Department 602)',
+          judge: 'Hon. Rebecca Kanter',
+          status: 'Active - Post-Judgment Proceedings',
+          lastActivity: 'October 15, 2024',
+          parties: {
+            plaintiff: 'Aero Larson (Petitioner)',
+            defendant: 'Test Defendant (Respondent)'
+          },
+          caseHistory: [
+            {
+              date: '2024-03-15',
+              event: 'Case Filed',
+              description: 'Initial dissolution petition filed',
+              documents: ['Petition for Dissolution', 'Civil Case Cover Sheet']
+            },
+            {
+              date: '2024-03-22',
+              event: 'Service of Process',
+              description: 'Defendant served with summons and petition',
+              documents: ['Proof of Service', 'Summons']
+            },
+            {
+              date: '2024-04-15',
+              event: 'Response Filed',
+              description: 'Defendant filed response to petition',
+              documents: ['Response to Petition', 'Declaration']
+            },
+            {
+              date: '2024-05-20',
+              event: 'Case Management Conference',
+              description: 'Initial case management conference held',
+              documents: ['Case Management Statement'],
+              outcome: 'Discovery plan established, mediation scheduled'
+            },
+            {
+              date: '2024-07-10',
+              event: 'Mediation',
+              description: 'Court-ordered mediation session',
+              documents: ['Mediation Report'],
+              outcome: 'Partial agreement reached on custody matters'
+            },
+            {
+              date: '2024-09-15',
+              event: 'Judgment Entered',
+              description: 'Final judgment of dissolution entered',
+              documents: ['Judgment of Dissolution', 'Findings and Order']
+            }
+          ],
+          upcomingHearings: [
+            {
+              date: '2024-11-20',
+              time: '9:00 AM',
+              type: 'Post-Judgment Hearing',
+              location: 'San Diego Superior Court, Room 201',
+              virtualMeeting: 'Zoom ID: 123-456-7890, Passcode: 123456'
+            }
+          ],
+          documents: [
+            'Petition for Dissolution',
+            'Civil Case Cover Sheet',
+            'Summons',
+            'Proof of Service',
+            'Response to Petition',
+            'Declaration of Service',
+            'Case Management Statement',
+            'Mediation Report',
+            'Judgment of Dissolution',
+            'Findings and Order',
+            'Child Custody Agreement',
+            'Property Settlement Agreement'
+          ],
+          parties: {
+            plaintiff: {
+              name: 'Aero Larson',
+              attorney: 'Larson Legal Group',
+              contact: 'aero@larsonlegal.com'
+            },
+            defendant: {
+              name: 'Test Defendant',
+              attorney: 'Defendant Law Firm',
+              contact: 'defendant@lawfirm.com'
+            }
+          },
+          filedDate: '2024-03-15',
+          caseType: 'Family Law - Dissolution with Minor Children'
+        }
+      }
+      
       return NextResponse.json({
         success: true,
         caseDetails: caseDetails,
-        source: 'county_database'
+        source: 'test_data'
       })
     } else {
       return NextResponse.json({
@@ -44,153 +147,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Simulate county database case details fetch
-async function simulateCountyCaseDetails(caseNumber: string) {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  
-  // In production, this would make a real API call to San Diego County Court
-  // For now, we'll return realistic case details for any valid case number
-  
-  const caseType = caseNumber.substring(0, 2)
-  const year = caseNumber.substring(3, 7)
-  
-  // Generate realistic case details
-  const caseDetails = {
-    caseNumber: caseNumber,
-    title: generateCaseTitle(caseType, caseNumber),
-    court: 'San Diego Superior Court',
-    judge: 'Court Information Available',
-    status: 'Active',
-    lastActivity: new Date().toLocaleDateString(),
-    parties: {
-      plaintiff: 'Case parties information available',
-      defendant: 'Contact court for full details'
-    },
-    documents: Math.floor(Math.random() * 20) + 1,
-    hearings: Math.floor(Math.random() * 10) + 1,
-    isDetailed: true,
-    detailedInfo: {
-      caseNumber: caseNumber,
-      title: generateCaseTitle(caseType, caseNumber),
-      court: 'San Diego Superior Court',
-      judge: 'Court Information Available',
-      status: 'Active',
-      lastActivity: new Date().toLocaleDateString(),
-      parties: {
-        plaintiff: 'Case parties information available',
-        defendant: 'Contact court for full details'
-      },
-      caseHistory: generateCaseHistory(caseType),
-      upcomingHearings: generateUpcomingHearings(caseNumber),
-      documents: generateDocumentList(caseType),
-      parties: {
-        plaintiff: {
-          name: 'Case information available',
-          attorney: 'Contact court for details',
-          contact: 'Court records'
-        },
-        defendant: {
-          name: 'Case information available',
-          attorney: 'Contact court for details',
-          contact: 'Court records'
-        }
-      },
-      filedDate: `${year}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-      caseType: getCaseTypeDescription(caseType),
-      countyData: {
-        court: 'San Diego Superior Court',
-        department: `Department ${Math.floor(Math.random() * 500) + 100}`,
-        judicialOfficer: 'Court Information Available',
-        caseType: getCaseTypeDescription(caseType),
-        status: 'Active',
-        lastUpdated: new Date().toISOString()
-      }
-    }
-  }
-  
-  return caseDetails
-}
-
-// Generate realistic case titles based on case type
-function generateCaseTitle(caseType: string, caseNumber: string): string {
-  const caseTypes = {
-    'FL': 'Family Law Case',
-    'CV': 'Civil Case',
-    'CR': 'Criminal Case',
-    'SC': 'Small Claims Case',
-    'PR': 'Probate Case',
-    'GU': 'Guardianship Case',
-    'AD': 'Adoption Case'
-  }
-  
-  return caseTypes[caseType as keyof typeof caseTypes] || 'Court Case'
-}
-
-// Get case type description
-function getCaseTypeDescription(caseType: string): string {
-  const descriptions = {
-    'FL': 'Family Law',
-    'CV': 'Civil',
-    'CR': 'Criminal',
-    'SC': 'Small Claims',
-    'PR': 'Probate',
-    'GU': 'Guardianship',
-    'AD': 'Adoption'
-  }
-  
-  return descriptions[caseType as keyof typeof descriptions] || 'General'
-}
-
-// Generate realistic case history
-function generateCaseHistory(caseType: string) {
-  const baseHistory = [
-    {
-      date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      event: 'Case Filed',
-      description: 'Initial case filing',
-      documents: ['Initial Filing']
-    }
-  ]
-  
-  if (caseType === 'FL') {
-    baseHistory.push(
-      {
-        date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        event: 'Response Filed',
-        description: 'Response to initial filing',
-        documents: ['Response', 'Declaration']
-      }
-    )
-  }
-  
-  return baseHistory
-}
-
-// Generate upcoming hearings
-function generateUpcomingHearings(caseNumber: string) {
-  const futureDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-  
-  return [
-    {
-      date: futureDate.toISOString().split('T')[0],
-      time: '9:00 AM',
-      type: 'Status Conference',
-      location: 'San Diego Superior Court, Room 201',
-      virtualMeeting: 'Contact court for virtual meeting details'
-    }
-  ]
-}
-
-// Generate document list
-function generateDocumentList(caseType: string) {
-  const baseDocuments = ['Initial Filing', 'Summons']
-  
-  if (caseType === 'FL') {
-    baseDocuments.push('Response', 'Declaration', 'Motion')
-  } else if (caseType === 'CV') {
-    baseDocuments.push('Complaint', 'Answer', 'Discovery')
-  }
-  
-  return baseDocuments
-}
