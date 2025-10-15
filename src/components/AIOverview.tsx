@@ -46,11 +46,11 @@ export default function AIOverview({
     parties?: { plaintiff: string; defendant: string },
     lastLogin?: string
   ) => {
-    setIsThinking(true)
-    setIsComplete(false)
-    setOverview('')
-
     try {
+      setIsThinking(true)
+      setIsComplete(false)
+      setOverview('')
+      
       // Extract case type from title (e.g., "Johnson v. Martinez - Dissolution with Minor Children")
       const caseTypeMatch = caseTitle?.match(/- (.+)$/)
       const caseType = caseTypeMatch ? caseTypeMatch[1] : "Family Law"
@@ -97,26 +97,28 @@ export default function AIOverview({
       if (lastLogin) {
         const timeSinceLogin = Date.now() - new Date(lastLogin).getTime()
         const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
-        const hoursSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60))
-        const minutesSinceLogin = Math.floor(timeSinceLogin / (1000 * 60))
         
-        let timeString = ''
         if (daysSinceLogin > 0) {
-          timeString = `${daysSinceLogin} day${daysSinceLogin === 1 ? '' : 's'} ago`
-        } else if (hoursSinceLogin > 0) {
-          timeString = `${hoursSinceLogin} hour${hoursSinceLogin === 1 ? '' : 's'} ago`
-        } else if (minutesSinceLogin > 0) {
-          timeString = `${minutesSinceLogin} minute${minutesSinceLogin === 1 ? '' : 's'} ago`
+          formattedOverview += `Welcome back! It's been ${daysSinceLogin} day${daysSinceLogin > 1 ? 's' : ''} since your last login. Here's what's happening with your case:\n\n`
         } else {
-          timeString = 'just now'
+          formattedOverview += `Welcome back! Here's the latest on your case:\n\n`
         }
-        
-        formattedOverview = `Since your last login ${timeString}, case ${caseId} (${simpleCaseType}) is currently in ${caseStatus?.toLowerCase() || 'active'} status. `
       } else {
-        formattedOverview = `Case ${caseId} (${simpleCaseType}) is currently in ${caseStatus?.toLowerCase() || 'active'} status. `
+        formattedOverview += `Here's an overview of your case:\n\n`
       }
       
-      // Extract department from court string if available
+      // Add case type specific information
+      if (simpleCaseType.includes('dissolution')) {
+        formattedOverview += `This is a dissolution of marriage case (divorce) involving minor children. The case is currently in active status with ongoing proceedings.\n\n`
+      } else if (simpleCaseType.includes('custody')) {
+        formattedOverview += `This case involves child custody matters. The court will consider the best interests of the children in all decisions.\n\n`
+      } else if (simpleCaseType.includes('support')) {
+        formattedOverview += `This case involves child or spousal support matters. Financial documentation and income verification are typically required.\n\n`
+      } else {
+        formattedOverview += `This is a family law case with ongoing proceedings. The court will handle all matters according to California Family Code.\n\n`
+      }
+      
+      // Extract department number from court name
       const departmentMatch = court?.match(/Department (\d+)/)
       const department = departmentMatch ? departmentMatch[1] : '602'
       const courtName = court?.replace(/\s*\(Department \d+\)/, '') || 'San Diego Superior Court - Central'
@@ -144,160 +146,91 @@ export default function AIOverview({
       judge: 'Hon. Rebecca Kanter',
       nextHearing: '1/27/2026 at 9:00 AM',
       hearingType: 'Request for Order Hearing',
-      virtualMeeting: 'Zoom ID: 123-456-7890, Passcode: 123456',
-      caseStatus: 'Post Judgment',
-      caseType: 'Dissolution with Minor Children'
+      zoomId: '123-456-7890',
+      passcode: '123456'
     }
-    
-    const baseOverview = `Case ${caseId} (${courtData.caseType}) is currently in ${courtData.caseStatus} status. Upcoming hearing scheduled for ${courtData.nextHearing} - ${courtData.hearingType}. The case is assigned to ${courtData.judge} in Department ${courtData.department} at ${courtData.courtLocation}. Virtual attendance available via ${courtData.virtualMeeting}.`
+
+    let fallbackText = ''
     
     if (lastLogin) {
-      const daysSinceLogin = Math.floor((Date.now() - new Date(lastLogin).getTime()) / (1000 * 60 * 60 * 24))
-      return `Since your last login ${daysSinceLogin} days ago, ${baseOverview.toLowerCase()}`
+      const timeSinceLogin = Date.now() - new Date(lastLogin).getTime()
+      const daysSinceLogin = Math.floor(timeSinceLogin / (1000 * 60 * 60 * 24))
+      
+      if (daysSinceLogin > 0) {
+        fallbackText += `Welcome back! It's been ${daysSinceLogin} day${daysSinceLogin > 1 ? 's' : ''} since your last login. Here's what's happening with your case:\n\n`
+      } else {
+        fallbackText += `Welcome back! Here's the latest on your case:\n\n`
+      }
+    } else {
+      fallbackText += `Here's an overview of your case:\n\n`
     }
     
-    return baseOverview
+    fallbackText += `Case ${courtData.caseNumber} is currently active in the San Diego Superior Court system. The case is assigned to ${courtData.judge} in Department ${courtData.department}.\n\n`
+    fallbackText += `Your next hearing is scheduled for ${courtData.nextHearing} - ${courtData.hearingType}. Virtual attendance is available via Zoom ID: ${courtData.zoomId}, Passcode: ${courtData.passcode}.\n\n`
+    fallbackText += `Key points to remember:\n`
+    fallbackText += `• Bring all relevant documents to the hearing\n`
+    fallbackText += `• Arrive 15 minutes early for virtual hearings\n`
+    fallbackText += `• Contact your attorney if you have questions\n`
+    fallbackText += `• Keep all case-related communications documented\n\n`
+    fallbackText += `This case involves family law matters and will be handled according to California Family Code. The court's primary concern is the best interests of any children involved.`
+    
+    return fallbackText
   }
 
   return (
     <div className={`apple-card p-6 ${className}`}>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-          <i className="fa-solid fa-robot text-white text-sm"></i>
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <i className="fa-solid fa-robot text-white text-lg"></i>
         </div>
-        <h3 className="text-white font-semibold text-lg">AI Case Overview</h3>
+        <div>
+          <h3 className="text-white font-semibold text-lg">AI Case Overview</h3>
+          <p className="text-gray-400 text-sm">Powered by advanced AI analysis</p>
+        </div>
       </div>
 
-      <div className="min-h-[120px] flex items-center justify-center">
-        {isThinking ? (
-          <div className="text-center">
-            <div className="ai-thinking-container mb-4">
-              <div className="ai-thinking-text">
-                <span className="ai-thinking-char">A</span>
-                <span className="ai-thinking-char">n</span>
-                <span className="ai-thinking-char">a</span>
-                <span className="ai-thinking-char">l</span>
-                <span className="ai-thinking-char">y</span>
-                <span className="ai-thinking-char">z</span>
-                <span className="ai-thinking-char">i</span>
-                <span className="ai-thinking-char">n</span>
-                <span className="ai-thinking-char">g</span>
-                <span className="ai-thinking-char">.</span>
-                <span className="ai-thinking-char">.</span>
-                <span className="ai-thinking-char">.</span>
+      {isThinking && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-blue-300">AI is analyzing your case...</span>
+          </div>
+          <div className="space-y-2">
+            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse"></div>
+            </div>
+            <p className="text-gray-400 text-sm">Processing case details and generating insights</p>
+          </div>
+        </div>
+      )}
+
+      {isComplete && overview && (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <i className="fa-solid fa-lightbulb text-blue-400 text-lg mt-1"></i>
+              <div>
+                <h4 className="text-blue-300 font-semibold mb-2">AI Analysis Complete</h4>
+                <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
+                  {overview}
+                </div>
               </div>
             </div>
-            <div className="ai-pulse-dots">
-              <div className="ai-pulse-dot"></div>
-              <div className="ai-pulse-dot"></div>
-              <div className="ai-pulse-dot"></div>
-            </div>
           </div>
-        ) : isComplete ? (
-          <div className="ai-overview-content">
-            <p className="text-gray-300 leading-relaxed">{overview}</p>
-            <div className="mt-4 flex items-center gap-2 text-sm text-purple-400">
-              <i className="fa-solid fa-sparkles"></i>
-              <span>AI-generated summary</span>
-            </div>
+          
+          <div className="flex items-center gap-2 text-green-400 text-sm">
+            <i className="fa-solid fa-check-circle"></i>
+            <span>Analysis completed successfully</span>
           </div>
-        ) : (
-          <div className="text-center text-gray-400">
-            <i className="fa-solid fa-robot text-4xl mb-4 opacity-50"></i>
-            <p>Select a case to generate AI overview</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <style jsx>{`
-        .ai-thinking-container {
-          position: relative;
-        }
-
-        .ai-thinking-text {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #a855f7;
-          display: inline-block;
-        }
-
-        .ai-thinking-char {
-          display: inline-block;
-          animation: ai-thinking 1.5s ease-in-out infinite;
-          animation-fill-mode: both;
-        }
-
-        .ai-thinking-char:nth-child(1) { animation-delay: 0s; }
-        .ai-thinking-char:nth-child(2) { animation-delay: 0.1s; }
-        .ai-thinking-char:nth-child(3) { animation-delay: 0.2s; }
-        .ai-thinking-char:nth-child(4) { animation-delay: 0.3s; }
-        .ai-thinking-char:nth-child(5) { animation-delay: 0.4s; }
-        .ai-thinking-char:nth-child(6) { animation-delay: 0.5s; }
-        .ai-thinking-char:nth-child(7) { animation-delay: 0.6s; }
-        .ai-thinking-char:nth-child(8) { animation-delay: 0.7s; }
-        .ai-thinking-char:nth-child(9) { animation-delay: 0.8s; }
-        .ai-thinking-char:nth-child(10) { animation-delay: 0.9s; }
-        .ai-thinking-char:nth-child(11) { animation-delay: 1.0s; }
-        .ai-thinking-char:nth-child(12) { animation-delay: 1.1s; }
-
-        @keyframes ai-thinking {
-          0%, 100% {
-            opacity: 0.3;
-            transform: scale(1);
-            color: #a855f7;
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.1);
-            color: #ec4899;
-          }
-        }
-
-        .ai-pulse-dots {
-          display: flex;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 16px;
-        }
-
-        .ai-pulse-dot {
-          width: 8px;
-          height: 8px;
-          background: linear-gradient(45deg, #a855f7, #ec4899);
-          border-radius: 50%;
-          animation: ai-pulse 1.5s ease-in-out infinite;
-        }
-
-        .ai-pulse-dot:nth-child(1) { animation-delay: 0s; }
-        .ai-pulse-dot:nth-child(2) { animation-delay: 0.2s; }
-        .ai-pulse-dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes ai-pulse {
-          0%, 100% {
-            opacity: 0.3;
-            transform: scale(0.8);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.2);
-          }
-        }
-
-        .ai-overview-content {
-          animation: ai-fade-in 0.8s ease-out;
-        }
-
-        @keyframes ai-fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+      {!isThinking && !isComplete && (
+        <div className="text-center text-gray-400 py-8">
+          <i className="fa-solid fa-robot text-4xl mb-4 opacity-50"></i>
+          <p>Click on a case to see AI insights</p>
+        </div>
+      )}
     </div>
   )
 }

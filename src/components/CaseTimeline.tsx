@@ -30,8 +30,9 @@ export default function CaseTimeline({ caseNumber, className = '' }: CaseTimelin
   }, [caseNumber])
 
   const loadTimeline = async () => {
-    setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    try {
+      setIsLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1000))
     
     const mockTimeline: TimelineEvent[] = [
       {
@@ -120,6 +121,10 @@ export default function CaseTimeline({ caseNumber, className = '' }: CaseTimelin
     
     setTimeline(mockTimeline)
     setIsLoading(false)
+    } catch (error) {
+      console.error('Timeline loading error:', error)
+      setIsLoading(false)
+    }
   }
 
   const getEventIcon = (type: string) => {
