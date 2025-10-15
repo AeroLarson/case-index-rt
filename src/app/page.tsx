@@ -88,6 +88,35 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Usage Warning for Free Users */}
+          {userProfile?.plan === 'free' && (userProfile?.monthlyUsage || 0) >= (userProfile?.maxMonthlyUsage || 1) && (
+            <div className="apple-card p-6 mb-8 border-l-4 border-yellow-500">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                  <i className="fa-solid fa-exclamation-triangle text-yellow-400 text-lg"></i>
+                </div>
+                <div>
+                  <h3 className="text-white text-lg font-semibold">Monthly Limit Reached</h3>
+                  <p className="text-gray-300 text-sm">You've used all your free case searches this month.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => router.push('/billing')}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                >
+                  Upgrade to Pro
+                </button>
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                >
+                  View Plans
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div 

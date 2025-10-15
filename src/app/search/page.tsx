@@ -307,6 +307,12 @@ function SearchPageContent() {
   const handleAddToCalendar = async (case_: CaseResult) => {
     if (!user) return
     
+    // Check plan limits for free users
+    if (isBasicUser && monthlyUsage >= maxMonthlyUsage) {
+      setShowUpgradeModal(true)
+      return
+    }
+    
     // Save case to user profile in database
     try {
       userProfileManager.addSavedCase(user.id, {
@@ -348,6 +354,12 @@ function SearchPageContent() {
 
   const handleStarCase = async (case_: CaseResult) => {
     if (!user) return
+    
+    // Check plan limits for free users
+    if (isBasicUser && monthlyUsage >= maxMonthlyUsage) {
+      setShowUpgradeModal(true)
+      return
+    }
     
     try {
       // Toggle star status in database
@@ -607,7 +619,21 @@ function SearchPageContent() {
             {activeTab === 'saved' && (
               <div className="space-y-4">
                 <h2 className="text-white text-2xl font-semibold mb-4">Saved Cases</h2>
-                {userProfile?.savedCases && userProfile.savedCases.length > 0 ? (
+                {isBasicUser && monthlyUsage >= maxMonthlyUsage ? (
+                  <div className="apple-card p-8 text-center">
+                    <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fa-solid fa-lock text-yellow-400 text-2xl"></i>
+                    </div>
+                    <h3 className="text-white text-lg font-semibold mb-2">Upgrade Required</h3>
+                    <p className="text-gray-400 mb-6">You've reached your monthly limit. Upgrade to Pro to access saved cases.</p>
+                    <button
+                      onClick={() => router.push('/billing')}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                    >
+                      Upgrade to Pro
+                    </button>
+                  </div>
+                ) : userProfile?.savedCases && userProfile.savedCases.length > 0 ? (
                   <div className="space-y-4">
                     {userProfile.savedCases.map((case_) => (
                       <div
@@ -697,7 +723,21 @@ function SearchPageContent() {
             {activeTab === 'starred' && (
               <div className="space-y-4">
                 <h2 className="text-white text-2xl font-semibold mb-4">Starred Cases</h2>
-                {userProfile?.starredCases && userProfile.starredCases.length > 0 ? (
+                {isBasicUser && monthlyUsage >= maxMonthlyUsage ? (
+                  <div className="apple-card p-8 text-center">
+                    <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fa-solid fa-lock text-yellow-400 text-2xl"></i>
+                    </div>
+                    <h3 className="text-white text-lg font-semibold mb-2">Upgrade Required</h3>
+                    <p className="text-gray-400 mb-6">You've reached your monthly limit. Upgrade to Pro to access starred cases.</p>
+                    <button
+                      onClick={() => router.push('/billing')}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                    >
+                      Upgrade to Pro
+                    </button>
+                  </div>
+                ) : userProfile?.starredCases && userProfile.starredCases.length > 0 ? (
                   <div className="space-y-4">
                     {userProfile.starredCases.map((caseId) => {
                       const case_ = userProfile.savedCases?.find(c => c.id === caseId)
