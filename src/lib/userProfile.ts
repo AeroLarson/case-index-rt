@@ -83,11 +83,56 @@ class UserProfileManager {
       id: userId,
       name,
       email,
-      savedCases: [],
-      recentSearches: [],
-      starredCases: [],
-      calendarEvents: [],
-      monthlyUsage: 0,
+      savedCases: [
+        {
+          id: 'test-case-1',
+          caseNumber: 'FL-2024-TEST001',
+          caseTitle: 'Larson v. Test Defendant',
+          caseType: 'Family Law',
+          caseStatus: 'Active',
+          dateFiled: '2024-01-15',
+          department: 'Department 602',
+          courtLocation: 'San Diego Superior Court',
+          judicialOfficer: 'Hon. Test Judge',
+          parties: {
+            petitioner: 'Aero Larson',
+            respondent: 'Test Defendant'
+          },
+          savedAt: new Date().toISOString(),
+          notes: 'Test case for demonstration purposes',
+          tags: ['test', 'family-law'],
+          aiSummary: 'This is a test case involving family law matters between Aero Larson and Test Defendant. The case is currently active and involves standard family court proceedings.',
+          aiGeneratedAt: new Date().toISOString()
+        }
+      ],
+      recentSearches: [
+        {
+          id: 'search-1',
+          query: 'FL-2024-TEST001',
+          searchType: 'case',
+          resultsCount: 1,
+          searchedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+        }
+      ],
+      starredCases: ['test-case-1'],
+      calendarEvents: [
+        {
+          id: 'event-1',
+          title: 'Hearing - Larson v. Test Defendant',
+          date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 week from now
+          time: '09:00',
+          type: 'hearing',
+          caseNumber: 'FL-2024-TEST001',
+          location: 'San Diego Superior Court, Room 201',
+          description: 'Request for order hearing',
+          duration: 60,
+          priority: 'high',
+          status: 'scheduled',
+          virtualMeetingInfo: 'Zoom ID: 123-456-7890, Passcode: 123456',
+          createdAt: new Date().toISOString()
+        }
+      ],
+      monthlyUsage: 1,
       maxMonthlyUsage: 1, // Free plan limit - only 1 case per month
       plan: 'free',
       createdAt: new Date().toISOString(),

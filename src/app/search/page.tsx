@@ -118,6 +118,22 @@ function SearchPageContent() {
       documents: 18,
       hearings: 4,
       isDetailed: isProUser
+    },
+    {
+      id: '3',
+      caseNumber: 'FL-2024-TEST001',
+      title: 'Larson v. Test Defendant',
+      court: 'San Diego Superior Court',
+      judge: 'Hon. Test Judge',
+      status: 'Active',
+      lastActivity: 'Just now',
+      parties: {
+        plaintiff: 'Aero Larson',
+        defendant: 'Test Defendant'
+      },
+      documents: 5,
+      hearings: 2,
+      isDetailed: isProUser
     }
   ]
 
@@ -132,8 +148,19 @@ function SearchPageContent() {
     
     let filteredResults: CaseResult[] = []
     
-    // Check if searching for "Aero Larson" - generate test case
-    if (searchQuery.toLowerCase().includes('aero larson')) {
+    // Normalize search query for better matching
+    const normalizedQuery = searchQuery.toLowerCase().trim()
+    
+    // Debug logging
+    console.log('Search query:', searchQuery)
+    console.log('Normalized query:', normalizedQuery)
+    
+    // Check if searching for "Aero Larson" or "FL-2024-TEST001" - generate test case
+    if (normalizedQuery.includes('aero larson') || 
+        normalizedQuery.includes('fl-2024-test001') ||
+        normalizedQuery.includes('test001') ||
+        normalizedQuery === 'fl-2024-test001') {
+      console.log('Found test case match!')
       const testCase: CaseResult = {
         id: `test_${Date.now()}`,
         caseNumber: 'FL-2024-TEST001',
@@ -152,13 +179,24 @@ function SearchPageContent() {
       }
       filteredResults = [testCase]
     } else {
-      // Regular search with mock data
-      filteredResults = mockSearchResults.filter(case_ => 
-        case_.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        case_.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        case_.parties.plaintiff.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        case_.parties.defendant.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      // Regular search with mock data - enhanced matching
+      console.log('Searching in mock data...')
+      filteredResults = mockSearchResults.filter(case_ => {
+        const titleMatch = case_.title.toLowerCase().includes(normalizedQuery)
+        const caseNumberMatch = case_.caseNumber.toLowerCase().includes(normalizedQuery)
+        const plaintiffMatch = case_.parties.plaintiff.toLowerCase().includes(normalizedQuery)
+        const defendantMatch = case_.parties.defendant.toLowerCase().includes(normalizedQuery)
+        const courtMatch = case_.court.toLowerCase().includes(normalizedQuery)
+        const judgeMatch = case_.judge.toLowerCase().includes(normalizedQuery)
+        
+        const matches = titleMatch || caseNumberMatch || plaintiffMatch || defendantMatch || courtMatch || judgeMatch
+        if (matches) {
+          console.log('Found match:', case_.caseNumber, case_.title)
+        }
+        
+        return matches
+      })
+      console.log('Filtered results count:', filteredResults.length)
     }
     
     setSearchResults(filteredResults)
