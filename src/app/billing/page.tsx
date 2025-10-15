@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { userProfileManager } from '@/lib/userProfile'
+import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
 import { PaymentService } from '@/lib/stripe'
 import { PaymentTracker } from '@/lib/paymentTracker'
 import { InvoiceGenerator } from '@/lib/invoiceGenerator'
@@ -52,7 +52,7 @@ export default function BillingPage() {
       
       // Update user profile to free plan
       if (user) {
-        userProfileManager.updatePlan(user.id, 'free')
+        await databaseUserProfileManager.updatePlan(user.id, 'free')
         refreshProfile() // Refresh the profile in AuthContext
       }
       
@@ -114,7 +114,7 @@ export default function BillingPage() {
         })
 
         // Update user profile with new plan
-        userProfileManager.updatePlan(user.id, result.planId as 'pro' | 'team')
+        await databaseUserProfileManager.updatePlan(user.id, result.planId as 'pro' | 'team')
         refreshProfile()
         
         // Reload billing history
@@ -165,8 +165,8 @@ export default function BillingPage() {
       if (isAdmin) {
         // Admin can switch plans freely without payment, but still create invoice
         if (user) {
-          userProfileManager.updatePlan(user.id, planId as 'pro' | 'team')
-          refreshProfile()
+          await databaseUserProfileManager.updatePlan(user.id, planId as 'pro' | 'team')
+          await refreshProfile()
           
           // Create payment record for admin (simulated payment)
           const planAmount = planId === 'pro' ? 99 : 299
@@ -229,8 +229,8 @@ export default function BillingPage() {
         // This shouldn't happen for non-admin users, but handle gracefully
         alert('Admin account detected - no payment required')
         if (user) {
-          userProfileManager.updatePlan(user.id, planId as 'pro' | 'team')
-          refreshProfile()
+          await databaseUserProfileManager.updatePlan(user.id, planId as 'pro' | 'team')
+          await refreshProfile()
         }
       } else {
         alert('Failed to create checkout session. Please try again.')

@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { userProfileManager } from '@/lib/userProfile'
+import { databaseUserProfileManager } from '@/lib/databaseUserProfile'
 import { PaymentTracker } from '@/lib/paymentTracker'
 
 // Admin email - only this email can access admin panel
@@ -104,9 +104,9 @@ export default function AdminPage() {
     setPaymentStats(paymentData)
   }
 
-  const handleResetUserData = (userId: string) => {
+  const handleResetUserData = async (userId: string) => {
     if (confirm('Are you sure you want to reset this user\'s data? This action cannot be undone.')) {
-      userProfileManager.clearUserData(userId)
+      await databaseUserProfileManager.clearUserData(userId)
       alert('User data cleared successfully')
     }
   }
