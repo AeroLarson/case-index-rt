@@ -302,8 +302,7 @@ function SearchPageContent() {
       // First, save the case to savedCases if it's not already there
       const isAlreadySaved = userProfile?.savedCases?.some(c => c.id === case_.id)
       if (!isAlreadySaved) {
-        const savedCase = {
-          id: case_.id,
+        const savedCaseData = {
           caseNumber: case_.caseNumber,
           caseTitle: case_.title,
           caseType: 'Family Law', // Default type
@@ -314,10 +313,9 @@ function SearchPageContent() {
           parties: {
             petitioner: case_.parties.plaintiff,
             respondent: case_.parties.defendant
-          },
-          savedAt: new Date().toISOString()
+          }
         }
-        userProfileManager.saveCase(user.id, savedCase)
+        userProfileManager.addSavedCase(user.id, savedCaseData)
       }
       
       // Toggle star status

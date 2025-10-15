@@ -670,37 +670,64 @@ export default function AccountPage() {
                   </div>
                 )}
 
-                {/* Billing Information */}
-                <div className="apple-card p-8">
-                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Billing Information</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">Billing Email</label>
-                      <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-                        <p className="text-white">{user?.email}</p>
+                {/* Subscription Management */}
+                {subscriptionStatus && (
+                  <div className="apple-card p-8">
+                    <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Subscription Management</h2>
+                    <div className="space-y-4">
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-white font-medium">Billing Email</h3>
+                            <p className="text-gray-400 text-sm">{user?.email}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-gray-300 text-sm">Payment Method</p>
+                            <p className="text-white">Managed by Stripe</p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">Payment Method</label>
-                      <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-                        <p className="text-white">
-                          {subscriptionStatus ? 'Managed by Stripe' : 'No active subscription'}
-                        </p>
+                      
+                      <div className="flex gap-4">
+                        <button 
+                          onClick={handleManageSubscription}
+                          disabled={isManagingSubscription}
+                          className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          {isManagingSubscription ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              Opening...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-credit-card"></i>
+                              Manage Subscription
+                            </>
+                          )}
+                        </button>
+                        
+                        <button 
+                          onClick={() => {
+                            if (confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.')) {
+                              handleManageSubscription()
+                            }
+                          }}
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <i className="fa-solid fa-times"></i>
+                          Cancel Subscription
+                        </button>
+                      </div>
+                      
+                      <div className="text-sm text-gray-400">
+                        <p>• Use "Manage Subscription" to update payment methods, view invoices, and change billing settings</p>
+                        <p>• Cancellation will take effect at the end of your current billing period</p>
+                        <p>• You can reactivate your subscription anytime before the cancellation date</p>
                       </div>
                     </div>
                   </div>
-                  {subscriptionStatus && (
-                    <div className="mt-6">
-                      <button 
-                        onClick={handleManageSubscription}
-                        disabled={isManagingSubscription}
-                        className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-700 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
-                      >
-                        {isManagingSubscription ? 'Opening...' : 'Update Payment Method'}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             )}
 

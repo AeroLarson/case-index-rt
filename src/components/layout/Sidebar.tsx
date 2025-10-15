@@ -121,6 +121,14 @@ export default function Sidebar() {
               <i className="fa-solid fa-circle-question text-base" />
               <span>Help Center</span>
             </button>
+            <button 
+              onClick={() => router.push('/support')}
+              id="nav-support"
+              className={getButtonClasses('/support')}
+            >
+              <i className="fa-solid fa-headset text-base" />
+              <span>Support</span>
+            </button>
             
             {/* Admin and Tech Support Links - Only show for authorized users */}
             {user?.email === 'aero.larson@gmail.com' && (
