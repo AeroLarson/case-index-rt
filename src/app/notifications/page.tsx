@@ -17,19 +17,20 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
-  const { user, userProfile } = useAuth()
+  const { user, userProfile, isLoading } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent'>('all')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
       return
     }
 
-    // Load real notifications based on user data
+    if (user) {
+      // Load real notifications based on user data
     const loadNotifications = async () => {
       setIsLoading(true)
       await new Promise(resolve => setTimeout(resolve, 500))

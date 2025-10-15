@@ -12,14 +12,14 @@ const WeeklyActivityChart = lazy(() => import('@/components/AnalyticsCharts').th
 const StatsCard = lazy(() => import('@/components/AnalyticsCharts').then(module => ({ default: module.StatsCard })))
 
 export default function AnalyticsPage() {
-  const { user, userProfile } = useAuth()
+  const { user, userProfile, isLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
     }
-  }, [user, router])
+  }, [isLoading, user, router])
 
   // Don't render anything during prerendering or if no user
   if (!user || !userProfile) {

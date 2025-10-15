@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 export default function SupportPage() {
-  const { user, userProfile } = useAuth()
+  const { user, userProfile, isLoading } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'tickets' | 'create'>('tickets')
   const [tickets, setTickets] = useState<any[]>([])
@@ -18,13 +18,15 @@ export default function SupportPage() {
   })
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
       return
     }
     
-    loadUserTickets()
-  }, [user, router])
+    if (user) {
+      loadUserTickets()
+    }
+  }, [isLoading, user, router])
 
   const loadUserTickets = () => {
     if (typeof window === 'undefined') return

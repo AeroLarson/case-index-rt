@@ -46,11 +46,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Load user profile from localStorage
             const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
             setUserProfile(profile)
-            console.log('AuthContext: Profile loaded:', profile)
+            console.log('AuthContext: Profile loaded successfully')
           } else {
-            console.log('AuthContext: Invalid user data, clearing localStorage')
+            console.log('AuthContext: Invalid user data structure, clearing localStorage')
             localStorage.removeItem('user')
           }
+        } else {
+          console.log('AuthContext: No saved user found')
         }
       } catch (error) {
         console.warn('AuthContext: Failed to parse saved user:', error)
@@ -58,25 +60,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('user')
       }
     }
+    
+    // Always set loading to false after attempting to load user
     setIsLoading(false)
   }, [])
 
   const login = (userData: User) => {
+    console.log('AuthContext: Logging in user:', userData.email)
     setUser(userData)
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(userData))
+      // Set a session timestamp to track when user logged in
+      localStorage.setItem('session_timestamp', Date.now().toString())
     }
     // Load or create user profile from localStorage
     const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
     setUserProfile(profile)
+    console.log('AuthContext: Login completed successfully')
   }
 
   const logout = () => {
+    console.log('AuthContext: Logging out user')
     setUser(null)
     setUserProfile(null)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('user')
+      localStorage.removeItem('session_timestamp')
     }
+    console.log('AuthContext: Logout completed')
     // In a real app, you might also call a logout API endpoint
   }
 

@@ -13,7 +13,7 @@ const TECH_SUPPORT_EMAILS = [
 ]
 
 export default function TechSupportPage() {
-  const { user, userProfile } = useAuth()
+  const { user, userProfile, isLoading } = useAuth()
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -31,12 +31,13 @@ export default function TechSupportPage() {
   })
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
       return
     }
 
-    // Check if user is authorized for tech support
+    if (user) {
+      // Check if user is authorized for tech support
     if (TECH_SUPPORT_EMAILS.includes(user.email || '')) {
       setIsAuthorized(true)
       loadUserData()

@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { userProfileManager } from '@/lib/userProfile'
 
 export default function AccountPage() {
-  const { user, logout, userProfile, clearAllUserData } = useAuth()
+  const { user, logout, userProfile, clearAllUserData, isLoading } = useAuth()
   const { settings, updateSettings } = useCustomization()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
@@ -240,12 +240,20 @@ export default function AccountPage() {
     setIsEditing(false)
   }
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only after loading is complete)
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
     }
-  }, [user, router])
+  }, [isLoading, user, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    )
+  }
 
   if (!user) {
     return null

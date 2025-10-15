@@ -32,7 +32,10 @@ export const authenticateWithGoogle = async (): Promise<GoogleUser> => {
       script.async = true
       script.defer = true
       script.onload = () => {
-        initializeGoogleAuth(resolve, reject)
+        // Add a small delay to ensure Google is fully initialized
+        setTimeout(() => {
+          initializeGoogleAuth(resolve, reject)
+        }, 100)
       }
       script.onerror = () => {
         console.log('Failed to load Google Identity Services, using simulation')

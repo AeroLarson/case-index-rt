@@ -20,7 +20,7 @@ interface Document {
 }
 
 export default function DocumentsPage() {
-  const { user, userProfile } = useAuth()
+  const { user, userProfile, isLoading } = useAuth()
   const router = useRouter()
   const [documents, setDocuments] = useState<Document[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -30,12 +30,13 @@ export default function DocumentsPage() {
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([])
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
       return
     }
 
-    // Load documents based on user's saved cases
+    if (user) {
+      // Load documents based on user's saved cases
     const loadDocuments = async () => {
       setIsLoading(true)
       await new Promise(resolve => setTimeout(resolve, 1000))

@@ -10,7 +10,7 @@ import { PaymentTracker } from '@/lib/paymentTracker'
 const ADMIN_EMAIL = 'aero.larson@gmail.com'
 
 export default function AdminPage() {
-  const { user, userProfile } = useAuth()
+  const { user, userProfile, isLoading } = useAuth()
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -54,12 +54,13 @@ export default function AdminPage() {
   })
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
       return
     }
 
-    // Check if user is authorized admin
+    if (user) {
+      // Check if user is authorized admin
     if (user.email === ADMIN_EMAIL) {
       setIsAuthorized(true)
       loadAdminStats()

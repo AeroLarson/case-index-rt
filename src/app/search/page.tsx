@@ -28,7 +28,7 @@ interface CaseResult {
 }
 
 function SearchPageContent() {
-  const { user, userProfile, refreshProfile } = useAuth()
+  const { user, userProfile, refreshProfile, isLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,12 +40,12 @@ function SearchPageContent() {
   const [selectedCase, setSelectedCase] = useState<CaseResult | null>(null)
   const [activeTab, setActiveTab] = useState<'search' | 'saved' | 'recent' | 'starred'>('search')
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only after loading is complete)
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push('/login')
     }
-  }, [user, router])
+  }, [isLoading, user, router])
 
   // Handle URL parameters
   useEffect(() => {
