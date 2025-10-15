@@ -1,12 +1,15 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="128" height="128" rx="28" fill="#8b5cf6"/>
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#gradient)"/>
   <!-- Gavel Head -->
   <rect x="34" y="26" width="60" height="22" rx="4" fill="white"/>
   <!-- Gavel Handle -->
   <rect x="60" y="48" width="8" height="60" rx="4" fill="white"/>
   <!-- Gavel Base -->
   <rect x="26" y="86" width="76" height="16" rx="8" fill="white"/>
-  <!-- Decorative Elements -->
-  <circle cx="64" cy="36" r="5" fill="#a855f7"/>
-  <circle cx="64" cy="94" r="4" fill="#a855f7"/>
 </svg>
