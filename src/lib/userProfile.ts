@@ -25,6 +25,7 @@ export interface UserProfile {
   recentSearches: RecentSearch[]
   starredCases: string[]
   calendarEvents: CalendarEvent[]
+  supportTickets?: any[]
   monthlyUsage: number
   maxMonthlyUsage: number
   plan: 'free' | 'pro' | 'team'
@@ -285,15 +286,6 @@ class UserProfileManager {
     this.saveUserProfile(profile)
   }
 
-  clearUserData(userId: string): void {
-    if (typeof window === 'undefined') return
-    
-    try {
-      localStorage.removeItem(this.getStorageKey(userId))
-    } catch (error) {
-      console.warn('Failed to clear user data:', error)
-    }
-  }
 
   addCalendarEvent(userId: string, eventData: Omit<CalendarEvent, 'id' | 'createdAt'>): CalendarEvent {
     const profile = this.getUserProfile(userId, '', '')
@@ -335,6 +327,80 @@ class UserProfileManager {
   getCalendarEvents(userId: string): CalendarEvent[] {
     const profile = this.getUserProfile(userId, '', '')
     return profile.calendarEvents || []
+  }
+
+  // Clio integration methods
+  getClioTokens(userId: string): string | null {
+    if (typeof window === 'undefined') return null
+    
+    try {
+      const storageKey = `clio_tokens_${userId}`
+      return localStorage.getItem(storageKey)
+    } catch (error) {
+      console.warn('Failed to get Clio tokens:', error)
+      return null
+    }
+  }
+
+  updateClioTokens(userId: string, tokens: any): void {
+    if (typeof window === 'undefined') return
+    
+    try {
+      const storageKey = `clio_tokens_${userId}`
+      if (tokens) {
+        localStorage.setItem(storageKey, JSON.stringify(tokens))
+      } else {
+        localStorage.removeItem(storageKey)
+      }
+    } catch (error) {
+      console.warn('Failed to update Clio tokens:', error)
+    }
+  }
+
+  // Payment records methods
+  getPaymentRecords(userId: string): any[] {
+    if (typeof window === 'undefined') return []
+    
+    try {
+      const storageKey = `payment_records_${userId}`
+      const records = localStorage.getItem(storageKey)
+      return records ? JSON.parse(records) : []
+    } catch (error) {
+      console.warn('Failed to get payment records:', error)
+      return []
+    }
+  }
+
+  addPaymentRecord(userId: string, record: any): void {
+    if (typeof window === 'undefined') return
+    
+    try {
+      const storageKey = `payment_records_${userId}`
+      const existingRecords = this.getPaymentRecords(userId)
+      existingRecords.push(record)
+      localStorage.setItem(storageKey, JSON.stringify(existingRecords))
+    } catch (error) {
+      console.warn('Failed to add payment record:', error)
+    }
+  }
+
+  // Support tickets methods
+  addSupportTicket(userId: string, ticket: any): void {
+    const profile = this.getUserProfile(userId, '', '')
+    
+    if (!profile.supportTickets) {
+      profile.supportTickets = []
+    }
+    
+    profile.supportTickets.push(ticket)
+    this.saveUserProfile(profile)
+  }
+
+  // Update user profile method
+  updateUserProfile(userId: string, updates: Partial<UserProfile>): void {
+    const profile = this.getUserProfile(userId, '', '')
+    const updatedProfile = { ...profile, ...updates }
+    this.saveUserProfile(updatedProfile)
   }
 }
 

@@ -82,3 +82,18 @@ const initializeGoogleAuth = (resolve: (user: GoogleUser) => void, reject: (erro
   }
 }
 
+// Fallback simulation for development/testing
+const simulateGoogleAuth = async (): Promise<GoogleUser> => {
+  console.log('Using Google OAuth simulation mode')
+  
+  // Simulate a delay for realistic behavior
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  
+  return {
+    id: `sim_${Date.now()}`,
+    name: 'Test User',
+    email: 'test@example.com',
+    picture: 'https://via.placeholder.com/150'
+  }
+}
+

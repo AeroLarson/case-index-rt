@@ -9,7 +9,7 @@ const getStripe = () => {
     return null
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: '2025-09-30.clover',
   })
 }
 
@@ -98,7 +98,6 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       amount,
       status: 'completed',
       stripeSessionId: session.id,
-      stripePaymentId: session.payment_intent as string,
       nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     })
 

@@ -132,4 +132,23 @@ export class PaymentTracker {
       throw error
     }
   }
+
+  static cancelSubscription(userId: string): void {
+    try {
+      const payments = this.getAllPayments()
+      const userPayments = payments.filter(p => p.userId === userId)
+      
+      // Mark the most recent active subscription as cancelled
+      const activeSubscription = userPayments
+        .filter(p => p.status === 'completed')
+        .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())[0]
+      
+      if (activeSubscription) {
+        this.updatePaymentStatus(activeSubscription.id, 'refunded', 'Subscription cancelled by user')
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error)
+      throw error
+    }
+  }
 }

@@ -164,7 +164,7 @@ export default function Home() {
           </div>
 
           {/* Clio Integration Status - Only show if user has Clio connected */}
-          {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && user?.id && userProfile?.clioTokens && (
+          {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && user?.id && (
                   <div className="apple-card p-6 mb-8">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -200,7 +200,6 @@ export default function Home() {
                   </div>
                 )
               }
-          )}
 
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -247,4 +247,68 @@ What specific aspect of the case would you like me to explain?`
     
     return this.generateResponse(prompt)
   }
+
+  // Generate comprehensive case insights
+  static async generateCaseInsights(caseData: any): Promise<any> {
+    const prompt = `
+    Generate comprehensive case insights for:
+    
+    Case Number: ${caseData.caseNumber || 'N/A'}
+    Case Title: ${caseData.caseTitle || 'N/A'}
+    Case Type: ${caseData.caseType || 'Family Law'}
+    Status: ${caseData.status || 'Active'}
+    Court: ${caseData.court || 'San Diego Superior Court'}
+    Judge: ${caseData.judge || 'N/A'}
+    
+    Parties:
+    - Petitioner: ${caseData.parties?.petitioner || 'N/A'}
+    - Respondent: ${caseData.parties?.respondent || 'N/A'}
+    
+    Please provide:
+    1. A detailed case summary
+    2. Key legal points and considerations
+    3. Strategic recommendations
+    4. Timeline analysis
+    5. Next steps and deadlines
+    
+    Focus on California family law procedures and practical advice.
+    `
+    
+    const insights = await this.generateResponse(prompt)
+    
+    return {
+      summary: insights,
+      keyPoints: [
+        'Case is currently active in the court system',
+        'This appears to be a family law matter',
+        'Regular monitoring recommended for case updates'
+      ],
+      recommendations: [
+        'Monitor case for new filings and hearings',
+        'Check court calendar for upcoming dates',
+        'Review case documents for important deadlines'
+      ],
+      timeline: [
+        {
+          date: new Date().toISOString(),
+          event: 'Case Review',
+          description: 'Initial case analysis completed'
+        }
+      ]
+    }
+  }
+}
+
+// Export types for API usage
+export interface CaseData {
+  caseNumber: string
+  caseTitle: string
+  caseType: string
+  status?: string
+  court?: string
+  judge?: string
+  parties?: {
+    petitioner: string
+    respondent: string
+  }
 }
