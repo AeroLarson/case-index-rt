@@ -102,7 +102,7 @@ export default function BillingPage() {
       if (result.success && user) {
         // Track the payment
         const planAmount = result.planId === 'pro' ? 99 : 299
-        PaymentTracker.addPaymentRecord({
+        await PaymentTracker.addPaymentRecord({
           userId: user.id,
           userEmail: user.email,
           userName: user.name,
@@ -170,7 +170,7 @@ export default function BillingPage() {
           
           // Create payment record for admin (simulated payment)
           const planAmount = planId === 'pro' ? 99 : 299
-          PaymentTracker.addPaymentRecord({
+          await PaymentTracker.addPaymentRecord({
             userId: user.id,
             userEmail: user.email,
             userName: user.name,
