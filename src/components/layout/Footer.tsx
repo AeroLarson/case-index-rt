@@ -24,24 +24,24 @@ export default function Footer() {
               <span className="text-gray-400 text-xs sm:text-sm font-medium">Clio</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-briefcase text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">MyCase</span>
+              <i className="fa-brands fa-google text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">Google Calendar</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-balance-scale text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">PracticePanther</span>
+              <i className="fa-brands fa-stripe text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">Stripe</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-file-contract text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Smokeball</span>
+              <i className="fa-brands fa-microsoft text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">Microsoft Calendar</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-chart-line text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">TimeSolv</span>
+              <i className="fa-solid fa-robot text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">AI Integration</span>
             </div>
             <div className="flex items-center gap-2">
-              <i className="fa-solid fa-shield-halved text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Rocket Matter</span>
+              <i className="fa-solid fa-cloud text-gray-400 text-lg sm:text-xl" />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">Vercel</span>
             </div>
           </div>
         </div>
