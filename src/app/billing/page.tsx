@@ -222,8 +222,11 @@ export default function BillingPage() {
         user.email
       )
       
+      console.log('Payment service response:', session)
+      
       if (session.success && session.url) {
         // Redirect to Stripe checkout
+        console.log('Redirecting to Stripe checkout:', session.url)
         window.location.href = session.url
       } else if (session.adminExempt) {
         // This shouldn't happen for non-admin users, but handle gracefully
@@ -233,7 +236,8 @@ export default function BillingPage() {
           await refreshProfile()
         }
       } else {
-        alert('Failed to create checkout session. Please try again.')
+        console.error('Checkout session failed:', session)
+        alert(`Failed to create checkout session: ${session.error || 'Unknown error'}. Please try again.`)
       }
     } catch (error: any) {
       console.error('Payment error:', error)
