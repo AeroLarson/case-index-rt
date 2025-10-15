@@ -4,31 +4,17 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
-interface SupportTicket {
-  id: string
-  subject: string
-  description: string
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  status: 'open' | 'in_progress' | 'resolved' | 'closed'
-  createdAt: string
-  updatedAt: string
-  userId: string
-  userEmail: string
-}
-
 export default function SupportPage() {
   const { user, userProfile } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'create' | 'tickets'>('create')
-  const [tickets, setTickets] = useState<SupportTicket[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activeTab, setActiveTab] = useState<'tickets' | 'create'>('tickets')
+  const [tickets, setTickets] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  
   const [newTicket, setNewTicket] = useState({
     subject: '',
     description: '',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
+    priority: 'medium',
+    category: 'general'
   })
 
   useEffect(() => {
@@ -43,73 +29,62 @@ export default function SupportPage() {
   const loadUserTickets = () => {
     if (typeof window === 'undefined') return
     
-    setIsLoading(true)
     try {
-      // Load tickets from localStorage
-      const allTickets = JSON.parse(localStorage.getItem('support_tickets') || '[]')
-      const userTickets = allTickets.filter((ticket: SupportTicket) => ticket.userId === user?.id)
-      setTickets(userTickets.sort((a: SupportTicket, b: SupportTicket) => 
+      const userTickets = JSON.parse(localStorage.getItem(`support_tickets_${user?.id}`) || '[]')
+      setTickets(userTickets.sort((a: any, b: any) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       ))
     } catch (error) {
-      console.error('Error loading tickets:', error)
-    } finally {
-      setIsLoading(false)
+      console.error('Failed to load user tickets:', error)
+      setTickets([])
     }
   }
 
-  const handleSubmitTicket = async (e: React.FormEvent) => {
+  const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !newTicket.subject.trim() || !newTicket.description.trim()) return
+    if (!user || !newTicket.subject.trim() || !newTicket.description.trim()) {
+      alert('Please fill in all required fields')
+      return
+    }
 
-    setIsSubmitting(true)
+    setIsLoading(true)
+    
     try {
-      const ticket: SupportTicket = {
-        id: `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      const ticket = {
+        id: `ticket_${Date.now()}`,
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.name,
         subject: newTicket.subject,
         description: newTicket.description,
         priority: newTicket.priority,
+        category: newTicket.category,
         status: 'open',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        userId: user.id,
-        userEmail: user.email || ''
+        responses: []
       }
 
-      // Save ticket to localStorage
-      const allTickets = JSON.parse(localStorage.getItem('support_tickets') || '[]')
-      allTickets.push(ticket)
-      localStorage.setItem('support_tickets', JSON.stringify(allTickets))
+      // Save to user's tickets
+      const userTickets = JSON.parse(localStorage.getItem(`support_tickets_${user.id}`) || '[]')
+      userTickets.push(ticket)
+      localStorage.setItem(`support_tickets_${user.id}`, JSON.stringify(userTickets))
 
-      // Reset form
-      setNewTicket({
-        subject: '',
-        description: '',
-        priority: 'medium'
-      })
+      // Also save to global tickets for tech support to see
+      const globalTickets = JSON.parse(localStorage.getItem('support_tickets') || '[]')
+      globalTickets.push(ticket)
+      localStorage.setItem('support_tickets', JSON.stringify(globalTickets))
 
-      setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 3000)
-      
-      // Refresh tickets list
-      loadUserTickets()
+      setTickets(userTickets)
+      setNewTicket({ subject: '', description: '', priority: 'medium', category: 'general' })
       setActiveTab('tickets')
-
+      
+      alert('Support ticket created successfully! Our team will respond within 24 hours.')
     } catch (error) {
-      console.error('Error submitting ticket:', error)
-      alert('Failed to submit ticket. Please try again.')
+      console.error('Failed to create ticket:', error)
+      alert('Failed to create support ticket. Please try again.')
     } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-500/20 text-red-400'
-      case 'high': return 'bg-orange-500/20 text-orange-400'
-      case 'medium': return 'bg-yellow-500/20 text-yellow-400'
-      case 'low': return 'bg-green-500/20 text-green-400'
-      default: return 'bg-gray-500/20 text-gray-400'
+      setIsLoading(false)
     }
   }
 
@@ -123,6 +98,16 @@ export default function SupportPage() {
     }
   }
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'low': return 'bg-green-500/20 text-green-400'
+      case 'medium': return 'bg-yellow-500/20 text-yellow-400'
+      case 'high': return 'bg-orange-500/20 text-orange-400'
+      case 'urgent': return 'bg-red-500/20 text-red-400'
+      default: return 'bg-gray-500/20 text-gray-400'
+    }
+  }
+
   if (!user) return null
 
   return (
@@ -131,21 +116,11 @@ export default function SupportPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-white text-4xl font-bold mb-2">Support Center</h1>
-          <p className="text-gray-300">Get help with your Case Index RT account and features</p>
+          <p className="text-gray-300">Get help with your account, billing, or technical issues</p>
         </div>
 
         {/* Navigation Tabs */}
         <div className="flex space-x-4 mb-8">
-          <button
-            onClick={() => setActiveTab('create')}
-            className={`px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${
-              activeTab === 'create'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            }`}
-          >
-            Create Ticket
-          </button>
           <button
             onClick={() => setActiveTab('tickets')}
             className={`px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${
@@ -156,157 +131,67 @@ export default function SupportPage() {
           >
             My Tickets ({tickets.length})
           </button>
+          <button
+            onClick={() => setActiveTab('create')}
+            className={`px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${
+              activeTab === 'create'
+                ? 'bg-blue-500 text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            Create Ticket
+          </button>
         </div>
-
-        {/* Success Message */}
-        {showSuccess && (
-          <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400">
-            <div className="flex items-center gap-2">
-              <i className="fa-solid fa-check-circle"></i>
-              <span>Support ticket created successfully! Our team will respond within 24 hours.</span>
-            </div>
-          </div>
-        )}
-
-        {/* Create Ticket Tab */}
-        {activeTab === 'create' && (
-          <div className="apple-card p-8">
-            <h2 className="text-white text-2xl font-semibold mb-6">Create Support Ticket</h2>
-            
-            <form onSubmit={handleSubmitTicket} className="space-y-6">
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">Subject *</label>
-                <input
-                  type="text"
-                  value={newTicket.subject}
-                  onChange={(e) => setNewTicket(prev => ({ ...prev, subject: e.target.value }))}
-                  placeholder="Brief description of your issue"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">Priority</label>
-                <select
-                  value={newTicket.priority}
-                  onChange={(e) => setNewTicket(prev => ({ ...prev, priority: e.target.value as any }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="low">Low - General question</option>
-                  <option value="medium">Medium - Feature request or minor issue</option>
-                  <option value="high">High - Important issue affecting usage</option>
-                  <option value="urgent">Urgent - Critical issue blocking usage</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">Description *</label>
-                <textarea
-                  value={newTicket.description}
-                  onChange={(e) => setNewTicket(prev => ({ ...prev, description: e.target.value }))}
-                  rows={6}
-                  placeholder="Please provide detailed information about your issue, including steps to reproduce if applicable..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-8 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-paper-plane"></i>
-                      Submit Ticket
-                    </>
-                  )}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNewTicket({
-                      subject: '',
-                      description: '',
-                      priority: 'medium'
-                    })
-                  }}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
-                >
-                  Clear Form
-                </button>
-              </div>
-            </form>
-
-            {/* Help Information */}
-            <div className="mt-8 p-6 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-              <h3 className="text-blue-300 text-lg font-semibold mb-4">Need Help?</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
-                <div>
-                  <h4 className="font-medium text-white mb-2">Common Issues:</h4>
-                  <ul className="space-y-1">
-                    <li>• Case search not working</li>
-                    <li>• Account access problems</li>
-                    <li>• Billing and subscription questions</li>
-                    <li>• Feature not working as expected</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium text-white mb-2">Response Time:</h4>
-                  <ul className="space-y-1">
-                    <li>• Urgent: Within 2 hours</li>
-                    <li>• High: Within 4 hours</li>
-                    <li>• Medium: Within 24 hours</li>
-                    <li>• Low: Within 48 hours</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* My Tickets Tab */}
         {activeTab === 'tickets' && (
           <div className="space-y-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <span className="text-gray-300 ml-3">Loading tickets...</span>
-              </div>
-            ) : tickets.length > 0 ? (
+            {tickets.length > 0 ? (
               <div className="space-y-4">
                 {tickets.map((ticket) => (
                   <div key={ticket.id} className="apple-card p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <h3 className="text-white text-xl font-semibold mb-2">{ticket.subject}</h3>
-                        <p className="text-gray-400 text-sm mb-3">
-                          Created: {new Date(ticket.createdAt).toLocaleDateString()} at {new Date(ticket.createdAt).toLocaleTimeString()}
-                        </p>
-                        <p className="text-gray-300">{ticket.description}</p>
+                        <p className="text-gray-400 text-sm mb-3">{ticket.description}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-gray-500">
+                            Created: {new Date(ticket.createdAt).toLocaleDateString()}
+                          </span>
+                          <span className="text-gray-500">•</span>
+                          <span className="text-gray-500">
+                            Category: {ticket.category.charAt(0).toUpperCase() + ticket.category.slice(1)}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
-                          {ticket.priority.toUpperCase()}
-                        </span>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
                           {ticket.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
+                          {ticket.priority.toUpperCase()}
                         </span>
                       </div>
                     </div>
                     
-                    {ticket.updatedAt !== ticket.createdAt && (
-                      <div className="text-sm text-gray-500">
-                        Last updated: {new Date(ticket.updatedAt).toLocaleDateString()} at {new Date(ticket.updatedAt).toLocaleTimeString()}
+                    {ticket.responses && ticket.responses.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <h4 className="text-white font-medium mb-3">Responses ({ticket.responses.length})</h4>
+                        <div className="space-y-3">
+                          {ticket.responses.map((response: any, index: number) => (
+                            <div key={index} className="bg-white/5 rounded-lg p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="text-white font-medium">
+                                  {response.from === 'support' ? 'Support Team' : 'You'}
+                                </span>
+                                <span className="text-gray-400 text-sm">
+                                  {new Date(response.timestamp).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-gray-300 text-sm">{response.message}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -316,7 +201,7 @@ export default function SupportPage() {
               <div className="apple-card p-8 text-center">
                 <i className="fa-solid fa-ticket text-4xl text-gray-400 mb-4"></i>
                 <h3 className="text-white text-xl font-semibold mb-2">No support tickets</h3>
-                <p className="text-gray-400 mb-6">You haven't created any support tickets yet.</p>
+                <p className="text-gray-400 mb-6">Create a support ticket to get help with any issues</p>
                 <button
                   onClick={() => setActiveTab('create')}
                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
@@ -325,6 +210,94 @@ export default function SupportPage() {
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Create Ticket Tab */}
+        {activeTab === 'create' && (
+          <div className="apple-card p-8">
+            <h2 className="text-white text-2xl font-semibold mb-6">Create Support Ticket</h2>
+            
+            <form onSubmit={handleCreateTicket} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Category</label>
+                  <select
+                    value={newTicket.category}
+                    onChange={(e) => setNewTicket(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="general">General</option>
+                    <option value="billing">Billing</option>
+                    <option value="technical">Technical</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="bug">Bug Report</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Priority</label>
+                  <select
+                    value={newTicket.priority}
+                    onChange={(e) => setNewTicket(prev => ({ ...prev, priority: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Subject *</label>
+                <input
+                  type="text"
+                  value={newTicket.subject}
+                  onChange={(e) => setNewTicket(prev => ({ ...prev, subject: e.target.value }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Brief description of your issue"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Description *</label>
+                <textarea
+                  value={newTicket.description}
+                  onChange={(e) => setNewTicket(prev => ({ ...prev, description: e.target.value }))}
+                  rows={6}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Please provide detailed information about your issue, including steps to reproduce if it's a bug"
+                  required
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('tickets')}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    'Create Ticket'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>

@@ -21,8 +21,6 @@ export default function AnalyticsPage() {
     }
   }, [user, router])
 
-  if (!user || !userProfile) return null
-
   // Calculate real stats from user profile
   const stats = useMemo(() => {
     const totalSearches = userProfile.recentSearches?.length || 0
