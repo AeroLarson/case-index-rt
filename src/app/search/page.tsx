@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
@@ -26,7 +26,7 @@ interface CaseResult {
   isDetailed: boolean
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const { user, userProfile, refreshProfile } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -839,5 +839,28 @@ export default function SearchPage() {
         )}
       </div>
     </main>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <main 
+        className="min-h-screen animated-aura"
+        style={{
+          background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
+          padding: '40px 24px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading search page...</p>
+          </div>
+        </div>
+      </main>
+    }>
+      <SearchPageContent />
+    </Suspense>
   )
 }
