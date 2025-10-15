@@ -1,11 +1,12 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="512" height="512" rx="85.33333333333333" fill="url(#gradient0_linear_1_1)"/>
-<path d="M256 170.66666666666666C358.4 170.66666666666666 409.6 204.8 409.6 256C409.6 307.2 358.4 358.4 256 358.4C153.6 358.4 102.4 307.2 102.4 256C102.4 204.8 153.6 170.66666666666666 256 170.66666666666666Z" fill="white"/>
-<path d="M256 179.2C307.2 179.2 332.8 204.8 332.8 256C332.8 307.2 307.2 332.8 256 332.8C204.8 332.8 179.2 307.2 179.2 256C179.2 204.8 204.8 179.2 256 179.2Z" fill="#8B5CF6"/>
-<defs>
-<linearGradient id="gradient0_linear_1_1" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-<stop stop-color="#8B5CF6"/>
-<stop offset="1" stop-color="#7C4BD6"/>
-</linearGradient>
-</defs>
+  <rect width="512" height="512" rx="112" fill="#8b5cf6"/>
+  <!-- Gavel Head -->
+  <rect x="132" y="106" width="248" height="86" rx="16" fill="white"/>
+  <!-- Gavel Handle -->
+  <rect x="240" y="192" width="32" height="240" rx="16" fill="white"/>
+  <!-- Gavel Base -->
+  <rect x="106" y="352" width="300" height="64" rx="32" fill="white"/>
+  <!-- Decorative Elements -->
+  <circle cx="256" cy="150" r="22" fill="#a855f7"/>
+  <circle cx="256" cy="384" r="16" fill="#a855f7"/>
 </svg>

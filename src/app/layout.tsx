@@ -95,10 +95,13 @@ export default function RootLayout({
             <meta name="mobile-web-app-capable" content="yes" />
             <meta name="format-detection" content="telephone=no" />
             <link rel="manifest" href="/manifest.json" />
+            <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+            <link rel="icon" href="/icon-192x192.svg" type="image/svg+xml" />
             <meta name="theme-color" content="#8b5cf6" />
             <meta name="apple-mobile-web-app-capable" content="yes" />
             <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
             <meta name="apple-mobile-web-app-title" content="Case Index RT" />
+            <link rel="apple-touch-icon" href="/icon-192x192.svg" />
             
             {/* Performance hints */}
             <link rel="dns-prefetch" href="//api.caseindexrt.com" />
