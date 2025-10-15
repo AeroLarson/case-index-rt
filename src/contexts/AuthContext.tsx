@@ -35,13 +35,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const savedUser = localStorage.getItem('user')
         if (savedUser) {
           const userData = JSON.parse(savedUser)
-          setUser(userData)
-          // Load user profile from localStorage
-          const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
-          setUserProfile(profile)
+          
+          // Basic validation - only check if data exists
+          if (userData.id && userData.name && userData.email) {
+            setUser(userData)
+            // Load user profile from localStorage
+            const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
+            setUserProfile(profile)
+          }
         }
       } catch (error) {
         console.warn('Failed to parse saved user:', error)
+        // Only clear if there's a parsing error
+        localStorage.removeItem('user')
       }
     }
     setIsLoading(false)
@@ -65,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     // In a real app, you might also call a logout API endpoint
   }
+
 
   const refreshProfile = () => {
     if (user) {
