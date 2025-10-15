@@ -8,7 +8,6 @@ import OnboardingTour from '@/components/OnboardingTour'
 import MobileNav from '@/components/MobileNav'
 import PerformanceMonitor from '@/components/PerformanceMonitor'
 import ErrorBoundary from '@/components/ErrorBoundary'
-import DatabaseTest from '@/components/DatabaseTest'
 import { Metadata } from 'next'
 
 // SEO and Performance Metadata
@@ -119,7 +118,6 @@ export default function RootLayout({
                   <LayoutWrapper>
                     {children}
                   </LayoutWrapper>
-                  <DatabaseTest />
                 </CustomizationProvider>
               </AuthProvider>
             </ErrorBoundary>

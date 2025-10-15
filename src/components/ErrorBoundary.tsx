@@ -52,6 +52,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               </p>
               <div className="space-y-3">
                 <button
+                  onClick={() => window.history.back()}
+                  className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Go Back
+                </button>
+                <button
                   onClick={() => window.location.reload()}
                   className="w-full bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
                 >
