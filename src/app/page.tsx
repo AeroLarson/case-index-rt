@@ -195,8 +195,8 @@ export default function Home() {
                           onClick={() => router.push('/account?tab=integrations')}
                           className="bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                         >
-                          <i className="fa-solid fa-cog mr-2"></i>
-                          Settings
+                          <i className="fa-solid fa-link mr-2"></i>
+                          Integration Settings
                         </button>
                       </div>
                     </div>
