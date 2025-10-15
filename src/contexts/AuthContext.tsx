@@ -48,12 +48,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadUserProfile = async (userId: string, name: string, email: string) => {
     try {
+      console.log('Loading user profile from database for:', userId)
       const profile = await databaseUserProfileManager.getUserProfile(userId, name, email)
+      console.log('Database profile loaded:', profile)
       setUserProfile(profile)
     } catch (error) {
       console.error('Failed to load user profile from database:', error)
-      // Fallback to empty profile
-      setUserProfile({
+      
+      // Fallback to localStorage if database fails
+      try {
+        const localProfile = localStorage.getItem(`user_profile_${userId}`)
+        if (localProfile) {
+          const parsedProfile = JSON.parse(localProfile)
+          console.log('Using localStorage fallback:', parsedProfile)
+          setUserProfile(parsedProfile)
+          return
+        }
+      } catch (localError) {
+        console.error('Failed to load from localStorage:', localError)
+      }
+      
+      // Final fallback to empty profile
+      const emptyProfile = {
         id: userId,
         email,
         name,
@@ -65,8 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         starredCases: [],
         calendarEvents: [],
         monthlyUsage: 0,
-        maxMonthlyUsage: 1
-      })
+        maxMonthlyUsage: 1,
+        clioTokens: null,
+        tourCompleted: false
+      }
+      console.log('Using empty profile fallback:', emptyProfile)
+      setUserProfile(emptyProfile)
     }
   }
 
