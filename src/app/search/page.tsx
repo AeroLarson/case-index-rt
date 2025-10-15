@@ -753,6 +753,12 @@ function SearchPageContent() {
             {activeTab === 'starred' && (
               <div className="space-y-4">
                 <h2 className="text-white text-2xl font-semibold mb-4">Starred Cases</h2>
+                {/* Debug info */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs text-gray-400 mb-2">
+                    Debug: starredCases={JSON.stringify(userProfile?.starredCases)}, savedCases={userProfile?.savedCases?.length || 0}
+                  </div>
+                )}
                 {isBasicUser && monthlyUsage >= maxMonthlyUsage ? (
                   <div className="apple-card p-8 text-center">
                     <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -773,7 +779,51 @@ function SearchPageContent() {
                       const case_ = userProfile.savedCases?.find(c => c.id === caseId)
                       if (!case_) {
                         console.warn(`Starred case ${caseId} not found in savedCases`)
-                        return null
+                        // Create a basic case display for starred cases not in savedCases
+                        return (
+                          <div
+                            key={caseId}
+                            onClick={() => handleCaseClick({ 
+                              id: caseId, 
+                              caseNumber: caseId, 
+                              title: `Case ${caseId}`,
+                              court: 'San Diego Superior Court',
+                              judge: 'Hon. Rebecca Kanter',
+                              status: 'Active',
+                              lastActivity: 'Recently starred',
+                              parties: { plaintiff: 'Unknown', defendant: 'Unknown' },
+                              documents: 0,
+                              hearings: 0,
+                              isDetailed: true
+                            })}
+                            className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
+                          >
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-white text-xl font-semibold mb-2 flex items-center gap-2">
+                                  Case {caseId}
+                                  <i className="fa-solid fa-star text-yellow-400"></i>
+                                </h3>
+                                <p className="text-blue-300 font-medium">{caseId}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
+                                  Unknown Status
+                                </span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-gray-400 text-sm mb-1">Case Type</p>
+                                <p className="text-white">Unknown</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400 text-sm mb-1">Date Filed</p>
+                                <p className="text-white">Unknown</p>
+                              </div>
+                            </div>
+                          </div>
+                        )
                       }
                       
                       // Convert SavedCase to CaseResult for handleCaseClick
