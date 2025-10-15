@@ -188,7 +188,8 @@ function SearchPageContent() {
           }
           setSearchResults([caseResult])
         } else {
-          // Search in mock data for non-case-number queries
+          // For name searches, the API should handle this, but fallback to mock data
+          console.log('Name search fallback - this should be handled by API')
           const filteredResults = mockSearchResults.filter(case_ => {
             const titleMatch = case_.title.toLowerCase().includes(normalizedQuery)
             const caseNumberMatch = case_.caseNumber.toLowerCase().includes(normalizedQuery)
