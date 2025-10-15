@@ -105,4 +105,6 @@ The project uses Tailwind CSS with a custom dark theme. Key styling features:
 
 © 2025 Case Index RT. All rights reserved.
 
+<!-- Deployment trigger: $(date) -->
+
 
