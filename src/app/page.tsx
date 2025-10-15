@@ -22,6 +22,9 @@ export default function Home() {
   }
 
   // Show personalized dashboard for authenticated users
+  console.log('Home page: User state:', user)
+  console.log('Home page: UserProfile state:', userProfile)
+  
   if (user) {
     // Check if user has any data
     const hasData = userProfile && (

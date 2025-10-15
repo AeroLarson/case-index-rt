@@ -33,19 +33,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       try {
         const savedUser = localStorage.getItem('user')
+        console.log('AuthContext: Checking for saved user:', savedUser ? 'Found' : 'Not found')
+        
         if (savedUser) {
           const userData = JSON.parse(savedUser)
+          console.log('AuthContext: Parsed user data:', userData)
           
           // Basic validation - only check if data exists
           if (userData.id && userData.name && userData.email) {
+            console.log('AuthContext: Setting user and loading profile')
             setUser(userData)
             // Load user profile from localStorage
             const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
             setUserProfile(profile)
+            console.log('AuthContext: Profile loaded:', profile)
+          } else {
+            console.log('AuthContext: Invalid user data, clearing localStorage')
+            localStorage.removeItem('user')
           }
         }
       } catch (error) {
-        console.warn('Failed to parse saved user:', error)
+        console.warn('AuthContext: Failed to parse saved user:', error)
         // Only clear if there's a parsing error
         localStorage.removeItem('user')
       }
