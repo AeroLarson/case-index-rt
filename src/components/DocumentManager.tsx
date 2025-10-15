@@ -83,25 +83,61 @@ export default function DocumentManager({ caseNumber }: DocumentManagerProps) {
 
   const downloadDocument = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/${documentId}/download`, {
-        headers: {
-          'Authorization': `Bearer ${user?.id}`
-        }
-      })
+      const document = documents.find(d => d.id === documentId)
+      if (!document) return
 
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = documents.find(d => d.id === documentId)?.name || 'document'
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+      // Check if this is a county document (has downloadUrl)
+      if (document.downloadUrl) {
+        // Download from county database
+        const response = await fetch('/api/documents/county-download', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user?.id}`
+          },
+          body: JSON.stringify({
+            caseNumber: caseNumber,
+            documentId: documentId,
+            documentType: document.type.toLowerCase()
+          })
+        })
+
+        if (response.ok) {
+          const blob = await response.blob()
+          const url = window.URL.createObjectURL(blob)
+          const a = window.document.createElement('a')
+          a.href = url
+          a.download = document.name
+          window.document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          window.document.body.removeChild(a)
+        } else {
+          throw new Error('Failed to download from county database')
+        }
+      } else {
+        // Download from local storage
+        const response = await fetch(`/api/documents/${documentId}/download`, {
+          headers: {
+            'Authorization': `Bearer ${user?.id}`
+          }
+        })
+
+        if (response.ok) {
+          const blob = await response.blob()
+          const url = window.URL.createObjectURL(blob)
+          const a = window.document.createElement('a')
+          a.href = url
+          a.download = document.name
+          window.document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          window.document.body.removeChild(a)
+        }
       }
     } catch (error) {
       console.error('Error downloading document:', error)
+      alert('Failed to download document. Please try again.')
     }
   }
 
@@ -200,7 +236,15 @@ export default function DocumentManager({ caseNumber }: DocumentManagerProps) {
               </div>
               
               <div className="flex-1 min-w-0">
-                <h4 className="text-white font-medium truncate">{doc.name}</h4>
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="text-white font-medium truncate">{doc.name}</h4>
+                  {doc.downloadUrl && (
+                    <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-medium">
+                      <i className="fa-solid fa-building mr-1"></i>
+                      County
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-4 text-sm text-gray-400">
                   <span>{formatFileSize(doc.size)}</span>
                   <span>{doc.type.toUpperCase()}</span>

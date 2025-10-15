@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
 import AIOverview from '@/components/AIOverview'
 import CaseTimeline from '@/components/CaseTimeline'
@@ -29,6 +29,7 @@ interface CaseResult {
 export default function SearchPage() {
   const { user, userProfile, refreshProfile } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<CaseResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -36,6 +37,7 @@ export default function SearchPage() {
   const [showCaseDetails, setShowCaseDetails] = useState(false)
   const [caseDetails, setCaseDetails] = useState<any>(null)
   const [selectedCase, setSelectedCase] = useState<CaseResult | null>(null)
+  const [activeTab, setActiveTab] = useState<'search' | 'saved' | 'recent' | 'starred'>('search')
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -43,6 +45,37 @@ export default function SearchPage() {
       router.push('/login')
     }
   }, [user, router])
+
+  // Handle URL parameters
+  useEffect(() => {
+    if (searchParams) {
+      // Handle pre-filled search query
+      const query = searchParams.get('q')
+      if (query) {
+        setSearchQuery(query)
+        // Auto-search if query is provided
+        setTimeout(() => {
+          handleSearch({ preventDefault: () => {} } as React.FormEvent)
+        }, 100)
+      }
+
+      // Handle case number search
+      const caseNumber = searchParams.get('case')
+      if (caseNumber) {
+        setSearchQuery(caseNumber)
+        // Auto-search for the case
+        setTimeout(() => {
+          handleSearch({ preventDefault: () => {} } as React.FormEvent)
+        }, 100)
+      }
+
+      // Handle tab selection
+      const tab = searchParams.get('tab')
+      if (tab && ['saved', 'recent', 'starred'].includes(tab)) {
+        setActiveTab(tab as 'saved' | 'recent' | 'starred')
+      }
+    }
+  }, [searchParams])
 
   // Get user subscription status from profile
   const isProUser = userProfile?.plan === 'pro' || userProfile?.plan === 'team'
@@ -306,7 +339,67 @@ export default function SearchPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6 lg:gap-8">
           {/* Search Section */}
           <div className="lg:col-span-2">
-            {/* Search Form */}
+            {/* Tabs */}
+            <div className="flex border-b border-white/10 mb-6 overflow-x-auto">
+              <button
+                onClick={() => setActiveTab('search')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'search'
+                    ? 'text-blue-400 border-b-2 border-blue-400'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <i className="fa-solid fa-search"></i>
+                <span>Search</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('saved')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'saved'
+                    ? 'text-blue-400 border-b-2 border-blue-400'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <i className="fa-solid fa-folder-open"></i>
+                <span>Saved Cases</span>
+                <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-xs">
+                  {userProfile?.savedCases?.length || 0}
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab('recent')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'recent'
+                    ? 'text-blue-400 border-b-2 border-blue-400'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <i className="fa-solid fa-clock-rotate-left"></i>
+                <span>Recent Searches</span>
+                <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">
+                  {userProfile?.recentSearches?.length || 0}
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab('starred')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'starred'
+                    ? 'text-blue-400 border-b-2 border-blue-400'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <i className="fa-solid fa-star"></i>
+                <span>Starred Cases</span>
+                <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full text-xs">
+                  {userProfile?.starredCases?.length || 0}
+                </span>
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'search' && (
+              <>
+                {/* Search Form */}
             <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
               <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3 md:gap-4">
                 <div className="flex-1 relative">
@@ -464,6 +557,158 @@ export default function SearchPage() {
             <p className="text-gray-400">Try adjusting your search terms or search criteria</p>
           </div>
         )}
+              </>
+            )}
+
+            {/* Saved Cases Tab */}
+            {activeTab === 'saved' && (
+              <div className="space-y-4">
+                <h2 className="text-white text-2xl font-semibold mb-4">Saved Cases</h2>
+                {userProfile?.savedCases && userProfile.savedCases.length > 0 ? (
+                  <div className="space-y-4">
+                    {userProfile.savedCases.map((case_) => (
+                      <div
+                        key={case_.id}
+                        onClick={() => router.push(`/search?case=${encodeURIComponent(case_.caseNumber)}`)}
+                        className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-white text-xl font-semibold mb-2">{case_.caseTitle}</h3>
+                            <p className="text-blue-300 font-medium">{case_.caseNumber}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              case_.caseStatus.includes('Active') 
+                                ? 'bg-green-500/20 text-green-400' 
+                                : case_.caseStatus.includes('Pending')
+                                ? 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-gray-500/20 text-gray-400'
+                            }`}>
+                              {case_.caseStatus}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-gray-400 text-sm mb-1">Case Type</p>
+                            <p className="text-white">{case_.caseType}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400 text-sm mb-1">Date Filed</p>
+                            <p className="text-white">{new Date(case_.dateFiled).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="apple-card p-8 text-center">
+                    <i className="fa-solid fa-folder-open text-4xl text-gray-400 mb-4"></i>
+                    <h3 className="text-white text-xl font-semibold mb-2">No saved cases</h3>
+                    <p className="text-gray-400">Save cases from your search results to access them quickly</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recent Searches Tab */}
+            {activeTab === 'recent' && (
+              <div className="space-y-4">
+                <h2 className="text-white text-2xl font-semibold mb-4">Recent Searches</h2>
+                {userProfile?.recentSearches && userProfile.recentSearches.length > 0 ? (
+                  <div className="space-y-4">
+                    {userProfile.recentSearches.map((search) => (
+                      <div
+                        key={search.id}
+                        onClick={() => {
+                          setSearchQuery(search.query)
+                          setActiveTab('search')
+                          setTimeout(() => {
+                            handleSearch({ preventDefault: () => {} } as React.FormEvent)
+                          }, 100)
+                        }}
+                        className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-white text-xl font-semibold mb-2">{search.query}</h3>
+                            <p className="text-gray-400 text-sm">{search.searchType} • {search.resultsCount} results</p>
+                          </div>
+                          <span className="text-blue-300 text-sm">{new Date(search.searchedAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="apple-card p-8 text-center">
+                    <i className="fa-solid fa-clock-rotate-left text-4xl text-gray-400 mb-4"></i>
+                    <h3 className="text-white text-xl font-semibold mb-2">No recent searches</h3>
+                    <p className="text-gray-400">Your search history will appear here</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Starred Cases Tab */}
+            {activeTab === 'starred' && (
+              <div className="space-y-4">
+                <h2 className="text-white text-2xl font-semibold mb-4">Starred Cases</h2>
+                {userProfile?.starredCases && userProfile.starredCases.length > 0 ? (
+                  <div className="space-y-4">
+                    {userProfile.starredCases.map((caseId) => {
+                      const case_ = userProfile.savedCases?.find(c => c.id === caseId)
+                      if (!case_) return null
+                      
+                      return (
+                        <div
+                          key={case_.id}
+                          onClick={() => router.push(`/search?case=${encodeURIComponent(case_.caseNumber)}`)}
+                          className="apple-card p-6 hover-lift cursor-pointer transition-all duration-200"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-white text-xl font-semibold mb-2 flex items-center gap-2">
+                                {case_.caseTitle}
+                                <i className="fa-solid fa-star text-yellow-400"></i>
+                              </h3>
+                              <p className="text-blue-300 font-medium">{case_.caseNumber}</p>
+                            </div>
+                            <div className="text-right">
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                case_.caseStatus.includes('Active') 
+                                  ? 'bg-green-500/20 text-green-400' 
+                                  : case_.caseStatus.includes('Pending')
+                                  ? 'bg-yellow-500/20 text-yellow-400'
+                                  : 'bg-gray-500/20 text-gray-400'
+                              }`}>
+                                {case_.caseStatus}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-gray-400 text-sm mb-1">Case Type</p>
+                              <p className="text-white">{case_.caseType}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400 text-sm mb-1">Date Filed</p>
+                              <p className="text-white">{new Date(case_.dateFiled).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="apple-card p-8 text-center">
+                    <i className="fa-solid fa-star text-4xl text-gray-400 mb-4"></i>
+                    <h3 className="text-white text-xl font-semibold mb-2">No starred cases</h3>
+                    <p className="text-gray-400">Star cases from your search results to mark them as important</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* AI Overview and Timeline Sidebar */}

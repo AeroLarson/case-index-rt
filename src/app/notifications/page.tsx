@@ -129,6 +129,37 @@ export default function NotificationsPage() {
     setNotifications(prev => prev.filter(notif => notif.id !== id))
   }
 
+  const handleNotificationClick = (notification: Notification) => {
+    // Mark as read when clicked
+    if (!notification.isRead) {
+      markAsRead(notification.id)
+    }
+
+    // Navigate based on notification type and case number
+    if (notification.caseNumber) {
+      // Navigate to search page with the case number pre-filled
+      router.push(`/search?case=${encodeURIComponent(notification.caseNumber)}`)
+    } else if (notification.actionUrl) {
+      // Navigate to specific action URL
+      router.push(notification.actionUrl)
+    } else {
+      // Default navigation based on type
+      switch (notification.type) {
+        case 'hearing':
+          router.push('/calendar')
+          break
+        case 'document':
+          router.push('/documents')
+          break
+        case 'case_update':
+          router.push('/search')
+          break
+        default:
+          router.push('/search')
+      }
+    }
+  }
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'hearing':
@@ -259,7 +290,8 @@ export default function NotificationsPage() {
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`apple-card p-6 hover-lift transition-all duration-200 ${
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`apple-card p-6 hover-lift transition-all duration-200 cursor-pointer ${
                     !notification.isRead ? 'ring-2 ring-blue-500/50' : ''
                   }`}
                 >
@@ -299,14 +331,20 @@ export default function NotificationsPage() {
                     <div className="flex flex-col gap-2">
                       {!notification.isRead && (
                         <button
-                          onClick={() => markAsRead(notification.id)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            markAsRead(notification.id)
+                          }}
                           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                         >
                           Mark Read
                         </button>
                       )}
                       <button
-                        onClick={() => deleteNotification(notification.id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteNotification(notification.id)
+                        }}
                         className="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                       >
                         <i className="fa-solid fa-trash"></i>

@@ -5,14 +5,20 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
 import ClientOnly from '@/components/ClientOnly'
 import EmptyState from '@/components/EmptyState'
+import { useState } from 'react'
 
 export default function Home() {
   const router = useRouter()
   const { isClient } = useScrollAnimation()
   const { user, userProfile } = useAuth()
+  const [selectedCaseModal, setSelectedCaseModal] = useState<any>(null)
 
   const handleGetStarted = () => {
     router.push('/login')
+  }
+
+  const handleCaseClick = (case_: any) => {
+    setSelectedCaseModal(case_)
   }
 
   // Show personalized dashboard for authenticated users
@@ -84,21 +90,30 @@ export default function Home() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="apple-card p-6 text-center hover-lift">
+            <div 
+              onClick={() => router.push('/search?tab=saved')}
+              className="apple-card p-6 text-center hover-lift cursor-pointer transition-all duration-200 hover:scale-105"
+            >
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i className="fa-solid fa-folder-open text-white text-xl" />
               </div>
               <p className="text-white text-2xl font-bold m-0 mb-2">{userProfile?.savedCases.length || 0}</p>
               <p className="text-gray-300 text-sm m-0">Saved Cases</p>
             </div>
-            <div className="apple-card p-6 text-center hover-lift">
+            <div 
+              onClick={() => router.push('/search?tab=recent')}
+              className="apple-card p-6 text-center hover-lift cursor-pointer transition-all duration-200 hover:scale-105"
+            >
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i className="fa-solid fa-search text-white text-xl" />
               </div>
               <p className="text-white text-2xl font-bold m-0 mb-2">{userProfile?.recentSearches.length || 0}</p>
               <p className="text-gray-300 text-sm m-0">Recent Searches</p>
             </div>
-            <div className="apple-card p-6 text-center hover-lift">
+            <div 
+              onClick={() => router.push('/search?tab=starred')}
+              className="apple-card p-6 text-center hover-lift cursor-pointer transition-all duration-200 hover:scale-105"
+            >
               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i className="fa-solid fa-star text-white text-xl" />
               </div>
@@ -173,7 +188,11 @@ export default function Home() {
               {userProfile?.recentSearches.length > 0 ? (
                 <div className="space-y-4">
                   {userProfile.recentSearches.slice(0, 3).map((search) => (
-                    <div key={search.id} className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl">
+                    <div 
+                      key={search.id} 
+                      onClick={() => router.push(`/search?q=${encodeURIComponent(search.query)}`)}
+                      className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10 transition-all duration-200 hover:scale-[1.02]"
+                    >
                       <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
                       <div className="flex-1">
                         <h4 className="text-white font-medium">{search.query}</h4>
@@ -193,7 +212,11 @@ export default function Home() {
               {userProfile?.savedCases.length > 0 ? (
                 <div className="space-y-4">
                   {userProfile.savedCases.slice(0, 3).map((case_) => (
-                    <div key={case_.id} className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl">
+                    <div 
+                      key={case_.id} 
+                      onClick={() => handleCaseClick(case_)}
+                      className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10 transition-all duration-200 hover:scale-[1.02]"
+                    >
                       <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                       <div className="flex-1">
                         <h4 className="text-white font-medium">{case_.caseTitle}</h4>
@@ -209,6 +232,106 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Case Detail Modal */}
+        {selectedCaseModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="apple-card p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-start mb-6">
+                <h3 className="text-white text-2xl font-bold">{selectedCaseModal.caseTitle}</h3>
+                <button
+                  onClick={() => setSelectedCaseModal(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <i className="fa-solid fa-times text-xl"></i>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Case Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <i className="fa-solid fa-hashtag text-blue-400"></i>
+                      <div>
+                        <p className="text-gray-400 text-sm">Case Number</p>
+                        <p className="text-white font-medium">{selectedCaseModal.caseNumber}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <i className="fa-solid fa-gavel text-blue-400"></i>
+                      <div>
+                        <p className="text-gray-400 text-sm">Case Type</p>
+                        <p className="text-white font-medium">{selectedCaseModal.caseType}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <i className="fa-solid fa-calendar text-blue-400"></i>
+                      <div>
+                        <p className="text-gray-400 text-sm">Date Filed</p>
+                        <p className="text-white font-medium">{new Date(selectedCaseModal.dateFiled).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <i className="fa-solid fa-info-circle text-blue-400"></i>
+                      <div>
+                        <p className="text-gray-400 text-sm">Status</p>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedCaseModal.caseStatus.includes('Active') 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : selectedCaseModal.caseStatus.includes('Pending')
+                            ? 'bg-yellow-500/20 text-yellow-400'
+                            : 'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {selectedCaseModal.caseStatus}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="border-t border-white/10 pt-6">
+                  <h4 className="text-white font-semibold mb-4">Quick Actions</h4>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => {
+                        setSelectedCaseModal(null)
+                        router.push(`/search?case=${encodeURIComponent(selectedCaseModal.caseNumber)}`)
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-search"></i>
+                      View Full Details
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedCaseModal(null)
+                        router.push('/calendar')
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-calendar"></i>
+                      View Calendar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedCaseModal(null)
+                        router.push('/notifications')
+                      }}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-bell"></i>
+                      View Notifications
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     )
   }

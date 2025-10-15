@@ -11,40 +11,55 @@ export async function GET(request: NextRequest) {
     }
 
     // In a real implementation, this would query a database
-    // For now, we'll return mock documents
+    // For now, we'll return mock documents with some from county database
     const mockDocuments = [
       {
         id: 'doc-1',
-        name: 'Complaint - Initial Filing',
+        name: 'Complaint - Initial Filing.pdf',
         type: 'pdf',
         size: 2048576, // 2MB
         uploadDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
         caseNumber: caseNumber || 'FL-2024-001234',
         description: 'Initial complaint filed by petitioner',
+        downloadUrl: 'https://county-court-api.com/documents/complaint', // County document
         isPublic: false,
         tags: ['complaint', 'initial', 'filing']
       },
       {
         id: 'doc-2',
-        name: 'Answer to Complaint',
+        name: 'Answer to Complaint.pdf',
         type: 'pdf',
         size: 1536000, // 1.5MB
         uploadDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
         caseNumber: caseNumber || 'FL-2024-001234',
         description: 'Response filed by respondent',
+        downloadUrl: 'https://county-court-api.com/documents/response', // County document
         isPublic: false,
         tags: ['answer', 'response']
       },
       {
         id: 'doc-3',
-        name: 'Motion for Temporary Custody',
+        name: 'Motion for Temporary Custody.pdf',
         type: 'pdf',
         size: 1024000, // 1MB
         uploadDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
         caseNumber: caseNumber || 'FL-2024-001234',
         description: 'Emergency motion for temporary custody',
+        downloadUrl: 'https://county-court-api.com/documents/motion', // County document
         isPublic: false,
         tags: ['motion', 'custody', 'emergency']
+      },
+      {
+        id: 'doc-4',
+        name: 'Client Notes - Meeting Summary.pdf',
+        type: 'pdf',
+        size: 512000, // 512KB
+        uploadDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+        caseNumber: caseNumber || 'FL-2024-001234',
+        description: 'Internal notes from client meeting',
+        // No downloadUrl - this is a local document
+        isPublic: false,
+        tags: ['notes', 'meeting', 'internal']
       }
     ]
 
