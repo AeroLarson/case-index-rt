@@ -121,6 +121,29 @@ export default function Sidebar() {
               <i className="fa-solid fa-circle-question text-base" />
               <span>Help Center</span>
             </button>
+            
+            {/* Admin and Tech Support Links - Only show for authorized users */}
+            {user?.email === 'aero.larson@gmail.com' && (
+              <>
+                <div className="h-px bg-purple-400/20 my-4"></div>
+                <button 
+                  onClick={() => router.push('/admin')}
+                  id="nav-admin"
+                  className={getButtonClasses('/admin')}
+                >
+                  <i className="fa-solid fa-crown text-base" />
+                  <span>Admin Panel</span>
+                </button>
+                <button 
+                  onClick={() => router.push('/tech-support')}
+                  id="nav-tech-support"
+                  className={getButtonClasses('/tech-support')}
+                >
+                  <i className="fa-solid fa-headset text-base" />
+                  <span>Tech Support</span>
+                </button>
+              </>
+            )}
           </nav>
 
       {/* Bottom section - Different based on user state */}

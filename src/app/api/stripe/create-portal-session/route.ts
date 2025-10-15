@@ -1,42 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { userProfileManager } from '@/lib/userProfile'
 
-// Initialize Stripe only if secret key is available
-const getStripe = () => {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return null
-  }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2024-12-18.acacia',
-  })
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-04-10',
+})
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json()
+    const { userId, userEmail } = await request.json()
 
-    // Get Stripe instance
-    const stripe = getStripe()
-    if (!stripe) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Stripe not configured',
-        message: 'Customer portal is currently unavailable. Please contact support.'
-      }, { status: 503 })
+    if (!userId || !userEmail) {
+      return NextResponse.json({ error: 'User ID and Email are required' }, { status: 400 })
     }
 
-    // For now, return a placeholder since we need customer ID from Stripe
-    // In production, you'd store the Stripe customer ID when they first subscribe
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Customer portal coming soon',
-      url: '/billing' // Redirect to billing page for now
+    // Get user profile to check if they have a Stripe customer ID
+    const userProfile = userProfileManager.getUserProfile(userId, '', userEmail)
+    
+    if (!userProfile.stripeCustomerId) {
+      return NextResponse.json({ 
+        error: 'No active subscription found. Please upgrade to a paid plan first.' 
+      }, { status: 400 })
+    }
+
+    // Create Stripe customer portal session
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: userProfile.stripeCustomerId,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://caseindexrt.com'}/account`,
     })
+
+    return NextResponse.json({
+      success: true,
+      url: portalSession.url
+    })
+
   } catch (error) {
-    console.error('Stripe portal session error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create portal session' },
-      { status: 500 }
-    )
+    console.error('Error creating portal session:', error)
+    return NextResponse.json({ error: 'Failed to create portal session' }, { status: 500 })
   }
 }

@@ -17,6 +17,9 @@ export default function AccountPage() {
   const [clioConnected, setClioConnected] = useState(false)
   const [clioSyncing, setClioSyncing] = useState(false)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null)
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(false)
+  const [isManagingSubscription, setIsManagingSubscription] = useState(false)
 
   const handleCustomizationChange = (newSettings: any) => {
     updateSettings(newSettings)
@@ -24,10 +27,13 @@ export default function AccountPage() {
     setTimeout(() => setShowSavedNotification(false), 2000)
   }
 
-  // Check Clio connection status on mount
+  // Check Clio connection status and subscription on mount
   useEffect(() => {
     if (user && (userProfile?.plan === 'pro' || userProfile?.plan === 'team')) {
       checkClioConnection()
+    }
+    if (user && userProfile?.plan !== 'free') {
+      loadSubscriptionStatus()
     }
   }, [user, userProfile])
 
@@ -89,6 +95,64 @@ export default function AccountPage() {
       }
     }
   }
+
+  const loadSubscriptionStatus = async () => {
+    setIsLoadingSubscription(true)
+    try {
+      // Get subscription details from localStorage
+      const paymentRecords = userProfileManager.getPaymentRecords(user?.id || '')
+      const activeSubscription = paymentRecords.find((record: any) => 
+        record.status === 'active' && record.plan !== 'free'
+      )
+      
+      if (activeSubscription) {
+        setSubscriptionStatus({
+          plan: activeSubscription.plan,
+          status: activeSubscription.status,
+          amount: activeSubscription.amount,
+          currency: activeSubscription.currency,
+          nextBillingDate: activeSubscription.nextBillingDate,
+          stripeCustomerId: userProfile?.stripeCustomerId
+        })
+      }
+    } catch (error) {
+      console.error('Error loading subscription status:', error)
+    } finally {
+      setIsLoadingSubscription(false)
+    }
+  }
+
+  const handleManageSubscription = async () => {
+    if (!user) return
+    
+    setIsManagingSubscription(true)
+    try {
+      const response = await fetch('/api/stripe/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          userEmail: user.email
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success && data.url) {
+        window.open(data.url, '_blank')
+      } else {
+        alert(data.error || 'Failed to open subscription management')
+      }
+    } catch (error) {
+      console.error('Error opening subscription management:', error)
+      alert('Failed to open subscription management')
+    } finally {
+      setIsManagingSubscription(false)
+    }
+  }
+
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -518,38 +582,124 @@ export default function AccountPage() {
             {/* Billing Tab */}
             {activeTab === 'billing' && (
               <div className="space-y-6">
+                {/* Current Plan */}
+                <div className="apple-card p-8">
+                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Current Plan</h2>
+                  
+                  {isLoadingSubscription ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                      <span className="text-gray-300 ml-3">Loading subscription...</span>
+                    </div>
+                  ) : subscriptionStatus ? (
+                    <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-2xl p-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-white text-xl font-semibold capitalize">
+                            {subscriptionStatus.plan} Plan
+                          </h3>
+                          <p className="text-gray-300">
+                            ${subscriptionStatus.amount}/{subscriptionStatus.currency === 'usd' ? 'month' : subscriptionStatus.currency}
+                            {subscriptionStatus.nextBillingDate && (
+                              <span> • Next billing: {new Date(subscriptionStatus.nextBillingDate).toLocaleDateString()}</span>
+                            )}
+                          </p>
+                          <p className="text-gray-400 text-sm mt-2">
+                            {subscriptionStatus.plan === 'pro' && 'Unlimited cases, advanced analytics, priority support'}
+                            {subscriptionStatus.plan === 'team' && 'Team collaboration, shared workspaces, admin controls'}
+                            {subscriptionStatus.plan === 'enterprise' && 'Custom solutions, dedicated support, advanced security'}
+                          </p>
+                        </div>
+                        <button 
+                          onClick={handleManageSubscription}
+                          disabled={isManagingSubscription}
+                          className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2"
+                        >
+                          {isManagingSubscription ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              Opening...
+                            </>
+                          ) : (
+                            'Manage Subscription'
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-2xl p-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-white text-xl font-semibold">Free Plan</h3>
+                          <p className="text-gray-300">$0/month • Basic features</p>
+                          <p className="text-gray-400 text-sm mt-2">1 case per month, basic case information only</p>
+                        </div>
+                        <button 
+                          onClick={() => router.push('/billing')}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                        >
+                          Upgrade Plan
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Payment History */}
+                {subscriptionStatus && (
+                  <div className="apple-card p-8">
+                    <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Payment History</h2>
+                    <div className="space-y-4">
+                      {userProfileManager.getPaymentRecords(user?.id || '').slice(0, 5).map((payment: any, index: number) => (
+                        <div key={index} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+                          <div>
+                            <p className="text-white font-medium capitalize">{payment.plan} Plan</p>
+                            <p className="text-gray-400 text-sm">
+                              {new Date(payment.timestamp).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white font-medium">${payment.amount}</p>
+                            <p className={`text-sm ${payment.status === 'active' ? 'text-green-400' : 'text-gray-400'}`}>
+                              {payment.status}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Billing Information */}
                 <div className="apple-card p-8">
                   <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Billing Information</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">Card Number</label>
+                      <label className="block text-gray-300 text-sm font-medium mb-2">Billing Email</label>
                       <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-                        <p className="text-white">•••• •••• •••• 4242</p>
+                        <p className="text-white">{user?.email}</p>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">Expiry Date</label>
+                      <label className="block text-gray-300 text-sm font-medium mb-2">Payment Method</label>
                       <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-                        <p className="text-white">12/25</p>
+                        <p className="text-white">
+                          {subscriptionStatus ? 'Managed by Stripe' : 'No active subscription'}
+                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="apple-card p-8">
-                  <h2 className="text-white text-2xl font-semibold mb-6 tracking-tight">Current Plan</h2>
-                  <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-2xl p-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-white text-xl font-semibold">Professional Plan</h3>
-                        <p className="text-gray-300">$99/month • Billed monthly</p>
-                        <p className="text-gray-400 text-sm mt-2">Unlimited cases, advanced analytics, priority support</p>
-                      </div>
-                      <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200">
-                        Upgrade
+                  {subscriptionStatus && (
+                    <div className="mt-6">
+                      <button 
+                        onClick={handleManageSubscription}
+                        disabled={isManagingSubscription}
+                        className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-700 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                      >
+                        {isManagingSubscription ? 'Opening...' : 'Update Payment Method'}
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}

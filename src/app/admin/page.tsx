@@ -20,17 +20,37 @@ export default function AdminPage() {
     totalSavedCases: 0,
     freeUsers: 0,
     proUsers: 0,
-    teamUsers: 0
+    teamUsers: 0,
+    enterpriseUsers: 0,
+    activeUsers: 0,
+    newUsersThisMonth: 0,
+    averageSearchesPerUser: 0,
+    topSearchedCases: [] as any[],
+    userGrowth: [] as any[],
+    planDistribution: [] as any[]
   })
   const [paymentStats, setPaymentStats] = useState({
     totalPayments: 0,
     completedPayments: 0,
     totalRevenue: 0,
+    monthlyRevenue: 0,
     pendingPayments: 0,
     failedPayments: 0,
     proSubscriptions: 0,
     teamSubscriptions: 0,
-    recentPayments: [] as any[]
+    enterpriseSubscriptions: 0,
+    recentPayments: [] as any[],
+    revenueByMonth: [] as any[],
+    conversionRate: 0,
+    churnRate: 0
+  })
+  const [userList, setUserList] = useState([] as any[])
+  const [systemHealth, setSystemHealth] = useState({
+    apiStatus: 'healthy',
+    databaseStatus: 'connected',
+    stripeStatus: 'active',
+    lastBackup: new Date().toISOString(),
+    uptime: '99.9%'
   })
 
   useEffect(() => {
@@ -53,7 +73,7 @@ export default function AdminPage() {
   }, [user, router])
 
   const loadAdminStats = () => {
-    // Load real statistics from localStorage
+    // Load comprehensive real statistics from localStorage
     if (typeof window === 'undefined') return
     
     let totalUsers = 0
@@ -62,6 +82,17 @@ export default function AdminPage() {
     let freeUsers = 0
     let proUsers = 0
     let teamUsers = 0
+    let enterpriseUsers = 0
+    let activeUsers = 0
+    let newUsersThisMonth = 0
+    const allSearches: any[] = []
+    const userListData: any[] = []
+    
+    // Calculate date ranges
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const thisMonth = new Date()
+    thisMonth.setDate(1)
     
     // Count all user profiles in localStorage
     const keys = Object.keys(localStorage)
@@ -73,6 +104,36 @@ export default function AdminPage() {
           totalSearches += profile.recentSearches?.length || 0
           totalSavedCases += profile.savedCases?.length || 0
           
+          // Collect all searches for analytics
+          if (profile.recentSearches) {
+            allSearches.push(...profile.recentSearches)
+          }
+          
+          // Check if user is active (logged in within 30 days)
+          const lastLogin = profile.previousLogin ? new Date(profile.previousLogin) : new Date(0)
+          if (lastLogin > thirtyDaysAgo) {
+            activeUsers++
+          }
+          
+          // Check if user joined this month
+          const joinDate = profile.joinDate ? new Date(profile.joinDate) : new Date(0)
+          if (joinDate >= thisMonth) {
+            newUsersThisMonth++
+          }
+          
+          // Add to user list for management
+          userListData.push({
+            id: profile.id,
+            email: profile.email,
+            name: profile.name,
+            plan: profile.plan,
+            joinDate: profile.joinDate,
+            lastLogin: profile.previousLogin,
+            totalSearches: profile.totalSearches || 0,
+            savedCases: profile.savedCases?.length || 0,
+            monthlyUsage: profile.monthlyUsage || 0
+          })
+          
           switch (profile.plan) {
             case 'free':
               freeUsers++
@@ -83,6 +144,9 @@ export default function AdminPage() {
             case 'team':
               teamUsers++
               break
+            case 'enterprise':
+              enterpriseUsers++
+              break
           }
         } catch (error) {
           console.warn('Failed to parse user profile:', key, error)
@@ -90,18 +154,108 @@ export default function AdminPage() {
       }
     })
     
+    // Calculate top searched cases
+    const searchCounts = allSearches.reduce((acc: any, search: any) => {
+      acc[search.query] = (acc[search.query] || 0) + 1
+      return acc
+    }, {})
+    const topSearchedCases = Object.entries(searchCounts)
+      .sort(([,a]: any, [,b]: any) => b - a)
+      .slice(0, 10)
+      .map(([query, count]) => ({ query, count }))
+    
+    // Generate user growth data (last 12 months)
+    const userGrowth = []
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date()
+      date.setMonth(date.getMonth() - i)
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+      
+      const usersInMonth = userListData.filter(user => {
+        const joinDate = user.joinDate ? new Date(user.joinDate) : new Date(0)
+        return joinDate >= monthStart && joinDate <= monthEnd
+      }).length
+      
+      userGrowth.push({
+        month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        users: usersInMonth
+      })
+    }
+    
+    // Plan distribution
+    const planDistribution = [
+      { plan: 'Free', count: freeUsers, percentage: totalUsers > 0 ? Math.round((freeUsers / totalUsers) * 100) : 0 },
+      { plan: 'Pro', count: proUsers, percentage: totalUsers > 0 ? Math.round((proUsers / totalUsers) * 100) : 0 },
+      { plan: 'Team', count: teamUsers, percentage: totalUsers > 0 ? Math.round((teamUsers / totalUsers) * 100) : 0 },
+      { plan: 'Enterprise', count: enterpriseUsers, percentage: totalUsers > 0 ? Math.round((enterpriseUsers / totalUsers) * 100) : 0 }
+    ]
+    
     setAdminStats({
       totalUsers,
       totalSearches,
       totalSavedCases,
       freeUsers,
       proUsers,
-      teamUsers
+      teamUsers,
+      enterpriseUsers,
+      activeUsers,
+      newUsersThisMonth,
+      averageSearchesPerUser: totalUsers > 0 ? Math.round(totalSearches / totalUsers) : 0,
+      topSearchedCases,
+      userGrowth,
+      planDistribution
     })
-
-    // Load payment statistics
+    
+    // Load comprehensive payment statistics
     const paymentData = PaymentTracker.getPaymentStats()
-    setPaymentStats(paymentData)
+    
+    // Calculate monthly revenue
+    const currentMonth = new Date().getMonth()
+    const currentYear = new Date().getFullYear()
+    const monthlyRevenue = paymentData.recentPayments
+      .filter((payment: any) => {
+        const paymentDate = new Date(payment.timestamp)
+        return paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear
+      })
+      .reduce((sum: number, payment: any) => sum + payment.amount, 0)
+    
+    // Calculate conversion rate
+    const conversionRate = totalUsers > 0 ? Math.round(((proUsers + teamUsers + enterpriseUsers) / totalUsers) * 100) : 0
+    
+    // Generate revenue by month data
+    const revenueByMonth = []
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date()
+      date.setMonth(date.getMonth() - i)
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+      
+      const revenueInMonth = paymentData.recentPayments
+        .filter((payment: any) => {
+          const paymentDate = new Date(payment.timestamp)
+          return paymentDate >= monthStart && paymentDate <= monthEnd && payment.status === 'active'
+        })
+        .reduce((sum: number, payment: any) => sum + payment.amount, 0)
+      
+      revenueByMonth.push({
+        month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        revenue: revenueInMonth
+      })
+    }
+    
+    setPaymentStats({
+      ...paymentData,
+      monthlyRevenue,
+      conversionRate,
+      churnRate: 0, // Would need historical data to calculate
+      revenueByMonth
+    })
+    
+    // Sort user list by last login
+    setUserList(userListData.sort((a, b) => 
+      new Date(b.lastLogin || 0).getTime() - new Date(a.lastLogin || 0).getTime()
+    ))
   }
 
   const handleResetUserData = (userId: string) => {
