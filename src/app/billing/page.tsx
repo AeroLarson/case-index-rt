@@ -262,52 +262,52 @@ export default function BillingPage() {
       className="min-h-screen animated-aura"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-        padding: '40px 24px'
+        padding: '20px 12px 40px 12px'
       }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-white text-4xl font-bold mb-4 tracking-tight">Billing & Subscription</h1>
-          <p className="text-gray-300 text-lg">Manage your subscription and payment methods</p>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-white text-2xl md:text-4xl font-bold mb-3 md:mb-4 tracking-tight">Billing & Subscription</h1>
+          <p className="text-gray-300 text-sm md:text-lg">Manage your subscription and payment methods</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <div className="apple-card p-6 sticky top-8">
-              <nav className="space-y-2">
+            <div className="apple-card p-4 md:p-6 sticky top-8">
+              <nav className="space-y-1 md:space-y-2">
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-2xl transition-all duration-200 text-sm md:text-base ${
                     activeTab === 'overview' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
                   }`}
                 >
-                  <i className="fa-solid fa-chart-pie mr-3"></i>
+                  <i className="fa-solid fa-chart-pie mr-2 md:mr-3"></i>
                   Overview
                 </button>
                 <button
                   onClick={() => setActiveTab('plans')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-2xl transition-all duration-200 text-sm md:text-base ${
                     activeTab === 'plans' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
                   }`}
                 >
-                  <i className="fa-solid fa-crown mr-3"></i>
+                  <i className="fa-solid fa-crown mr-2 md:mr-3"></i>
                   Plans
                 </button>
                 <button
                   onClick={() => setActiveTab('history')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-2xl transition-all duration-200 text-sm md:text-base ${
                     activeTab === 'history' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
                   }`}
                 >
-                  <i className="fa-solid fa-file-invoice mr-3"></i>
+                  <i className="fa-solid fa-file-invoice mr-2 md:mr-3"></i>
                   Billing History
                 </button>
               </nav>

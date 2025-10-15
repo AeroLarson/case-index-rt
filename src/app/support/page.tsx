@@ -112,18 +112,18 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-white text-4xl font-bold mb-2">Support Center</h1>
-          <p className="text-gray-300">Get help with your account, billing, or technical issues</p>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-white text-2xl md:text-4xl font-bold mb-2">Support Center</h1>
+          <p className="text-gray-300 text-sm md:text-base">Get help with your account, billing, or technical issues</p>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6 md:mb-8">
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${
+            className={`px-4 md:px-6 py-3 rounded-2xl font-medium transition-all duration-200 text-sm md:text-base ${
               activeTab === 'tickets'
                 ? 'bg-blue-500 text-white'
                 : 'bg-white/10 text-gray-300 hover:bg-white/20'
@@ -133,7 +133,7 @@ export default function SupportPage() {
           </button>
           <button
             onClick={() => setActiveTab('create')}
-            className={`px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${
+            className={`px-4 md:px-6 py-3 rounded-2xl font-medium transition-all duration-200 text-sm md:text-base ${
               activeTab === 'create'
                 ? 'bg-blue-500 text-white'
                 : 'bg-white/10 text-gray-300 hover:bg-white/20'
@@ -215,17 +215,17 @@ export default function SupportPage() {
 
         {/* Create Ticket Tab */}
         {activeTab === 'create' && (
-          <div className="apple-card p-8">
-            <h2 className="text-white text-2xl font-semibold mb-6">Create Support Ticket</h2>
+          <div className="apple-card p-4 md:p-8">
+            <h2 className="text-white text-xl md:text-2xl font-semibold mb-4 md:mb-6">Create Support Ticket</h2>
             
-            <form onSubmit={handleCreateTicket} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleCreateTicket} className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Category</label>
                   <select
                     value={newTicket.category}
                     onChange={(e) => setNewTicket(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 min-h-[48px] text-base"
                   >
                     <option value="general">General</option>
                     <option value="billing">Billing</option>
@@ -240,7 +240,7 @@ export default function SupportPage() {
                   <select
                     value={newTicket.priority}
                     onChange={(e) => setNewTicket(prev => ({ ...prev, priority: e.target.value }))}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 min-h-[48px] text-base"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -256,7 +256,7 @@ export default function SupportPage() {
                   type="text"
                   value={newTicket.subject}
                   onChange={(e) => setNewTicket(prev => ({ ...prev, subject: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 min-h-[48px] text-base"
                   placeholder="Brief description of your issue"
                   required
                 />
@@ -268,24 +268,24 @@ export default function SupportPage() {
                   value={newTicket.description}
                   onChange={(e) => setNewTicket(prev => ({ ...prev, description: e.target.value }))}
                   rows={6}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-base resize-none"
                   placeholder="Please provide detailed information about your issue, including steps to reproduce if it's a bug"
                   required
                 />
               </div>
               
-              <div className="flex justify-end space-x-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => setActiveTab('tickets')}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 md:px-6 py-3 rounded-2xl font-medium transition-all duration-200 min-h-[48px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2"
+                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white px-4 md:px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-2 min-h-[48px]"
                 >
                   {isLoading ? (
                     <>
