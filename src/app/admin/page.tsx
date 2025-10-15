@@ -42,7 +42,7 @@ export default function AdminPage() {
     // Check if user is authorized admin
     if (user.email === ADMIN_EMAIL) {
       setIsAuthorized(true)
-      loadAdminStats()
+      loadAdminStats().catch(console.error)
     } else {
       // Redirect unauthorized users
       router.push('/')
@@ -52,56 +52,37 @@ export default function AdminPage() {
     setIsLoading(false)
   }, [user, router])
 
-  const loadAdminStats = () => {
-    // Load real statistics from localStorage
-    if (typeof window === 'undefined') return
-    
-    let totalUsers = 0
-    let totalSearches = 0
-    let totalSavedCases = 0
-    let freeUsers = 0
-    let proUsers = 0
-    let teamUsers = 0
-    
-    // Count all user profiles in localStorage
-    const keys = Object.keys(localStorage)
-    keys.forEach(key => {
-      if (key.startsWith('user_profile_')) {
-        try {
-          const profile = JSON.parse(localStorage.getItem(key) || '{}')
-          totalUsers++
-          totalSearches += profile.recentSearches?.length || 0
-          totalSavedCases += profile.savedCases?.length || 0
-          
-          switch (profile.plan) {
-            case 'free':
-              freeUsers++
-              break
-            case 'pro':
-              proUsers++
-              break
-            case 'team':
-              teamUsers++
-              break
-          }
-        } catch (error) {
-          console.warn('Failed to parse user profile:', key, error)
-        }
-      }
-    })
-    
-    setAdminStats({
-      totalUsers,
-      totalSearches,
-      totalSavedCases,
-      freeUsers,
-      proUsers,
-      teamUsers
-    })
+  const loadAdminStats = async () => {
+    try {
+      // Load statistics from database
+      const stats = await databaseUserProfileManager.getAdminStats()
+      setAdminStats(stats)
 
-    // Load payment statistics
-    const paymentData = PaymentTracker.getPaymentStats()
-    setPaymentStats(paymentData)
+      // Load payment statistics
+      const paymentData = await PaymentTracker.getPaymentStats()
+      setPaymentStats(paymentData)
+    } catch (error) {
+      console.error('Failed to load admin stats:', error)
+      // Set default values if database fails
+      setAdminStats({
+        totalUsers: 0,
+        totalSearches: 0,
+        totalSavedCases: 0,
+        freeUsers: 0,
+        proUsers: 0,
+        teamUsers: 0
+      })
+      setPaymentStats({
+        totalPayments: 0,
+        completedPayments: 0,
+        totalRevenue: 0,
+        pendingPayments: 0,
+        failedPayments: 0,
+        proSubscriptions: 0,
+        teamSubscriptions: 0,
+        recentPayments: []
+      })
+    }
   }
 
   const handleResetUserData = async (userId: string) => {
@@ -111,18 +92,17 @@ export default function AdminPage() {
     }
   }
 
-  const handleResetAllData = () => {
+  const handleResetAllData = async () => {
     if (confirm('Are you sure you want to reset ALL user data? This action cannot be undone.')) {
-      // Clear all user profiles from localStorage
-      if (typeof window !== 'undefined') {
-        const keys = Object.keys(localStorage)
-        keys.forEach(key => {
-          if (key.startsWith('user_profile_')) {
-            localStorage.removeItem(key)
-          }
-        })
+      try {
+        await databaseUserProfileManager.clearAllUserData()
+        alert('All user data cleared successfully')
+        // Reload stats after clearing
+        await loadAdminStats()
+      } catch (error) {
+        console.error('Failed to clear all user data:', error)
+        alert('Failed to clear user data. Please try again.')
       }
-      alert('All user data cleared successfully')
     }
   }
 

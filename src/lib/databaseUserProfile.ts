@@ -300,6 +300,24 @@ export class DatabaseUserProfileManager {
     }
   }
 
+  async clearAllUserData() {
+    try {
+      // Delete all data from database
+      await prisma.savedCase.deleteMany()
+      await prisma.recentSearch.deleteMany()
+      await prisma.starredCase.deleteMany()
+      await prisma.calendarEvent.deleteMany()
+      await prisma.notification.deleteMany()
+      await prisma.usageTracking.deleteMany()
+      await prisma.user.deleteMany()
+      
+      console.log('Cleared all user data from database')
+    } catch (error) {
+      console.error('Error clearing all user data:', error)
+      throw error
+    }
+  }
+
   async toggleStarredCase(userId: string, caseId: string) {
     try {
       // Check if case is already starred
@@ -412,6 +430,57 @@ export class DatabaseUserProfileManager {
     } catch (error) {
       console.error('Error checking tour completion:', error)
       return false
+    }
+  }
+
+  async getAdminStats(): Promise<{
+    totalUsers: number
+    totalSearches: number
+    totalSavedCases: number
+    freeUsers: number
+    proUsers: number
+    teamUsers: number
+  }> {
+    try {
+      // Get total users
+      const totalUsers = await prisma.user.count()
+
+      // Get total searches
+      const totalSearches = await prisma.recentSearch.count()
+
+      // Get total saved cases
+      const totalSavedCases = await prisma.savedCase.count()
+
+      // Get user plan distribution
+      const planStats = await prisma.user.groupBy({
+        by: ['plan'],
+        _count: {
+          plan: true
+        }
+      })
+
+      const freeUsers = planStats.find(p => p.plan === 'free')?._count.plan || 0
+      const proUsers = planStats.find(p => p.plan === 'pro')?._count.plan || 0
+      const teamUsers = planStats.find(p => p.plan === 'team')?._count.plan || 0
+
+      return {
+        totalUsers,
+        totalSearches,
+        totalSavedCases,
+        freeUsers,
+        proUsers,
+        teamUsers
+      }
+    } catch (error) {
+      console.error('Error getting admin stats:', error)
+      return {
+        totalUsers: 0,
+        totalSearches: 0,
+        totalSavedCases: 0,
+        freeUsers: 0,
+        proUsers: 0,
+        teamUsers: 0
+      }
     }
   }
 }
