@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { UserProfile, userProfileManager } from '@/lib/userProfile'
+import { sessionManager } from '@/lib/sessionManager'
 
 interface User {
   id: string
@@ -77,61 +78,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  // Add a periodic session check to prevent unexpected logouts
+  // Listen for session manager events
   useEffect(() => {
-    if (!user) return
+    if (typeof window === 'undefined') return
 
-    const interval = setInterval(() => {
-      if (typeof window !== 'undefined') {
-        const savedUser = localStorage.getItem('user')
-        if (!savedUser && user) {
-          console.log('AuthContext: User data lost from localStorage, restoring...')
-          localStorage.setItem('user', JSON.stringify(user))
-          localStorage.setItem('session_timestamp', Date.now().toString())
-          sessionStorage.setItem('user_backup', JSON.stringify(user))
-        }
-        
-        // Also check if user state is null but we have backup data
-        if (!user && typeof window !== 'undefined') {
-          const backupUser = sessionStorage.getItem('user_backup') || localStorage.getItem('user_data_backup')
-          if (backupUser) {
-            try {
-              const userData = JSON.parse(backupUser)
-              console.log('AuthContext: Restoring user from backup data')
-              setUser(userData)
-              localStorage.setItem('user', backupUser)
-              const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
-              setUserProfile(profile)
-            } catch (error) {
-              console.warn('AuthContext: Failed to restore from backup:', error)
-            }
-          }
-        }
-      }
-    }, 2000) // Check every 2 seconds for faster recovery
+    const handleSessionRestored = (event: any) => {
+      console.log('AuthContext: Session restored event received')
+      const userData = event.detail.userData
+      setUser(userData)
+      const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
+      setUserProfile(profile)
+    }
 
-    return () => clearInterval(interval)
-  }, [user])
+    const handleSessionCleared = () => {
+      console.log('AuthContext: Session cleared event received')
+      setUser(null)
+      setUserProfile(null)
+    }
+
+    window.addEventListener('sessionRestored', handleSessionRestored)
+    window.addEventListener('sessionCleared', handleSessionCleared)
+
+    return () => {
+      window.removeEventListener('sessionRestored', handleSessionRestored)
+      window.removeEventListener('sessionCleared', handleSessionCleared)
+    }
+  }, [])
 
   const login = (userData: User) => {
     console.log('AuthContext: Logging in user:', userData.email)
     setUser(userData)
-    if (typeof window !== 'undefined') {
-      // Store user data in multiple places for redundancy
-      localStorage.setItem('user', JSON.stringify(userData))
-      localStorage.setItem('session_timestamp', Date.now().toString())
-      sessionStorage.setItem('user_backup', JSON.stringify(userData))
-      
-      // Also store in a more persistent way
-      try {
-        const userDataString = JSON.stringify(userData)
-        localStorage.setItem('user_data_backup', userDataString)
-        localStorage.setItem('user_id_backup', userData.id)
-        localStorage.setItem('user_email_backup', userData.email)
-      } catch (error) {
-        console.warn('AuthContext: Failed to store backup user data:', error)
-      }
-    }
+    
+    // Use session manager for robust storage
+    sessionManager.storeSession(userData)
+    sessionManager.startSessionMonitoring()
+    
     // Load or create user profile from localStorage
     const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
     setUserProfile(profile)
@@ -142,14 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('AuthContext: Logging out user')
     setUser(null)
     setUserProfile(null)
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('user')
-      localStorage.removeItem('session_timestamp')
-      sessionStorage.removeItem('user_backup')
-      localStorage.removeItem('user_data_backup')
-      localStorage.removeItem('user_id_backup')
-      localStorage.removeItem('user_email_backup')
-    }
+    
+    // Use session manager to clear all data
+    sessionManager.stopSessionMonitoring()
+    sessionManager.clearSession()
+    
     console.log('AuthContext: Logout completed')
     // In a real app, you might also call a logout API endpoint
   }
