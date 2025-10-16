@@ -117,9 +117,9 @@ export default function AIOverview({
         formattedOverview += `Here's an overview of your case:\n\n`
       }
       
-      // Add case type specific information
+      // Add case type specific information based on actual case data
       if (simpleCaseType.includes('dissolution')) {
-        formattedOverview += `This is a dissolution of marriage case (divorce) involving minor children. The case is currently in active status with ongoing proceedings.\n\n`
+        formattedOverview += `This is a dissolution of marriage case (divorce) involving minor children. The case is currently ${caseStatus || 'active'} with ongoing proceedings.\n\n`
       } else if (simpleCaseType.includes('custody')) {
         formattedOverview += `This case involves child custody matters. The court will consider the best interests of the children in all decisions.\n\n`
       } else if (simpleCaseType.includes('support')) {
@@ -128,12 +128,24 @@ export default function AIOverview({
         formattedOverview += `This is a family law case with ongoing proceedings. The court will handle all matters according to California Family Code.\n\n`
       }
       
-      // Extract department number from court name
+      // Use actual case information instead of hardcoded values
       const departmentMatch = court?.match(/Department (\d+)/)
       const department = departmentMatch ? departmentMatch[1] : '602'
       const courtName = court?.replace(/\s*\(Department \d+\)/, '') || 'San Diego Superior Court - Central'
       
-      formattedOverview += `Upcoming hearing scheduled for 1/27/2026 at 9:00 AM - request for order hearing. The case is assigned to ${judge || 'Hon. Rebecca Kanter'} in Department ${department} at ${courtName}. Virtual attendance available via Zoom ID: 123-456-7890, Passcode: 123456.\n\n${insights}`
+      // Only add hearing information if we have actual case data
+      if (caseData && caseData.upcomingHearings && caseData.upcomingHearings.length > 0) {
+        const nextHearing = caseData.upcomingHearings[0]
+        formattedOverview += `Upcoming hearing scheduled for ${nextHearing.date} at ${nextHearing.time} - ${nextHearing.type}. The case is assigned to ${judge || 'Hon. Rebecca Kanter'} in Department ${department} at ${courtName}.`
+        if (nextHearing.virtualMeeting) {
+          formattedOverview += ` Virtual attendance available via ${nextHearing.virtualMeeting}.`
+        }
+        formattedOverview += `\n\n`
+      } else {
+        formattedOverview += `The case is assigned to ${judge || 'Hon. Rebecca Kanter'} in Department ${department} at ${courtName}.\n\n`
+      }
+      
+      formattedOverview += insights
 
       setOverview(formattedOverview)
       setIsComplete(true)

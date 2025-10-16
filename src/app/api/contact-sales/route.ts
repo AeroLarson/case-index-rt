@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import nodemailer from 'nodemailer'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,52 +16,98 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // In a real app, this would:
-    // 1. Save to your CRM/database
-    // 2. Send notification emails
-    // 3. Create a lead in your sales pipeline
-    // 4. Integrate with tools like HubSpot, Salesforce, etc.
+    // Create email transporter
+    const transporter = nodemailer.createTransporter({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_EMAIL || 'caseindexrt@gmail.com',
+        pass: process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD
+      }
+    })
 
-    console.log('New sales inquiry received:', {
+    // Email content for sales team
+    const salesEmailContent = `
+New Sales Inquiry from Case Index RT Website
+
+Contact Information:
+- Name: ${formData.name}
+- Email: ${formData.email}
+- Company: ${formData.company}
+- Phone: ${formData.phone || 'Not provided'}
+
+Requirements:
+- Team Size: ${formData.teamSize}
+- Current Plan Interest: ${formData.currentPlan}
+- Timeline: ${formData.timeframe || 'Not specified'}
+- Budget: ${formData.budget || 'Not specified'}
+
+Message:
+${formData.message || 'No additional message provided'}
+
+---
+This inquiry was submitted through the Case Index RT contact form.
+Timestamp: ${new Date().toISOString()}
+    `
+
+    // Send email to sales team
+    await transporter.sendMail({
+      from: process.env.SMTP_EMAIL || 'caseindexrt@gmail.com',
+      to: 'caseindexrt@gmail.com',
+      subject: `New Sales Inquiry from ${formData.name} - ${formData.company}`,
+      text: salesEmailContent,
+      html: salesEmailContent.replace(/\n/g, '<br>')
+    })
+
+    // Send confirmation email to customer
+    const confirmationEmailContent = `
+Dear ${formData.name},
+
+Thank you for your interest in Case Index RT! We've received your inquiry and our sales team will be in touch within 24 hours.
+
+Your inquiry details:
+- Company: ${formData.company}
+- Team Size: ${formData.teamSize}
+- Plan Interest: ${formData.currentPlan}
+- Timeline: ${formData.timeframe || 'Not specified'}
+
+If you have any immediate questions, please don't hesitate to contact us at caseindexrt@gmail.com.
+
+Best regards,
+The Case Index RT Team
+    `
+
+    await transporter.sendMail({
+      from: process.env.SMTP_EMAIL || 'caseindexrt@gmail.com',
+      to: formData.email,
+      subject: 'Thank you for your interest in Case Index RT',
+      text: confirmationEmailContent,
+      html: confirmationEmailContent.replace(/\n/g, '<br>')
+    })
+
+    console.log('Sales inquiry processed and emails sent:', {
       name: formData.name,
       email: formData.email,
       company: formData.company,
-      teamSize: formData.teamSize,
-      plan: formData.currentPlan,
-      timeline: formData.timeframe,
-      budget: formData.budget,
-      message: formData.message,
       timestamp: new Date().toISOString()
     })
-
-    // Simulate sending notification emails
-    // await sendSalesNotification(formData)
-    // await sendConfirmationEmail(formData.email, formData.name)
 
     return NextResponse.json({
       success: true,
-      message: 'Sales inquiry submitted successfully',
-      leadId: `LEAD-${Date.now()}`, // In real app, this would be from your CRM
+      message: 'Sales inquiry submitted successfully. You will receive a confirmation email shortly.',
+      leadId: `LEAD-${Date.now()}`,
       timestamp: new Date().toISOString()
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing sales inquiry:', error)
     return NextResponse.json(
-      { error: 'Failed to submit sales inquiry' },
+      { 
+        error: 'Failed to submit sales inquiry',
+        message: error.message || 'Unknown error occurred'
+      },
       { status: 500 }
     )
   }
-}
-
-// Helper function to send sales notification (implement with your email service)
-async function sendSalesNotification(formData: any) {
-  // Implementation would depend on your email service (SendGrid, Resend, etc.)
-  console.log('Sending sales notification for:', formData.name)
-}
-
-// Helper function to send confirmation email to customer
-async function sendConfirmationEmail(email: string, name: string) {
-  // Implementation would depend on your email service
-  console.log('Sending confirmation email to:', email)
 }
