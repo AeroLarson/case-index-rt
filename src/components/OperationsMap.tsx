@@ -152,18 +152,11 @@ export default function OperationsMap() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <a 
-                href="mailto:expansion@caseindexrt.com"
+                href="mailto:caseindexrt@gmail.com"
                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <i className="fa-solid fa-envelope"></i>
-                expansion@caseindexrt.com
-              </a>
-              <a 
-                href="tel:+1-555-CASE-RT"
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-              >
-                <i className="fa-solid fa-phone"></i>
-                (555) CASE-RT
+                caseindexrt@gmail.com
               </a>
             </div>
           </div>
