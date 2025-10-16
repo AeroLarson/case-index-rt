@@ -28,7 +28,7 @@ export default function Header() {
       className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
       style={{
         background: 'linear-gradient(135deg, #0f0520 0%, #1a0b2e 25%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
-        minHeight: user && pathname === '/' ? '300px' : '80px'
+        minHeight: user && pathname === '/' ? '200px' : '60px'
       }}
     >
       {/* Animated background particles */}
@@ -46,7 +46,7 @@ export default function Header() {
       
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         {/* Top Navigation Bar */}
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-2">
           {/* Logo - Left side */}
           {!user && (
             <div className="flex items-center gap-3">
@@ -59,18 +59,18 @@ export default function Header() {
 
           {/* User Profile & Logout - Right side */}
           {user && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-medium">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="text-white text-xs font-medium">{user.name}</span>
+                <span className="text-white text-sm font-medium">{user.name}</span>
               </div>
               <button 
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Logout
               </button>
@@ -186,7 +186,7 @@ export default function Header() {
 
         {/* Hero Content - Only show for non-authenticated users */}
         {!user && (
-          <div className="text-center py-12">
+          <div className="text-center py-6">
             <h1 
               className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
@@ -216,7 +216,7 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center py-12">
+          <div className="text-center py-6">
             <h1 
               className="text-white text-4xl font-bold leading-tight mb-4"
             >
