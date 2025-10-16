@@ -68,7 +68,8 @@ export default function DocumentsPage() {
     }
 
     loadDocuments()
-  }, [user, router, userProfile])
+    }
+  }, [isLoading, user, router, userProfile])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])

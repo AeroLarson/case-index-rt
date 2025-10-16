@@ -71,7 +71,8 @@ export default function AdminPage() {
     }
 
     setIsLoading(false)
-  }, [user, router])
+    }
+  }, [isLoading, user, router])
 
   const loadAdminStats = () => {
     // Load comprehensive real statistics from localStorage

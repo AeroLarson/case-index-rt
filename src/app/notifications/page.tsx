@@ -110,7 +110,8 @@ export default function NotificationsPage() {
     }
 
     loadNotifications()
-  }, [user, userProfile, router])
+    }
+  }, [isLoading, user, userProfile, router])
 
   const markAsRead = (id: string) => {
     setNotifications(prev => 

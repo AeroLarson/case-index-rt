@@ -30,7 +30,7 @@ interface CalendarEvent {
 }
 
 export default function CalendarPage() {
-  const { user, userProfile, isLoading } = useAuth()
+  const { user, userProfile, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<'month' | 'week' | 'day'>('month')
@@ -42,7 +42,7 @@ export default function CalendarPage() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle')
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!authLoading && !user) {
       router.push('/login')
       return
     }
@@ -50,7 +50,7 @@ export default function CalendarPage() {
     if (user) {
       loadCalendarData()
     }
-  }, [isLoading, user, userProfile, router])
+  }, [authLoading, user, userProfile, router])
 
   const loadCalendarData = async () => {
     setIsLoading(true)

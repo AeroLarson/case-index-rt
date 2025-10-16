@@ -49,7 +49,8 @@ export default function TechSupportPage() {
     }
 
     setIsLoading(false)
-  }, [user, router])
+    }
+  }, [isLoading, user, router])
 
   const loadUserData = () => {
     if (typeof window === 'undefined') return
