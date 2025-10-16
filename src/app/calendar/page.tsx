@@ -1109,11 +1109,21 @@ export default function CalendarPage() {
         {/* Selected Day Modal */}
         {selectedDay && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="apple-card p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="apple-card p-8 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-start mb-6">
-                <h3 className="text-white text-2xl font-bold">
-                  Events for {selectedDay.toLocaleDateString()}
-                </h3>
+                <div>
+                  <h3 className="text-white text-2xl font-bold">
+                    {selectedDay.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </h3>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {getEventsForDay(selectedDay).length} event{getEventsForDay(selectedDay).length !== 1 ? 's' : ''} scheduled
+                  </p>
+                </div>
                 <button
                   onClick={() => setSelectedDay(null)}
                   className="text-gray-400 hover:text-white"
@@ -1122,54 +1132,91 @@ export default function CalendarPage() {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {getEventsForDay(selectedDay).length === 0 ? (
-                  <div className="text-center py-8">
-                    <i className="fa-solid fa-calendar-xmark text-gray-400 text-4xl mb-4"></i>
-                    <p className="text-gray-300">No events scheduled for this day</p>
-                  </div>
-                ) : (
-                  getEventsForDay(selectedDay).map((event) => (
+              {getEventsForDay(selectedDay).length === 0 ? (
+                <div className="text-center py-12">
+                  <i className="fa-solid fa-calendar-xmark text-gray-400 text-6xl mb-6"></i>
+                  <h4 className="text-white text-xl font-semibold mb-2">No events scheduled</h4>
+                  <p className="text-gray-300">This day is free of scheduled events</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Sort events by time */}
+                  {getEventsForDay(selectedDay)
+                    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+                    .map((event) => (
                     <div
                       key={event.id}
-                      className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                      className={`p-6 rounded-2xl border transition-all duration-200 cursor-pointer hover:scale-[1.02] ${
+                        event.caseNumber === 'FL-2024-005678' 
+                          ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20' 
+                          : event.caseNumber === 'FL-2024-001234'
+                          ? 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10'
+                      }`}
                       onClick={() => {
                         setSelectedEvent(event)
                         setSelectedDay(null)
                       }}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-white font-semibold">{event.title}</h4>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          event.priority === 'urgent' ? 'bg-red-500/20 text-red-400' :
-                          event.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                          event.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-green-500/20 text-green-400'
-                        }`}>
-                          {event.priority}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <i className="fa-solid fa-clock text-blue-400"></i>
-                          <span>{formatTime(event.time)}</span>
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 ${getEventColor(event.type, event.caseNumber)} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                          <i className={`fa-solid ${getEventIcon(event.type)} text-white text-lg`}></i>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <i className="fa-solid fa-file text-blue-400"></i>
-                          <span>{event.caseNumber}</span>
-                        </div>
-                        {event.location && (
-                          <div className="flex items-center gap-2">
-                            <i className="fa-solid fa-map-marker-alt text-blue-400"></i>
-                            <span>{event.location}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-white font-semibold text-lg">{event.title}</h4>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              event.priority === 'urgent' ? 'bg-red-500/20 text-red-400' :
+                              event.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                              event.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-green-500/20 text-green-400'
+                            }`}>
+                              {event.priority}
+                            </span>
                           </div>
-                        )}
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="flex items-center gap-3 text-sm">
+                              <div className="flex items-center gap-2 text-blue-400">
+                                <i className="fa-solid fa-clock"></i>
+                                <span className="font-medium">{formatTime(event.time)}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                              <div className="flex items-center gap-2 text-blue-400">
+                                <i className="fa-solid fa-file"></i>
+                                <span className="font-medium">{event.caseNumber}</span>
+                              </div>
+                            </div>
+                            {event.location && (
+                              <div className="flex items-center gap-3 text-sm md:col-span-2">
+                                <div className="flex items-center gap-2 text-blue-400">
+                                  <i className="fa-solid fa-map-marker-alt"></i>
+                                  <span className="font-medium">{event.location}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <p className="text-gray-300 text-sm leading-relaxed">{event.description}</p>
+                          
+                          {event.countyData && (
+                            <div className="mt-4 p-3 bg-white/5 rounded-lg">
+                              <h5 className="text-white font-medium text-sm mb-2">Case Details</h5>
+                              <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                                <div>Court: {event.countyData.court}</div>
+                                <div>Judge: {event.countyData.judge}</div>
+                                <div>Department: {event.countyData.department}</div>
+                                <div>Type: {event.countyData.caseType}</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-gray-300 text-sm mt-2">{event.description}</p>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
 
               <div className="flex gap-3 mt-8">
                 <button 

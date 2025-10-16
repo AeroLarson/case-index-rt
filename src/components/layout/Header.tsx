@@ -60,7 +60,7 @@ export default function Header() {
       
       <div className={`max-w-6xl mx-auto relative z-10 ${user ? 'lg:max-w-4xl lg:ml-0' : ''}`}>
         {/* Navigation */}
-        <div className={`flex items-center ${user ? 'justify-end' : 'justify-between'} ${pathname === '/' ? 'mb-8' : 'mb-1'}`}>
+        <div className={`flex items-center ${user ? 'justify-between' : 'justify-between'} ${pathname === '/' ? 'mb-8' : 'mb-1'}`}>
           {/* Logo and Name - Top Left when not logged in */}
           {!user && (
             <div className="flex items-center gap-3">
@@ -70,6 +70,9 @@ export default function Header() {
               <span className="text-white text-xl font-bold hidden sm:block">Case Index RT</span>
             </div>
           )}
+          
+          {/* Spacer for authenticated users to center welcome text */}
+          {user && <div className="flex-1"></div>}
 
           {/* Desktop Navigation - Centered when not logged in */}
           {!user && (
@@ -187,7 +190,7 @@ export default function Header() {
             </div>
           )}
           {user ? (
-            <div className="flex items-center gap-4 ml-2">
+            <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
