@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 /* Mobile optimizations */
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -10,6 +19,17 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Optimize animations for performance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Mobile touch improvements */
@@ -643,6 +663,8 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   -webkit-background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .vercel-text-gradient-intense {
@@ -651,6 +673,8 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   -webkit-background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
 .vercel-button {

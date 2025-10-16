@@ -11,7 +11,7 @@ export default function Footer() {
       className={`border-t border-purple-400/10 ${user ? 'lg:ml-60' : ''}`}
       style={{
         background: '#0f0520',
-        padding: '48px 24px 24px'
+        padding: '32px 24px 16px'
       }}
     >
       <div className="max-w-6xl mx-auto">
@@ -43,8 +43,8 @@ export default function Footer() {
             </div>
           </div>
           
-          <div className="pt-4 border-t border-gray-700/30">
-            <p className="text-gray-500 text-xs mb-3">Powered by</p>
+          <div className="pt-2 border-t border-gray-700/20">
+            <p className="text-gray-500 text-xs mb-2">Powered by</p>
             <div className="flex justify-center items-center gap-2 opacity-60">
               <i className="fa-solid fa-cloud text-gray-400 text-lg" />
               <span className="text-gray-400 text-xs font-medium">Vercel</span>

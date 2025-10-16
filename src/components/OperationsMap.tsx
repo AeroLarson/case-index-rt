@@ -19,7 +19,7 @@ export default function OperationsMap() {
       name: 'Texas',
       status: 'planned',
       color: '#94a3b8',
-      description: 'Expansion planned for 2024',
+      description: 'Expansion planned for 2025',
       counties: []
     },
     {
@@ -27,7 +27,7 @@ export default function OperationsMap() {
       name: 'Florida',
       status: 'planned',
       color: '#94a3b8',
-      description: 'Expansion planned for 2024',
+      description: 'Expansion planned for 2025',
       counties: []
     },
     {
@@ -60,71 +60,112 @@ export default function OperationsMap() {
           <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 overflow-hidden">
             {/* Map Background */}
             <div className="relative w-full h-96 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl overflow-hidden">
-              {/* Simplified US Map with California Highlighted */}
+              {/* Proper US Map with State Outlines */}
               <svg 
-                viewBox="0 0 800 500" 
+                viewBox="0 0 1000 600" 
                 className="w-full h-full"
                 style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}
               >
-                {/* Background States (Gray) */}
-                <g opacity="0.3">
-                  {/* Texas */}
-                  <path 
-                    d="M200 300 L350 300 L350 400 L200 400 Z" 
-                    fill="#64748b" 
-                    className="hover:fill-slate-500 transition-colors cursor-pointer"
-                    onMouseEnter={() => setHoveredState('texas')}
-                    onMouseLeave={() => setHoveredState(null)}
-                  />
-                  {/* Florida */}
-                  <path 
-                    d="M500 350 L600 350 L600 450 L500 450 Z" 
-                    fill="#64748b" 
-                    className="hover:fill-slate-500 transition-colors cursor-pointer"
-                    onMouseEnter={() => setHoveredState('florida')}
-                    onMouseLeave={() => setHoveredState(null)}
-                  />
-                  {/* New York */}
-                  <path 
-                    d="M600 100 L700 100 L700 200 L600 200 Z" 
-                    fill="#64748b" 
-                    className="hover:fill-slate-500 transition-colors cursor-pointer"
-                    onMouseEnter={() => setHoveredState('new-york')}
-                    onMouseLeave={() => setHoveredState(null)}
-                  />
-                </g>
-                
-                {/* California - Highlighted and Active */}
+                {/* US Map with proper state shapes */}
                 <g>
+                  {/* California - Highlighted and Active */}
                   <path 
-                    d="M50 200 L300 200 L300 400 L50 400 Z" 
+                    d="M50 150 L200 120 L250 140 L280 180 L300 220 L320 280 L300 350 L280 400 L250 420 L200 400 L150 380 L100 350 L80 300 L70 250 L60 200 Z" 
                     fill="url(#californiaGradient)" 
                     stroke="#3b82f6"
-                    strokeWidth="3"
+                    strokeWidth="2"
                     className="vercel-glow cursor-pointer"
                     onMouseEnter={() => setHoveredState('california')}
                     onMouseLeave={() => setHoveredState(null)}
                   />
                   
-                  {/* California Label */}
-                  <text 
-                    x="175" 
-                    y="300" 
-                    textAnchor="middle" 
-                    className="fill-white text-lg font-bold"
-                    style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
-                  >
-                    CALIFORNIA
-                  </text>
-                  
-                  {/* Active Indicator */}
-                  <circle 
-                    cx="280" 
-                    cy="220" 
-                    r="6" 
-                    fill="#10b981"
+                  {/* Texas */}
+                  <path 
+                    d="M400 200 L550 180 L600 200 L650 250 L680 300 L700 350 L680 400 L650 420 L600 400 L550 380 L500 350 L450 300 L420 250 Z" 
+                    fill="#64748b" 
+                    fillOpacity="0.3"
+                    stroke="#64748b"
+                    strokeWidth="1"
+                    className="hover:fill-slate-500 transition-colors cursor-pointer"
+                    onMouseEnter={() => setHoveredState('texas')}
+                    onMouseLeave={() => setHoveredState(null)}
                   />
+                  
+                  {/* Florida */}
+                  <path 
+                    d="M700 300 L800 280 L850 300 L880 350 L850 400 L800 420 L750 400 L720 350 Z" 
+                    fill="#64748b" 
+                    fillOpacity="0.3"
+                    stroke="#64748b"
+                    strokeWidth="1"
+                    className="hover:fill-slate-500 transition-colors cursor-pointer"
+                    onMouseEnter={() => setHoveredState('florida')}
+                    onMouseLeave={() => setHoveredState(null)}
+                  />
+                  
+                  {/* New York */}
+                  <path 
+                    d="M750 100 L850 80 L900 100 L920 150 L900 200 L850 220 L800 200 L750 180 L720 150 Z" 
+                    fill="#64748b" 
+                    fillOpacity="0.3"
+                    stroke="#64748b"
+                    strokeWidth="1"
+                    className="hover:fill-slate-500 transition-colors cursor-pointer"
+                    onMouseEnter={() => setHoveredState('new-york')}
+                    onMouseLeave={() => setHoveredState(null)}
+                  />
+                  
+                  {/* Other major states (simplified) */}
+                  <path d="M300 100 L400 80 L450 100 L480 150 L450 200 L400 220 L350 200 L320 150 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
+                  <path d="M200 250 L300 230 L350 250 L380 300 L350 350 L300 370 L250 350 L220 300 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
+                  <path d="M500 100 L600 80 L650 100 L680 150 L650 200 L600 220 L550 200 L520 150 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
                 </g>
+                
+                {/* State Labels */}
+                <text 
+                  x="150" 
+                  y="280" 
+                  textAnchor="middle" 
+                  className="fill-white text-sm font-bold"
+                  style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
+                >
+                  CA
+                </text>
+                
+                <text 
+                  x="550" 
+                  y="300" 
+                  textAnchor="middle" 
+                  className="fill-gray-400 text-xs font-medium"
+                >
+                  TX
+                </text>
+                
+                <text 
+                  x="800" 
+                  y="350" 
+                  textAnchor="middle" 
+                  className="fill-gray-400 text-xs font-medium"
+                >
+                  FL
+                </text>
+                
+                <text 
+                  x="850" 
+                  y="150" 
+                  textAnchor="middle" 
+                  className="fill-gray-400 text-xs font-medium"
+                >
+                  NY
+                </text>
+                
+                {/* Active Indicator for California */}
+                <circle 
+                  cx="200" 
+                  cy="200" 
+                  r="4" 
+                  fill="#10b981"
+                />
                 
                 {/* Gradient Definition */}
                 <defs>
@@ -240,6 +281,32 @@ export default function OperationsMap() {
             <div className="text-gray-300 text-sm">Case Monitoring</div>
           </div>
         </div>
+        
+        {/* Contact Information */}
+        <div className="mt-6 pt-6 border-t border-blue-400/20">
+          <div className="text-center">
+            <h4 className="text-white text-lg font-semibold mb-3">Need Coverage in Your County?</h4>
+            <p className="text-gray-300 text-sm mb-4">
+              Contact us to discuss expanding our services to your area
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <a 
+                href="mailto:expansion@caseindexrt.com"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <i className="fa-solid fa-envelope"></i>
+                expansion@caseindexrt.com
+              </a>
+              <a 
+                href="tel:+1-555-CASE-RT"
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <i className="fa-solid fa-phone"></i>
+                (555) CASE-RT
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Expansion Timeline */}
@@ -254,7 +321,7 @@ export default function OperationsMap() {
               </div>
               <div className="flex-1">
                 <h4 className="text-white font-semibold">California Launch</h4>
-                <p className="text-gray-300 text-sm">Q4 2023 - Full coverage across all counties</p>
+                <p className="text-gray-300 text-sm">Full coverage across all counties</p>
               </div>
             </div>
             
@@ -264,7 +331,7 @@ export default function OperationsMap() {
               </div>
               <div className="flex-1">
                 <h4 className="text-white font-semibold">Texas & Florida Expansion</h4>
-                <p className="text-gray-300 text-sm">Q2 2024 - Major metropolitan areas</p>
+                <p className="text-gray-300 text-sm">Major metropolitan areas</p>
               </div>
             </div>
             
@@ -274,7 +341,7 @@ export default function OperationsMap() {
               </div>
               <div className="flex-1">
                 <h4 className="text-white font-semibold">Northeast Expansion</h4>
-                <p className="text-gray-300 text-sm">Q4 2024 - New York, New Jersey, Connecticut</p>
+                <p className="text-gray-300 text-sm">New York, New Jersey, Connecticut</p>
               </div>
             </div>
             
@@ -284,7 +351,7 @@ export default function OperationsMap() {
               </div>
               <div className="flex-1">
                 <h4 className="text-white font-semibold">National Coverage</h4>
-                <p className="text-gray-300 text-sm">2025 - All 50 states</p>
+                <p className="text-gray-300 text-sm">All 50 states</p>
               </div>
             </div>
           </div>

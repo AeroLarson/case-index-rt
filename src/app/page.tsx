@@ -770,7 +770,7 @@ export default function Home() {
           <p className="text-purple-300 text-lg mb-8">Join thousands of legal professionals tracking their cases</p>
           <button 
             onClick={handleGetStarted}
-            className="vercel-button-premium text-white px-8 py-4 rounded-lg font-semibold text-lg hover-lift btn-pulse"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-lg font-semibold text-lg hover-lift transition-all duration-200 shadow-lg"
           >
             Create Your Account
           </button>
