@@ -214,7 +214,7 @@ export default function Header() {
 
                    {/* Hero Content - Only show for non-authenticated users */}
                    {!user && (
-                     <div className="text-center mt-8">
+                     <div className="text-center mt-8 pb-12">
                        <h1 
                          id="title-dashboard" 
                          className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
