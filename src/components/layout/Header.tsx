@@ -190,7 +190,7 @@ export default function Header() {
             </div>
           )}
           {user ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ml-auto">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
@@ -249,7 +249,7 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center mt-8 px-4">
+          <div className="text-center mt-8 px-4 ml-8">
             <h1 
               id="title-dashboard" 
               className="text-white text-4xl font-bold leading-tight mb-4"
