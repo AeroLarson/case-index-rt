@@ -58,7 +58,7 @@ export default function Header() {
         <div className="particle" style={{ left: '90%', animationDelay: '3.5s' }}></div>
       </div>
       
-      <div className={`max-w-6xl mx-auto relative z-10 ${user ? 'lg:max-w-4xl lg:ml-0' : ''}`}>
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Navigation */}
         <div className={`flex items-center justify-between ${pathname === '/' ? 'mb-8' : 'mb-1'}`}>
           {/* Logo and Name - Top Left when not logged in */}
@@ -249,7 +249,7 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center mt-8">
+          <div className="text-center mt-8 px-4">
             <h1 
               id="title-dashboard" 
               className="text-white text-4xl font-bold leading-tight mb-4"
