@@ -1,7 +1,7 @@
 // Service Worker for Case Index RT
-const CACHE_NAME = 'case-index-rt-v2'
-const STATIC_CACHE = 'static-v2'
-const DYNAMIC_CACHE = 'dynamic-v2'
+const CACHE_NAME = 'case-index-rt-v3'
+const STATIC_CACHE = 'static-v3'
+const DYNAMIC_CACHE = 'dynamic-v3'
 
 // Files to cache for offline functionality
 const STATIC_FILES = [
@@ -22,16 +22,27 @@ self.addEventListener('install', (event) => {
   console.log('Service Worker installing...')
   
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
-        console.log('Caching static files')
-        return cache.addAll(STATIC_FILES)
-      })
-      .then(() => {
-        console.log('Static files cached successfully')
-        return self.skipWaiting()
-      })
-      .catch((error) => {
+    // Clear all old caches first
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            console.log('SW: Deleting old cache:', cacheName)
+            return caches.delete(cacheName)
+          }
+        })
+      )
+    }).then(() => {
+      // Now cache the new files
+      return caches.open(STATIC_CACHE)
+        .then((cache) => {
+          console.log('Caching static files')
+          return cache.addAll(STATIC_FILES)
+        })
+    }).then(() => {
+      console.log('Static files cached successfully')
+      return self.skipWaiting()
+    }).catch((error) => {
         console.error('Failed to cache static files:', error)
       })
   )
