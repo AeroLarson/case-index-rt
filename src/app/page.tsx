@@ -27,31 +27,32 @@ export default function Home() {
   console.log('Home page: User plan:', userProfile?.plan)
   console.log('Home page: Clio condition check:', userProfile && (userProfile.plan === 'pro' || userProfile.plan === 'team') && user)
   
-  if (user) {
-    // Check if user has any data
-    const hasData = userProfile && (
-      userProfile.savedCases.length > 0 || 
-      userProfile.recentSearches.length > 0 || 
-      userProfile.starredCases.length > 0
-    )
+  // Check if user has any data (moved outside conditional to avoid hook issues)
+  const hasData = user && userProfile && (
+    userProfile.savedCases.length > 0 || 
+    userProfile.recentSearches.length > 0 || 
+    userProfile.starredCases.length > 0
+  )
 
-    // Show empty state for new users
-    if (!hasData) {
-      return (
-        <main 
-          id="main-content" 
-          className="min-h-screen"
-          style={{
-            background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-            padding: '40px 24px'
-          }}
-        >
-          <div className="max-w-4xl mx-auto">
-            <EmptyState type="dashboard" />
-          </div>
-        </main>
-      )
-    }
+  // Show empty state for new users
+  if (user && !hasData) {
+    return (
+      <main 
+        id="main-content" 
+        className="min-h-screen"
+        style={{
+          background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
+          padding: '40px 24px'
+        }}
+      >
+        <div className="max-w-4xl mx-auto">
+          <EmptyState type="dashboard" />
+        </div>
+      </main>
+    )
+  }
+
+  if (user) {
 
     // Show populated dashboard for users with data
     return (
