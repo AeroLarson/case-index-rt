@@ -36,6 +36,7 @@ export default function CalendarPage() {
   const [view, setView] = useState<'month' | 'week' | 'day'>('month')
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [autoSyncEnabled, setAutoSyncEnabled] = useState(true)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
@@ -63,12 +64,10 @@ export default function CalendarPage() {
     setIsLoading(true)
     await new Promise(resolve => setTimeout(resolve, 500))
     
-    // Refresh the user profile to get latest data
-    refreshProfile()
-    
     // Load events from user profile's calendar events
     const userEvents: CalendarEvent[] = []
     
+    // Load events from user profile's calendar events
     if (userProfile?.calendarEvents) {
       userProfile.calendarEvents.forEach((calEvent) => {
         // Find the associated saved case for additional details
@@ -97,6 +96,14 @@ export default function CalendarPage() {
             lastActivity: new Date().toISOString().split('T')[0]
           } : undefined
         })
+      })
+    }
+
+    // Parse and add events from saved cases
+    if (userProfile?.savedCases) {
+      userProfile.savedCases.forEach((savedCase) => {
+        const caseEvents = parseCaseDates(savedCase)
+        userEvents.push(...caseEvents)
       })
     }
     
@@ -225,6 +232,109 @@ export default function CalendarPage() {
     return events.filter(event => event.source === 'county_api')
   }
 
+  const getEventsForDay = (date: Date) => {
+    const dateString = date.toISOString().split('T')[0]
+    return events.filter(event => event.date === dateString)
+  }
+
+  const handleDayClick = (date: Date) => {
+    setSelectedDay(date)
+    setSelectedEvent(null)
+  }
+
+  // Function to parse dates from case details and add to calendar
+  const parseCaseDates = (savedCase: any) => {
+    const events: CalendarEvent[] = []
+    
+    // Parse filing date
+    if (savedCase.dateFiled) {
+      events.push({
+        id: `filing_${savedCase.id}`,
+        title: `Case Filed: ${savedCase.caseTitle}`,
+        date: savedCase.dateFiled,
+        time: '09:00',
+        type: 'deadline',
+        caseNumber: savedCase.caseNumber,
+        location: savedCase.courtLocation,
+        description: `Case filed on ${savedCase.dateFiled}`,
+        duration: 60,
+        priority: 'medium',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: savedCase.courtLocation,
+          judge: savedCase.judicialOfficer,
+          department: savedCase.department,
+          caseType: savedCase.caseType,
+          filingDate: savedCase.dateFiled,
+          lastActivity: new Date().toISOString()
+        }
+      })
+    }
+
+    // Parse hearing dates from case details
+    if (savedCase.hearings && Array.isArray(savedCase.hearings)) {
+      savedCase.hearings.forEach((hearing: any, index: number) => {
+        if (hearing.date) {
+          events.push({
+            id: `hearing_${savedCase.id}_${index}`,
+            title: `Hearing: ${hearing.type || 'Court Hearing'}`,
+            date: hearing.date,
+            time: hearing.time || '10:00',
+            type: 'hearing',
+            caseNumber: savedCase.caseNumber,
+            location: hearing.location || savedCase.courtLocation,
+            description: hearing.description || `Court hearing for ${savedCase.caseTitle}`,
+            duration: hearing.duration || 60,
+            priority: hearing.priority || 'high',
+            status: 'scheduled',
+            source: 'county_api',
+            countyData: {
+              court: savedCase.courtLocation,
+              judge: hearing.judge || savedCase.judicialOfficer,
+              department: savedCase.department,
+              caseType: savedCase.caseType,
+              filingDate: savedCase.dateFiled,
+              lastActivity: new Date().toISOString()
+            }
+          })
+        }
+      })
+    }
+
+    // Parse deadline dates
+    if (savedCase.deadlines && Array.isArray(savedCase.deadlines)) {
+      savedCase.deadlines.forEach((deadline: any, index: number) => {
+        if (deadline.date) {
+          events.push({
+            id: `deadline_${savedCase.id}_${index}`,
+            title: `Deadline: ${deadline.type || 'Case Deadline'}`,
+            date: deadline.date,
+            time: '17:00',
+            type: 'deadline',
+            caseNumber: savedCase.caseNumber,
+            location: savedCase.courtLocation,
+            description: deadline.description || `Deadline for ${savedCase.caseTitle}`,
+            duration: 30,
+            priority: deadline.priority || 'urgent',
+            status: 'scheduled',
+            source: 'county_api',
+            countyData: {
+              court: savedCase.courtLocation,
+              judge: savedCase.judicialOfficer,
+              department: savedCase.department,
+              caseType: savedCase.caseType,
+              filingDate: savedCase.dateFiled,
+              lastActivity: new Date().toISOString()
+            }
+          })
+        }
+      })
+    }
+
+    return events
+  }
+
   // Calendar view render functions
   const renderMonthView = () => {
     const today = new Date()
@@ -266,11 +376,16 @@ export default function CalendarPage() {
           {days.map((day, index) => (
             <div
               key={index}
-              className={`min-h-[100px] p-2 rounded-lg border ${
+              className={`min-h-[100px] p-2 rounded-lg border cursor-pointer hover:bg-white/10 transition-colors ${
                 day.isCurrentMonth 
                   ? 'bg-white/5 border-white/10' 
                   : 'bg-white/2 border-white/5'
-              } ${day.isToday ? 'ring-2 ring-blue-500' : ''}`}
+              } ${day.isToday ? 'ring-2 ring-blue-500' : ''} ${
+                selectedDay && day.date.toDateString() === selectedDay.toDateString() 
+                  ? 'ring-2 ring-green-500 bg-green-500/10' 
+                  : ''
+              }`}
+              onClick={() => handleDayClick(day.date)}
             >
               <div className={`text-sm font-medium mb-1 ${
                 day.isCurrentMonth ? 'text-white' : 'text-gray-500'
@@ -752,6 +867,84 @@ export default function CalendarPage() {
               <div className="flex gap-3 mt-8">
                 <button 
                   onClick={() => setSelectedEvent(null)}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                >
+                  <i className="fa-solid fa-check mr-2"></i>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Selected Day Modal */}
+        {selectedDay && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="apple-card p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-start mb-6">
+                <h3 className="text-white text-2xl font-bold">
+                  Events for {selectedDay.toLocaleDateString()}
+                </h3>
+                <button
+                  onClick={() => setSelectedDay(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <i className="fa-solid fa-times text-xl"></i>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {getEventsForDay(selectedDay).length === 0 ? (
+                  <div className="text-center py-8">
+                    <i className="fa-solid fa-calendar-xmark text-gray-400 text-4xl mb-4"></i>
+                    <p className="text-gray-300">No events scheduled for this day</p>
+                  </div>
+                ) : (
+                  getEventsForDay(selectedDay).map((event) => (
+                    <div
+                      key={event.id}
+                      className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedEvent(event)
+                        setSelectedDay(null)
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-white font-semibold">{event.title}</h4>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          event.priority === 'urgent' ? 'bg-red-500/20 text-red-400' :
+                          event.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                          event.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-green-500/20 text-green-400'
+                        }`}>
+                          {event.priority}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-300">
+                        <div className="flex items-center gap-2">
+                          <i className="fa-solid fa-clock text-blue-400"></i>
+                          <span>{formatTime(event.time)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <i className="fa-solid fa-file text-blue-400"></i>
+                          <span>{event.caseNumber}</span>
+                        </div>
+                        {event.location && (
+                          <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-map-marker-alt text-blue-400"></i>
+                            <span>{event.location}</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-300 text-sm mt-2">{event.description}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button 
+                  onClick={() => setSelectedDay(null)}
                   className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
                 >
                   <i className="fa-solid fa-check mr-2"></i>
