@@ -11,6 +11,21 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Global rounded edges for all elements */
+button, input, select, textarea, .apple-card, .vercel-card, .vercel-card-premium {
+  border-radius: 12px !important;
+}
+
+/* Enhanced rounded edges for cards */
+.apple-card, .vercel-card, .vercel-card-premium {
+  border-radius: 16px !important;
+}
+
+/* Rounded edges for buttons */
+button {
+  border-radius: 10px !important;
+}
+
 /* Mobile optimizations */
 .scrollbar-hide {
   -ms-overflow-style: none;

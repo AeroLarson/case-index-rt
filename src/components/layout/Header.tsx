@@ -218,7 +218,8 @@ export default function Header() {
                      <div className="text-center mt-8">
                        <h1 
                          id="title-dashboard" 
-                         className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6 vercel-text-gradient"
+                         className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
+                         style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
                        >
                          Search California Court Cases<br className="hidden sm:block"/>
                          with AI-Powered Precision

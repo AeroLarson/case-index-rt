@@ -11,8 +11,8 @@ export default function OperationsMap() {
       name: 'California',
       status: 'active',
       color: '#667eea',
-      description: 'Currently serving all counties',
-      counties: ['San Diego', 'Los Angeles', 'Orange', 'Riverside', 'San Bernardino', 'Ventura', 'Imperial', 'Kern', 'Fresno', 'Sacramento']
+      description: 'Currently serving California',
+      counties: []
     },
     {
       id: 'texas',
@@ -54,149 +54,76 @@ export default function OperationsMap() {
 
       {/* Interactive Map Visualization */}
       <div className="relative mb-8">
-        {/* Actual Map Visualization */}
+        {/* Service Coverage States */}
         <div className="vercel-card p-8 mb-8">
-          <h3 className="text-white text-xl font-semibold mb-6 text-center">Service Coverage Map</h3>
-          <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 overflow-hidden">
-            {/* Map Background */}
-            <div className="relative w-full h-96 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl overflow-hidden">
-              {/* Real US Map with proper state shapes */}
-              <svg 
-                viewBox="0 0 1000 600" 
-                className="w-full h-full"
-                style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}
-              >
-                {/* US Map with realistic state shapes */}
-                <g>
-                  {/* California - Highlighted and Active */}
-                  <path 
-                    d="M50 180 L120 160 L180 170 L220 200 L250 250 L270 300 L280 350 L270 400 L250 430 L200 420 L150 400 L100 380 L70 350 L60 300 L55 250 L50 200 Z" 
-                    fill="url(#californiaGradient)" 
-                    stroke="#3b82f6"
-                    strokeWidth="2"
-                    className="vercel-glow cursor-pointer"
-                    onMouseEnter={() => setHoveredState('california')}
-                    onMouseLeave={() => setHoveredState(null)}
-                  />
-                  
-                  {/* Texas */}
-                  <path 
-                    d="M350 200 L450 180 L500 200 L550 250 L580 300 L600 350 L580 400 L550 420 L500 400 L450 380 L400 350 L370 300 L350 250 Z" 
-                    fill="#64748b" 
-                    fillOpacity="0.3"
-                    stroke="#64748b"
-                    strokeWidth="1"
-                    className="hover:fill-slate-500 transition-colors cursor-pointer"
-                    onMouseEnter={() => setHoveredState('texas')}
-                    onMouseLeave={() => setHoveredState(null)}
-                  />
-                  
-                  {/* Florida */}
-                  <path 
-                    d="M750 300 L850 280 L900 300 L920 350 L900 400 L850 420 L800 400 L770 350 Z" 
-                    fill="#64748b" 
-                    fillOpacity="0.3"
-                    stroke="#64748b"
-                    strokeWidth="1"
-                    className="hover:fill-slate-500 transition-colors cursor-pointer"
-                    onMouseEnter={() => setHoveredState('florida')}
-                    onMouseLeave={() => setHoveredState(null)}
-                  />
-                  
-                  {/* New York */}
-                  <path 
-                    d="M800 100 L900 80 L950 100 L970 150 L950 200 L900 220 L850 200 L820 150 Z" 
-                    fill="#64748b" 
-                    fillOpacity="0.3"
-                    stroke="#64748b"
-                    strokeWidth="1"
-                    className="hover:fill-slate-500 transition-colors cursor-pointer"
-                    onMouseEnter={() => setHoveredState('new-york')}
-                    onMouseLeave={() => setHoveredState(null)}
-                  />
-                  
-                  {/* Additional states for more realistic map */}
-                  <path d="M200 100 L300 80 L350 100 L380 150 L350 200 L300 220 L250 200 L220 150 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
-                  <path d="M300 250 L400 230 L450 250 L480 300 L450 350 L400 370 L350 350 L320 300 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
-                  <path d="M500 100 L600 80 L650 100 L680 150 L650 200 L600 220 L550 200 L520 150 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
-                  <path d="M600 200 L700 180 L750 200 L780 250 L750 300 L700 320 L650 300 L620 250 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
-                  <path d="M400 400 L500 380 L550 400 L580 450 L550 500 L500 520 L450 500 L420 450 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
-                  <path d="M200 300 L300 280 L350 300 L380 350 L350 400 L300 420 L250 400 L220 350 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
-                </g>
-                
-                {/* State Labels */}
-                <text 
-                  x="150" 
-                  y="280" 
-                  textAnchor="middle" 
-                  className="fill-white text-sm font-bold"
-                  style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
-                >
-                  CA
-                </text>
-                
-                <text 
-                  x="500" 
-                  y="300" 
-                  textAnchor="middle" 
-                  className="fill-gray-400 text-xs font-medium"
-                >
-                  TX
-                </text>
-                
-                <text 
-                  x="850" 
-                  y="350" 
-                  textAnchor="middle" 
-                  className="fill-gray-400 text-xs font-medium"
-                >
-                  FL
-                </text>
-                
-                <text 
-                  x="900" 
-                  y="150" 
-                  textAnchor="middle" 
-                  className="fill-gray-400 text-xs font-medium"
-                >
-                  NY
-                </text>
-                
-                {/* Active Indicator for California */}
-                <circle 
-                  cx="200" 
-                  cy="250" 
-                  r="4" 
-                  fill="#10b981"
-                />
-                
-                {/* Gradient Definition */}
-                <defs>
-                  <linearGradient id="californiaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8"/>
-                    <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.6"/>
-                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.8"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              
-              {/* Map Legend */}
-              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                    <span className="text-white text-sm font-medium">Active Service</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
-                    <span className="text-gray-300 text-sm">Planned Expansion</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-white text-sm font-medium">58 Counties Covered</div>
-                  <div className="text-gray-300 text-xs">100% Family Law</div>
-                </div>
+          <h3 className="text-white text-xl font-semibold mb-6 text-center">Service Coverage</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* California - Active */}
+            <div 
+              className="vercel-card-premium p-6 text-center cursor-pointer hover:scale-105 transition-transform"
+              onMouseEnter={() => setHoveredState('california')}
+              onMouseLeave={() => setHoveredState(null)}
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 vercel-glow">
+                <span className="text-white text-2xl font-bold">CA</span>
               </div>
+              <h4 className="text-white font-semibold text-lg mb-2">California</h4>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-green-400 text-sm font-medium">Active</span>
+              </div>
+              <p className="text-gray-300 text-sm">Currently serving</p>
+            </div>
+
+            {/* Texas - Planned */}
+            <div 
+              className="vercel-card p-6 text-center cursor-pointer hover:scale-105 transition-transform"
+              onMouseEnter={() => setHoveredState('texas')}
+              onMouseLeave={() => setHoveredState(null)}
+            >
+              <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl font-bold">TX</span>
+              </div>
+              <h4 className="text-white font-semibold text-lg mb-2">Texas</h4>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-gray-400 text-sm font-medium">Planned</span>
+              </div>
+              <p className="text-gray-300 text-sm">Coming soon</p>
+            </div>
+
+            {/* Florida - Planned */}
+            <div 
+              className="vercel-card p-6 text-center cursor-pointer hover:scale-105 transition-transform"
+              onMouseEnter={() => setHoveredState('florida')}
+              onMouseLeave={() => setHoveredState(null)}
+            >
+              <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl font-bold">FL</span>
+              </div>
+              <h4 className="text-white font-semibold text-lg mb-2">Florida</h4>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-gray-400 text-sm font-medium">Planned</span>
+              </div>
+              <p className="text-gray-300 text-sm">Coming soon</p>
+            </div>
+
+            {/* New York - Planned */}
+            <div 
+              className="vercel-card p-6 text-center cursor-pointer hover:scale-105 transition-transform"
+              onMouseEnter={() => setHoveredState('new-york')}
+              onMouseLeave={() => setHoveredState(null)}
+            >
+              <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl font-bold">NY</span>
+              </div>
+              <h4 className="text-white font-semibold text-lg mb-2">New York</h4>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-gray-400 text-sm font-medium">Planned</span>
+              </div>
+              <p className="text-gray-300 text-sm">Coming soon</p>
             </div>
           </div>
         </div>
