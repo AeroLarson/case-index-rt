@@ -196,6 +196,73 @@ export default function CalendarPage() {
           filingDate: '2025-01-10',
           lastActivity: '2025-01-15'
         }
+      },
+      // Add events for October 16, 2025
+      {
+        id: 'test_october_aero_hearing',
+        title: 'Hearing: Motion to Modify Custody',
+        date: '2025-10-16',
+        time: '09:00',
+        type: 'hearing',
+        caseNumber: 'FL-2024-001234',
+        location: 'San Diego Superior Court - Central, Room 201',
+        description: 'Motion hearing for custody modification',
+        duration: 90,
+        priority: 'high',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: 'San Diego Superior Court',
+          judge: 'Hon. Rebecca Kanter',
+          department: 'Department 602',
+          caseType: 'Family Law',
+          filingDate: '2025-01-05',
+          lastActivity: '2025-01-20'
+        }
+      },
+      {
+        id: 'test_october_john_hearing',
+        title: 'Hearing: Motion to Suppress Evidence',
+        date: '2025-10-16',
+        time: '14:00',
+        type: 'hearing',
+        caseNumber: 'FL-2024-005678',
+        location: 'San Diego Superior Court - Central, Department 703',
+        description: 'Motion to suppress evidence hearing',
+        duration: 120,
+        priority: 'urgent',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: 'San Diego Superior Court',
+          judge: 'Hon. Michael Rodriguez',
+          department: 'Department 703',
+          caseType: 'Criminal',
+          filingDate: '2025-01-10',
+          lastActivity: '2025-01-15'
+        }
+      },
+      {
+        id: 'test_october_deadline',
+        title: 'Deadline: Response to Discovery',
+        date: '2025-10-16',
+        time: '17:00',
+        type: 'deadline',
+        caseNumber: 'FL-2024-001234',
+        location: 'San Diego Superior Court - Central',
+        description: 'Deadline to respond to discovery requests',
+        duration: 30,
+        priority: 'urgent',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: 'San Diego Superior Court',
+          judge: 'Hon. Rebecca Kanter',
+          department: 'Department 602',
+          caseType: 'Family Law',
+          filingDate: '2025-01-05',
+          lastActivity: '2025-01-20'
+        }
       }
     ]
     
