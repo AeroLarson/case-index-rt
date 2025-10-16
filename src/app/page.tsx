@@ -766,7 +766,7 @@ export default function Home() {
       {/* CTA Section */}
       <div className="py-12 px-6">
         <div className="max-w-4xl mx-auto text-center fade-in-up">
-          <h2 className="text-white text-3xl font-bold mb-4 vercel-text-gradient">Ready to Get Started?</h2>
+          <h2 className="text-white text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-purple-300 text-lg mb-8">Join thousands of legal professionals tracking their cases</p>
           <button 
             onClick={handleGetStarted}
