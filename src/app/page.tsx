@@ -5,6 +5,7 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
 import ClientOnly from '@/components/ClientOnly'
 import EmptyState from '@/components/EmptyState'
+import OperationsMap from '@/components/OperationsMap'
 import { useState } from 'react'
 
 export default function Home() {
@@ -29,9 +30,9 @@ export default function Home() {
   
   // Check if user has any data (moved outside conditional to avoid hook issues)
   const hasData = user && userProfile && (
-    userProfile.savedCases.length > 0 || 
-    userProfile.recentSearches.length > 0 || 
-    userProfile.starredCases.length > 0
+    (userProfile.savedCases?.length || 0) > 0 || 
+    (userProfile.recentSearches?.length || 0) > 0 || 
+    (userProfile.starredCases?.length || 0) > 0
   )
 
   // Show empty state for new users
@@ -208,9 +209,9 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="apple-card p-8">
               <h3 className="text-white text-xl font-semibold mb-6">Recent Searches</h3>
-              {userProfile?.recentSearches.length > 0 ? (
+              {(userProfile?.recentSearches?.length || 0) > 0 ? (
                 <div className="space-y-4">
-                  {userProfile.recentSearches.slice(0, 3).map((search) => (
+                  {userProfile?.recentSearches?.slice(0, 3).map((search) => (
                     <div 
                       key={search.id} 
                       onClick={() => router.push(`/search?q=${encodeURIComponent(search.query)}`)}
@@ -232,9 +233,9 @@ export default function Home() {
 
             <div className="apple-card p-8">
               <h3 className="text-white text-xl font-semibold mb-6">Saved Cases</h3>
-              {userProfile?.savedCases.length > 0 ? (
+              {(userProfile?.savedCases?.length || 0) > 0 ? (
                 <div className="space-y-4">
-                  {userProfile.savedCases.slice(0, 3).map((case_) => (
+                  {userProfile?.savedCases?.slice(0, 3).map((case_) => (
                     <div 
                       key={case_.id} 
                       onClick={() => handleCaseClick(case_)}
@@ -705,64 +706,71 @@ export default function Home() {
       <div id="features" className="py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8 fade-in-up">
-            <h2 className="text-white text-3xl font-bold mb-4">Powerful Features</h2>
+            <h2 className="text-white text-3xl font-bold mb-4 vercel-text-gradient">Powerful Features</h2>
             <p className="text-purple-300 text-lg">Everything you need to manage your legal cases</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center apple-card p-8 hover-lift fade-in-left stagger-1">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-left stagger-1">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-database text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Live County Data</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Live County Data</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Direct access to California court records, automatically synced and updated in real-time</p>
             </div>
-            <div className="text-center apple-card p-8 hover-lift fade-in-up stagger-2">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-up stagger-2">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-robot text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">AI-Powered Insights</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">AI-Powered Insights</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Smart case summaries, risk analysis, and strategic recommendations</p>
             </div>
-            <div className="text-center apple-card p-8 hover-lift fade-in-right stagger-3">
-              <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-right stagger-3">
+              <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-link text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Easy Clio Integration</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Easy Clio Integration</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Seamlessly sync cases, calendars, and contacts with your Clio account</p>
             </div>
-            <div className="text-center apple-card p-8 hover-lift fade-in-left stagger-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-left stagger-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-calendar-check text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Smart Calendar</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Smart Calendar</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Automated hearing tracking with reminders and virtual meeting links</p>
             </div>
-            <div className="text-center apple-card p-8 hover-lift fade-in-up stagger-5">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-up stagger-5">
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-bell text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Real-Time Updates</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Real-Time Updates</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Instant notifications when new filings, motions, or orders are added</p>
             </div>
-            <div className="text-center apple-card p-8 hover-lift fade-in-right stagger-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-right stagger-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-chart-line text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Analytics Dashboard</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Analytics Dashboard</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Comprehensive insights into your case management activity and trends</p>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Operations Map Section */}
+      <div className="py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <OperationsMap />
+        </div>
+      </div>
+
       {/* CTA Section */}
       <div className="py-12 px-6">
         <div className="max-w-4xl mx-auto text-center fade-in-up">
-          <h2 className="text-white text-3xl font-bold mb-4">Ready to Get Started?</h2>
+          <h2 className="text-white text-3xl font-bold mb-4 vercel-text-gradient">Ready to Get Started?</h2>
           <p className="text-purple-300 text-lg mb-8">Join thousands of legal professionals tracking their cases</p>
           <button 
             onClick={handleGetStarted}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 hover-lift btn-pulse"
+            className="vercel-button-premium text-white px-8 py-4 rounded-lg font-semibold text-lg hover-lift btn-pulse"
           >
             Create Your Account
           </button>

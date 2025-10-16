@@ -27,11 +27,12 @@ export default function Header() {
       id="header-dashboard" 
       className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
       style={{
-        background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
+        background: 'linear-gradient(135deg, #0f0520 0%, #1a0b2e 25%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
         padding: user 
           ? (pathname === '/' ? '10px 16px 40px' : '10px 16px 10px') // Mobile-friendly padding
           : '10px 16px 80px', // Mobile-friendly padding
       }}
+      className="vercel-blur"
     >
       {/* Background Effects */}
       <div 
@@ -40,6 +41,22 @@ export default function Header() {
           background: 'radial-gradient(circle at 20% 50%,rgba(139,92,246,0.3) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(168,85,247,0.2) 0%,transparent 50%)'
         }}
       />
+      
+      {/* Vercel-inspired animated background */}
+      <div className="absolute inset-0 pointer-events-none vercel-gradient-subtle opacity-30" />
+      
+      {/* Floating particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="particle" style={{ left: '10%', animationDelay: '0s' }}></div>
+        <div className="particle" style={{ left: '20%', animationDelay: '1s' }}></div>
+        <div className="particle" style={{ left: '30%', animationDelay: '2s' }}></div>
+        <div className="particle" style={{ left: '40%', animationDelay: '3s' }}></div>
+        <div className="particle" style={{ left: '50%', animationDelay: '4s' }}></div>
+        <div className="particle" style={{ left: '60%', animationDelay: '5s' }}></div>
+        <div className="particle" style={{ left: '70%', animationDelay: '1.5s' }}></div>
+        <div className="particle" style={{ left: '80%', animationDelay: '2.5s' }}></div>
+        <div className="particle" style={{ left: '90%', animationDelay: '3.5s' }}></div>
+      </div>
       
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Navigation */}
@@ -201,7 +218,7 @@ export default function Header() {
                      <div className="text-center mt-8">
                        <h1 
                          id="title-dashboard" 
-                         className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
+                         className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6 vercel-text-gradient"
                        >
                          Search California Court Cases<br className="hidden sm:block"/>
                          with AI-Powered Precision
@@ -212,13 +229,13 @@ export default function Header() {
                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
                          <button 
                            onClick={() => router.push('/login')}
-                           className="bg-purple-400 text-white border-none px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-purple-500 transition-colors hover-lift btn-pulse"
+                           className="vercel-button text-white border-none px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover-lift btn-pulse"
                          >
                            Get Started
                          </button>
                          <button 
                            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                           className="bg-transparent text-white border-2 border-purple-400 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-purple-400/10 transition-colors hover-lift hover-glow"
+                           className="bg-transparent text-white border-2 border-white/20 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-white/10 transition-all duration-300 hover-lift vercel-glow"
                          >
                            Learn More
                          </button>
