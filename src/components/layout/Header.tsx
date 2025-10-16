@@ -5,12 +5,17 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 export default function Header() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleSignIn = () => {
+    router.push('/login')
+  }
+
+  const handleLogout = () => {
+    logout()
     router.push('/login')
   }
 
@@ -66,8 +71,25 @@ export default function Header() {
             </div>
           )}
           
-          {/* Empty div for spacing when user is logged in */}
-          {user && <div></div>}
+          {/* User info and logout - Top Right when logged in */}
+          {user && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-white text-sm font-medium">{user.name}</span>
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white border-none px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          )}
 
           {/* Desktop Navigation - Centered when not logged in */}
           {!user && (
@@ -236,7 +258,7 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center mt-8 px-4 ml-48">
+          <div className="text-center mt-8 px-4">
             <h1 
               id="title-dashboard" 
               className="text-white text-4xl font-bold leading-tight mb-4"
