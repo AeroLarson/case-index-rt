@@ -15,33 +15,39 @@ export default function Footer() {
       }}
     >
       <div className="max-w-6xl mx-auto">
-        {/* Trusted By Section */}
+        {/* Built With & Powered By Section */}
         <div className="text-center mb-8">
-          <p className="text-gray-400 text-sm mb-4">Trusted by Professionals and Teams</p>
-          <div className="flex justify-center items-center gap-4 sm:gap-6 lg:gap-12 flex-wrap opacity-60">
-            <div className="flex items-center gap-2">
-              <i className="fa-solid fa-gavel text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Clio</span>
+          <div className="mb-6">
+            <p className="text-gray-400 text-sm mb-4">Built with</p>
+            <div className="flex justify-center items-center gap-4 sm:gap-6 lg:gap-8 flex-wrap opacity-70">
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-gavel text-blue-400 text-lg sm:text-xl" />
+                <span className="text-gray-300 text-xs sm:text-sm font-medium">Clio</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <i className="fa-brands fa-google text-red-400 text-lg sm:text-xl" />
+                <span className="text-gray-300 text-xs sm:text-sm font-medium">Google Calendar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <i className="fa-brands fa-stripe text-purple-400 text-lg sm:text-xl" />
+                <span className="text-gray-300 text-xs sm:text-sm font-medium">Stripe</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <i className="fa-brands fa-microsoft text-blue-500 text-lg sm:text-xl" />
+                <span className="text-gray-300 text-xs sm:text-sm font-medium">Microsoft Calendar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-robot text-green-400 text-lg sm:text-xl" />
+                <span className="text-gray-300 text-xs sm:text-sm font-medium">AI Integration</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <i className="fa-brands fa-google text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Google Calendar</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <i className="fa-brands fa-stripe text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Stripe</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <i className="fa-brands fa-microsoft text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Microsoft Calendar</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <i className="fa-solid fa-robot text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">AI Integration</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <i className="fa-solid fa-cloud text-gray-400 text-lg sm:text-xl" />
-              <span className="text-gray-400 text-xs sm:text-sm font-medium">Vercel</span>
+          </div>
+          
+          <div className="pt-4 border-t border-gray-700/30">
+            <p className="text-gray-500 text-xs mb-3">Powered by</p>
+            <div className="flex justify-center items-center gap-2 opacity-60">
+              <i className="fa-solid fa-cloud text-gray-400 text-lg" />
+              <span className="text-gray-400 text-xs font-medium">Vercel</span>
             </div>
           </div>
         </div>
