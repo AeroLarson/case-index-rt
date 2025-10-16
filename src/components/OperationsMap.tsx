@@ -54,6 +54,117 @@ export default function OperationsMap() {
 
       {/* Interactive Map Visualization */}
       <div className="relative mb-8">
+        {/* Actual Map Visualization */}
+        <div className="vercel-card p-8 mb-8">
+          <h3 className="text-white text-xl font-semibold mb-6 text-center">Service Coverage Map</h3>
+          <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 overflow-hidden">
+            {/* Map Background */}
+            <div className="relative w-full h-96 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl overflow-hidden">
+              {/* Simplified US Map with California Highlighted */}
+              <svg 
+                viewBox="0 0 800 500" 
+                className="w-full h-full"
+                style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}
+              >
+                {/* Background States (Gray) */}
+                <g opacity="0.3">
+                  {/* Texas */}
+                  <path 
+                    d="M200 300 L350 300 L350 400 L200 400 Z" 
+                    fill="#64748b" 
+                    className="hover:fill-slate-500 transition-colors cursor-pointer"
+                    onMouseEnter={() => setHoveredState('texas')}
+                    onMouseLeave={() => setHoveredState(null)}
+                  />
+                  {/* Florida */}
+                  <path 
+                    d="M500 350 L600 350 L600 450 L500 450 Z" 
+                    fill="#64748b" 
+                    className="hover:fill-slate-500 transition-colors cursor-pointer"
+                    onMouseEnter={() => setHoveredState('florida')}
+                    onMouseLeave={() => setHoveredState(null)}
+                  />
+                  {/* New York */}
+                  <path 
+                    d="M600 100 L700 100 L700 200 L600 200 Z" 
+                    fill="#64748b" 
+                    className="hover:fill-slate-500 transition-colors cursor-pointer"
+                    onMouseEnter={() => setHoveredState('new-york')}
+                    onMouseLeave={() => setHoveredState(null)}
+                  />
+                </g>
+                
+                {/* California - Highlighted and Active */}
+                <g>
+                  <path 
+                    d="M50 200 L300 200 L300 400 L50 400 Z" 
+                    fill="url(#californiaGradient)" 
+                    stroke="#3b82f6"
+                    strokeWidth="3"
+                    className="vercel-glow cursor-pointer animate-pulse"
+                    onMouseEnter={() => setHoveredState('california')}
+                    onMouseLeave={() => setHoveredState(null)}
+                  />
+                  
+                  {/* California Label */}
+                  <text 
+                    x="175" 
+                    y="300" 
+                    textAnchor="middle" 
+                    className="fill-white text-lg font-bold"
+                    style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
+                  >
+                    CALIFORNIA
+                  </text>
+                  
+                  {/* Active Indicator */}
+                  <circle 
+                    cx="280" 
+                    cy="220" 
+                    r="8" 
+                    fill="#10b981"
+                    className="animate-ping"
+                  />
+                  <circle 
+                    cx="280" 
+                    cy="220" 
+                    r="4" 
+                    fill="#10b981"
+                  />
+                </g>
+                
+                {/* Gradient Definition */}
+                <defs>
+                  <linearGradient id="californiaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8"/>
+                    <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.6"/>
+                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.8"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              
+              {/* Map Legend */}
+              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-white text-sm font-medium">Active Service</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
+                    <span className="text-gray-300 text-sm">Planned Expansion</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-white text-sm font-medium">58 Counties Covered</div>
+                  <div className="text-gray-300 text-xs">100% Family Law</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* State Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {states.map((state) => (
             <div
