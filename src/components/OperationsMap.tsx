@@ -101,7 +101,7 @@ export default function OperationsMap() {
                     fill="url(#californiaGradient)" 
                     stroke="#3b82f6"
                     strokeWidth="3"
-                    className="vercel-glow cursor-pointer animate-pulse"
+                    className="vercel-glow cursor-pointer"
                     onMouseEnter={() => setHoveredState('california')}
                     onMouseLeave={() => setHoveredState(null)}
                   />
@@ -121,14 +121,7 @@ export default function OperationsMap() {
                   <circle 
                     cx="280" 
                     cy="220" 
-                    r="8" 
-                    fill="#10b981"
-                    className="animate-ping"
-                  />
-                  <circle 
-                    cx="280" 
-                    cy="220" 
-                    r="4" 
+                    r="6" 
                     fill="#10b981"
                   />
                 </g>
@@ -147,7 +140,7 @@ export default function OperationsMap() {
               <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
                     <span className="text-white text-sm font-medium">Active Service</span>
                   </div>
                   <div className="flex items-center gap-2">
