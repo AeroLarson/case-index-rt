@@ -706,7 +706,7 @@ export default function Home() {
       <div id="features" className="py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8 fade-in-up">
-            <h2 className="text-white text-3xl font-bold mb-4 vercel-text-gradient">Powerful Features</h2>
+            <h2 className="text-white text-3xl font-bold mb-4">Powerful Features</h2>
             <p className="text-purple-300 text-lg">Everything you need to manage your legal cases</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -714,28 +714,28 @@ export default function Home() {
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-database text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Live County Data</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Live County Data</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Direct access to California court records, automatically synced and updated in real-time</p>
             </div>
             <div className="text-center vercel-card-premium p-8 hover-lift fade-in-up stagger-2">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-robot text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">AI-Powered Insights</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">AI-Powered Insights</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Smart case summaries, risk analysis, and strategic recommendations</p>
             </div>
             <div className="text-center vercel-card-premium p-8 hover-lift fade-in-right stagger-3">
               <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-link text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Easy Clio Integration</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Easy Clio Integration</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Seamlessly sync cases, calendars, and contacts with your Clio account</p>
             </div>
             <div className="text-center vercel-card-premium p-8 hover-lift fade-in-left stagger-4">
               <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-calendar-check text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Smart Calendar</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Smart Calendar</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Automated hearing tracking with reminders and virtual meeting links</p>
             </div>
             <div className="text-center vercel-card-premium p-8 hover-lift fade-in-up stagger-5">

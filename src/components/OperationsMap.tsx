@@ -19,7 +19,7 @@ export default function OperationsMap() {
       name: 'Texas',
       status: 'planned',
       color: '#94a3b8',
-      description: 'Expansion planned for 2025',
+      description: 'Coming soon',
       counties: []
     },
     {
@@ -27,7 +27,7 @@ export default function OperationsMap() {
       name: 'Florida',
       status: 'planned',
       color: '#94a3b8',
-      description: 'Expansion planned for 2025',
+      description: 'Coming soon',
       counties: []
     },
     {
@@ -35,7 +35,7 @@ export default function OperationsMap() {
       name: 'New York',
       status: 'planned',
       color: '#94a3b8',
-      description: 'Expansion planned for 2025',
+      description: 'Coming soon',
       counties: []
     }
   ]
@@ -60,17 +60,17 @@ export default function OperationsMap() {
           <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 overflow-hidden">
             {/* Map Background */}
             <div className="relative w-full h-96 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl overflow-hidden">
-              {/* Proper US Map with State Outlines */}
+              {/* Real US Map with proper state shapes */}
               <svg 
                 viewBox="0 0 1000 600" 
                 className="w-full h-full"
                 style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}
               >
-                {/* US Map with proper state shapes */}
+                {/* US Map with realistic state shapes */}
                 <g>
                   {/* California - Highlighted and Active */}
                   <path 
-                    d="M50 150 L200 120 L250 140 L280 180 L300 220 L320 280 L300 350 L280 400 L250 420 L200 400 L150 380 L100 350 L80 300 L70 250 L60 200 Z" 
+                    d="M50 180 L120 160 L180 170 L220 200 L250 250 L270 300 L280 350 L270 400 L250 430 L200 420 L150 400 L100 380 L70 350 L60 300 L55 250 L50 200 Z" 
                     fill="url(#californiaGradient)" 
                     stroke="#3b82f6"
                     strokeWidth="2"
@@ -81,7 +81,7 @@ export default function OperationsMap() {
                   
                   {/* Texas */}
                   <path 
-                    d="M400 200 L550 180 L600 200 L650 250 L680 300 L700 350 L680 400 L650 420 L600 400 L550 380 L500 350 L450 300 L420 250 Z" 
+                    d="M350 200 L450 180 L500 200 L550 250 L580 300 L600 350 L580 400 L550 420 L500 400 L450 380 L400 350 L370 300 L350 250 Z" 
                     fill="#64748b" 
                     fillOpacity="0.3"
                     stroke="#64748b"
@@ -93,7 +93,7 @@ export default function OperationsMap() {
                   
                   {/* Florida */}
                   <path 
-                    d="M700 300 L800 280 L850 300 L880 350 L850 400 L800 420 L750 400 L720 350 Z" 
+                    d="M750 300 L850 280 L900 300 L920 350 L900 400 L850 420 L800 400 L770 350 Z" 
                     fill="#64748b" 
                     fillOpacity="0.3"
                     stroke="#64748b"
@@ -105,7 +105,7 @@ export default function OperationsMap() {
                   
                   {/* New York */}
                   <path 
-                    d="M750 100 L850 80 L900 100 L920 150 L900 200 L850 220 L800 200 L750 180 L720 150 Z" 
+                    d="M800 100 L900 80 L950 100 L970 150 L950 200 L900 220 L850 200 L820 150 Z" 
                     fill="#64748b" 
                     fillOpacity="0.3"
                     stroke="#64748b"
@@ -115,10 +115,13 @@ export default function OperationsMap() {
                     onMouseLeave={() => setHoveredState(null)}
                   />
                   
-                  {/* Other major states (simplified) */}
-                  <path d="M300 100 L400 80 L450 100 L480 150 L450 200 L400 220 L350 200 L320 150 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
-                  <path d="M200 250 L300 230 L350 250 L380 300 L350 350 L300 370 L250 350 L220 300 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
+                  {/* Additional states for more realistic map */}
+                  <path d="M200 100 L300 80 L350 100 L380 150 L350 200 L300 220 L250 200 L220 150 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
+                  <path d="M300 250 L400 230 L450 250 L480 300 L450 350 L400 370 L350 350 L320 300 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
                   <path d="M500 100 L600 80 L650 100 L680 150 L650 200 L600 220 L550 200 L520 150 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
+                  <path d="M600 200 L700 180 L750 200 L780 250 L750 300 L700 320 L650 300 L620 250 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
+                  <path d="M400 400 L500 380 L550 400 L580 450 L550 500 L500 520 L450 500 L420 450 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
+                  <path d="M200 300 L300 280 L350 300 L380 350 L350 400 L300 420 L250 400 L220 350 Z" fill="#64748b" fillOpacity="0.2" stroke="#64748b" strokeWidth="0.5" />
                 </g>
                 
                 {/* State Labels */}
@@ -133,7 +136,7 @@ export default function OperationsMap() {
                 </text>
                 
                 <text 
-                  x="550" 
+                  x="500" 
                   y="300" 
                   textAnchor="middle" 
                   className="fill-gray-400 text-xs font-medium"
@@ -142,7 +145,7 @@ export default function OperationsMap() {
                 </text>
                 
                 <text 
-                  x="800" 
+                  x="850" 
                   y="350" 
                   textAnchor="middle" 
                   className="fill-gray-400 text-xs font-medium"
@@ -151,7 +154,7 @@ export default function OperationsMap() {
                 </text>
                 
                 <text 
-                  x="850" 
+                  x="900" 
                   y="150" 
                   textAnchor="middle" 
                   className="fill-gray-400 text-xs font-medium"
@@ -162,7 +165,7 @@ export default function OperationsMap() {
                 {/* Active Indicator for California */}
                 <circle 
                   cx="200" 
-                  cy="200" 
+                  cy="250" 
                   r="4" 
                   fill="#10b981"
                 />
@@ -267,20 +270,6 @@ export default function OperationsMap() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-2">58</div>
-            <div className="text-gray-300 text-sm">Counties Covered</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-2">100%</div>
-            <div className="text-gray-300 text-sm">Family Law Coverage</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-2">24/7</div>
-            <div className="text-gray-300 text-sm">Case Monitoring</div>
-          </div>
-        </div>
         
         {/* Contact Information */}
         <div className="mt-6 pt-6 border-t border-blue-400/20">
