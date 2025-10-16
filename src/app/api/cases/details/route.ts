@@ -19,11 +19,88 @@ export async function POST(request: NextRequest) {
 
     // TODO: Integrate with actual San Diego County Court API
     
-    // Only return details for the specific test case
+    // Only return details for specific test cases
     const cleanCaseNumber = caseNumber.trim().toUpperCase()
-    if (cleanCaseNumber === 'FL-2024-001234' || cleanCaseNumber === 'FL2024001234') {
-      const caseDetails = {
-        caseNumber: 'FL-2024-001234',
+    if (cleanCaseNumber === 'FL-2024-001234' || cleanCaseNumber === 'FL2024001234' || 
+        cleanCaseNumber === 'FL-2024-005678' || cleanCaseNumber === 'FL2024005678') {
+      
+      let caseDetails
+      
+      if (cleanCaseNumber === 'FL-2024-005678' || cleanCaseNumber === 'FL2024005678') {
+        // John Doe case details
+        caseDetails = {
+          caseNumber: 'FL-2024-005678',
+          title: 'People v. John Doe - Criminal Case',
+          court: 'San Diego Superior Court - Central (Department 703)',
+          judge: 'Hon. Michael Rodriguez',
+          status: 'Active - Pre-Trial Proceedings',
+          lastActivity: 'December 3, 2024',
+          parties: {
+            plaintiff: 'People of the State of California (Prosecution)',
+            defendant: 'John Doe (Defendant)'
+          },
+          documents: 15,
+          hearings: 4,
+          isDetailed: true,
+          detailedInfo: {
+            caseNumber: 'FL-2024-005678',
+            title: 'People v. John Doe - Criminal Case',
+            court: 'San Diego Superior Court - Central (Department 703)',
+            judge: 'Hon. Michael Rodriguez',
+            status: 'Active - Pre-Trial Proceedings',
+            lastActivity: 'December 3, 2024',
+            parties: {
+              plaintiff: 'People of the State of California (Prosecution)',
+              defendant: 'John Doe (Defendant)'
+            },
+            caseHistory: [
+              {
+                date: '2024-08-22',
+                event: 'Case Filed',
+                description: 'Criminal complaint filed against John Doe'
+              },
+              {
+                date: '2024-09-15',
+                event: 'Arraignment',
+                description: 'Defendant arraigned, plea entered'
+              },
+              {
+                date: '2024-10-10',
+                event: 'Pre-Trial Conference',
+                description: 'Pre-trial conference scheduled'
+              },
+              {
+                date: '2024-12-03',
+                event: 'Motion Hearing',
+                description: 'Motion to suppress evidence hearing'
+              }
+            ],
+            upcomingEvents: [
+              {
+                date: '2024-12-20',
+                time: '09:00 AM',
+                event: 'Pre-Trial Conference',
+                location: 'Department 703, San Diego Superior Court'
+              },
+              {
+                date: '2025-01-15',
+                time: '10:00 AM',
+                event: 'Trial Setting Conference',
+                location: 'Department 703, San Diego Superior Court'
+              }
+            ],
+            documents: [
+              { name: 'Criminal Complaint', date: '2024-08-22', type: 'Filing' },
+              { name: 'Arraignment Minutes', date: '2024-09-15', type: 'Court Document' },
+              { name: 'Motion to Suppress', date: '2024-11-20', type: 'Motion' },
+              { name: 'Prosecution Response', date: '2024-11-25', type: 'Response' }
+            ]
+          }
+        }
+      } else {
+        // Aero Larson case details
+        caseDetails = {
+          caseNumber: 'FL-2024-001234',
         title: 'Larson v. Test Defendant - Dissolution with Minor Children',
         court: 'San Diego Superior Court - Central (Department 602)',
         judge: 'Hon. Rebecca Kanter',
