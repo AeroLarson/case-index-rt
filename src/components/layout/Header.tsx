@@ -47,17 +47,19 @@ export default function Header() {
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         {/* Top Navigation Bar */}
         <div className="flex items-center justify-between py-1">
-          {/* Logo - Left side */}
-          {!user && (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <i className="fa-solid fa-gavel text-white text-lg"></i>
+          {/* Left side - Logo */}
+          <div className="flex items-center">
+            {!user && (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <i className="fa-solid fa-gavel text-white text-lg"></i>
+                </div>
+                <span className="text-white text-lg font-bold hidden sm:block">Case Index RT</span>
               </div>
-              <span className="text-white text-lg font-bold hidden sm:block">Case Index RT</span>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Desktop Navigation - Center */}
+          {/* Center - Desktop Navigation */}
           {!user && (
             <nav className="hidden lg:flex gap-6">
               <button 
@@ -82,7 +84,7 @@ export default function Header() {
           )}
 
           {/* Right side - User Profile & Logout OR Sign In */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 ml-auto">
             {user ? (
               <>
                 <div className="flex items-center gap-2">
