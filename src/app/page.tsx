@@ -168,7 +168,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Clio Integration Status */}
+          {/* Clio Integration Status - ALWAYS SHOW */}
           <div className="apple-card p-6 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
