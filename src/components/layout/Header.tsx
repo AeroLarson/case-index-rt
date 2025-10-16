@@ -28,7 +28,7 @@ export default function Header() {
       className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
       style={{
         background: 'linear-gradient(135deg, #0f0520 0%, #1a0b2e 25%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
-        minHeight: user && pathname === '/' ? '200px' : '60px'
+        minHeight: user && pathname === '/' ? '120px' : '50px'
       }}
     >
       {/* Animated background particles */}
@@ -46,40 +46,20 @@ export default function Header() {
       
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         {/* Top Navigation Bar */}
-        <div className="flex items-center justify-between py-2">
+        <div className="flex items-center justify-between py-1">
           {/* Logo - Left side */}
           {!user && (
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <i className="fa-solid fa-gavel text-white text-xl"></i>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                <i className="fa-solid fa-gavel text-white text-lg"></i>
               </div>
-              <span className="text-white text-xl font-bold hidden sm:block">Case Index RT</span>
-            </div>
-          )}
-
-          {/* User Profile & Logout - Right side */}
-          {user && (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="text-white text-sm font-medium">{user.name}</span>
-              </div>
-              <button 
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Logout
-              </button>
+              <span className="text-white text-lg font-bold hidden sm:block">Case Index RT</span>
             </div>
           )}
 
           {/* Desktop Navigation - Center */}
           {!user && (
-            <nav className="hidden lg:flex gap-8">
+            <nav className="hidden lg:flex gap-6">
               <button 
                 onClick={() => router.push('/')}
                 className="text-purple-300 text-sm font-medium transition-colors hover:text-white"
@@ -101,23 +81,42 @@ export default function Header() {
             </nav>
           )}
 
-          {/* Sign In Button - Right side when not logged in */}
-          {!user && (
-            <button 
-              onClick={handleSignIn}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Sign In
-            </button>
-          )}
+          {/* Right side - User Profile & Logout OR Sign In */}
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-medium">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-white text-sm font-medium">{user.name}</span>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button 
+                onClick={handleSignIn}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors"
+              >
+                Sign In
+              </button>
+            )}
 
-          {/* Mobile menu button */}
-          <button 
-            onClick={toggleMobileMenu}
-            className="lg:hidden text-white p-2"
-          >
-            <i className={`fa-solid ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
-          </button>
+            {/* Mobile menu button */}
+            <button 
+              onClick={toggleMobileMenu}
+              className="lg:hidden text-white p-1"
+            >
+              <i className={`fa-solid ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-lg`}></i>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -186,7 +185,7 @@ export default function Header() {
 
         {/* Hero Content - Only show for non-authenticated users */}
         {!user && (
-          <div className="text-center py-6">
+          <div className="text-center py-3">
             <h1 
               className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
@@ -216,7 +215,7 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center py-6">
+          <div className="text-center py-3">
             <h1 
               className="text-white text-4xl font-bold leading-tight mb-4"
             >
