@@ -58,7 +58,7 @@ export default function Header() {
         <div className="particle" style={{ left: '90%', animationDelay: '3.5s' }}></div>
       </div>
       
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className={`max-w-6xl mx-auto relative z-10 ${user ? 'lg:max-w-4xl lg:ml-0' : ''}`}>
         {/* Navigation */}
         <div className={`flex items-center ${user ? 'justify-end' : 'justify-between'} ${pathname === '/' ? 'mb-8' : 'mb-1'}`}>
           {/* Logo and Name - Top Left when not logged in */}
@@ -187,7 +187,7 @@ export default function Header() {
             </div>
           )}
           {user ? (
-            <div className="flex items-center gap-4 ml-6">
+            <div className="flex items-center gap-4 ml-2">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">

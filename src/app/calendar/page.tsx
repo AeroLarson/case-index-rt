@@ -106,7 +106,100 @@ export default function CalendarPage() {
         userEvents.push(...caseEvents)
       })
     }
+
+    // Add test events for demonstration
+    const testEvents: CalendarEvent[] = [
+      {
+        id: 'test_aero_filing',
+        title: 'Case Filed: Larson v. Test Defendant',
+        date: '2024-03-15',
+        time: '09:00',
+        type: 'deadline',
+        caseNumber: 'FL-2024-001234',
+        location: 'San Diego Superior Court - Central',
+        description: 'Family law case filed',
+        duration: 60,
+        priority: 'medium',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: 'San Diego Superior Court',
+          judge: 'Hon. Rebecca Kanter',
+          department: 'Department 602',
+          caseType: 'Family Law',
+          filingDate: '2024-03-15',
+          lastActivity: '2024-10-15'
+        }
+      },
+      {
+        id: 'test_john_filing',
+        title: 'Case Filed: People v. John Doe',
+        date: '2024-08-22',
+        time: '09:00',
+        type: 'deadline',
+        caseNumber: 'FL-2024-005678',
+        location: 'San Diego Superior Court - Central',
+        description: 'Criminal case filed',
+        duration: 60,
+        priority: 'high',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: 'San Diego Superior Court',
+          judge: 'Hon. Michael Rodriguez',
+          department: 'Department 703',
+          caseType: 'Criminal',
+          filingDate: '2024-08-22',
+          lastActivity: '2024-12-03'
+        }
+      },
+      {
+        id: 'test_aero_hearing',
+        title: 'Hearing: Case Management Conference',
+        date: '2024-05-20',
+        time: '10:00',
+        type: 'hearing',
+        caseNumber: 'FL-2024-001234',
+        location: 'San Diego Superior Court - Central, Room 201',
+        description: 'Initial case management conference',
+        duration: 60,
+        priority: 'high',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: 'San Diego Superior Court',
+          judge: 'Hon. Rebecca Kanter',
+          department: 'Department 602',
+          caseType: 'Family Law',
+          filingDate: '2024-03-15',
+          lastActivity: '2024-10-15'
+        }
+      },
+      {
+        id: 'test_john_hearing',
+        title: 'Hearing: Pre-Trial Conference',
+        date: '2024-12-20',
+        time: '09:00',
+        type: 'hearing',
+        caseNumber: 'FL-2024-005678',
+        location: 'San Diego Superior Court - Central, Department 703',
+        description: 'Pre-trial conference for criminal case',
+        duration: 60,
+        priority: 'urgent',
+        status: 'scheduled',
+        source: 'county_api',
+        countyData: {
+          court: 'San Diego Superior Court',
+          judge: 'Hon. Michael Rodriguez',
+          department: 'Department 703',
+          caseType: 'Criminal',
+          filingDate: '2024-08-22',
+          lastActivity: '2024-12-03'
+        }
+      }
+    ]
     
+    userEvents.push(...testEvents)
     setEvents(userEvents)
     setLastSyncTime(new Date())
     setIsLoading(false)
@@ -167,7 +260,47 @@ export default function CalendarPage() {
     }
   }
 
-  const getEventColor = (type: string) => {
+  const getEventColor = (type: string, caseNumber?: string) => {
+    // Case-specific styling
+    if (caseNumber === 'FL-2024-005678') {
+      // John Doe criminal case - darker, more serious colors
+      switch (type) {
+        case 'hearing':
+        case 'county_hearing':
+          return 'bg-red-600'
+        case 'deadline':
+        case 'county_deadline':
+          return 'bg-red-700'
+        case 'meeting':
+          return 'bg-red-500'
+        case 'deposition':
+          return 'bg-red-800'
+        case 'trial':
+          return 'bg-red-900'
+        default:
+          return 'bg-red-600'
+      }
+    } else if (caseNumber === 'FL-2024-001234') {
+      // Aero Larson family case - softer, family-friendly colors
+      switch (type) {
+        case 'hearing':
+        case 'county_hearing':
+          return 'bg-blue-500'
+        case 'deadline':
+        case 'county_deadline':
+          return 'bg-blue-600'
+        case 'meeting':
+          return 'bg-blue-400'
+        case 'deposition':
+          return 'bg-blue-700'
+        case 'trial':
+          return 'bg-blue-800'
+        default:
+          return 'bg-blue-500'
+      }
+    }
+    
+    // Default styling for other cases
     switch (type) {
       case 'hearing':
       case 'county_hearing':
@@ -396,7 +529,13 @@ export default function CalendarPage() {
                 {day.events.slice(0, 3).map(event => (
                   <div
                     key={event.id}
-                    className="text-xs p-1 rounded bg-blue-500/20 text-blue-300 truncate cursor-pointer hover:bg-blue-500/30"
+                    className={`text-xs p-1 rounded truncate cursor-pointer ${
+                      event.caseNumber === 'FL-2024-005678' 
+                        ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30' 
+                        : event.caseNumber === 'FL-2024-001234'
+                        ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
+                        : 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
+                    }`}
                     onClick={() => setSelectedEvent(event)}
                   >
                     {event.title}
@@ -506,7 +645,7 @@ export default function CalendarPage() {
                 onClick={() => setSelectedEvent(event)}
               >
                 <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 ${getEventColor(event.type)} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <div className={`w-10 h-10 ${getEventColor(event.type, event.caseNumber)} rounded-xl flex items-center justify-center flex-shrink-0`}>
                     <i className={`fa-solid ${getEventIcon(event.type)} text-white text-sm`}></i>
                   </div>
                   <div className="flex-1">
