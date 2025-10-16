@@ -20,7 +20,7 @@ interface Document {
 }
 
 export default function DocumentsPage() {
-  const { user, userProfile, isLoading } = useAuth()
+  const { user, userProfile, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [documents, setDocuments] = useState<Document[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -30,7 +30,7 @@ export default function DocumentsPage() {
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([])
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!authLoading && !user) {
       router.push('/login')
       return
     }
@@ -69,7 +69,7 @@ export default function DocumentsPage() {
 
     loadDocuments()
     }
-  }, [isLoading, user, router, userProfile])
+  }, [authLoading, user, router, userProfile])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])

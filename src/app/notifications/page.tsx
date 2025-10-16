@@ -17,14 +17,14 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
-  const { user, userProfile, isLoading } = useAuth()
+  const { user, userProfile, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent'>('all')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!authLoading && !user) {
       router.push('/login')
       return
     }
@@ -111,7 +111,7 @@ export default function NotificationsPage() {
 
     loadNotifications()
     }
-  }, [isLoading, user, userProfile, router])
+  }, [authLoading, user, userProfile, router])
 
   const markAsRead = (id: string) => {
     setNotifications(prev => 

@@ -13,7 +13,7 @@ const TECH_SUPPORT_EMAILS = [
 ]
 
 export default function TechSupportPage() {
-  const { user, userProfile, isLoading } = useAuth()
+  const { user, userProfile, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -31,7 +31,7 @@ export default function TechSupportPage() {
   })
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!authLoading && !user) {
       router.push('/login')
       return
     }
@@ -50,7 +50,7 @@ export default function TechSupportPage() {
 
     setIsLoading(false)
     }
-  }, [isLoading, user, router])
+  }, [authLoading, user, router])
 
   const loadUserData = () => {
     if (typeof window === 'undefined') return

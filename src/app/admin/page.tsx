@@ -10,7 +10,7 @@ import { PaymentTracker } from '@/lib/paymentTracker'
 const ADMIN_EMAIL = 'aero.larson@gmail.com'
 
 export default function AdminPage() {
-  const { user, userProfile, isLoading } = useAuth()
+  const { user, userProfile, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -54,7 +54,7 @@ export default function AdminPage() {
   })
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!authLoading && !user) {
       router.push('/login')
       return
     }
@@ -72,7 +72,7 @@ export default function AdminPage() {
 
     setIsLoading(false)
     }
-  }, [isLoading, user, router])
+  }, [authLoading, user, router])
 
   const loadAdminStats = () => {
     // Load comprehensive real statistics from localStorage
