@@ -28,7 +28,7 @@ export default function Header() {
       className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
       style={{
         background: 'linear-gradient(135deg, #0f0520 0%, #1a0b2e 25%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
-        minHeight: user && pathname === '/' ? '400px' : '80px'
+        minHeight: user && pathname === '/' ? '150px' : '60px'
       }}
     >
       {/* Animated background particles */}
@@ -46,7 +46,7 @@ export default function Header() {
       
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Navigation */}
-        <div className={`flex items-center justify-between py-4 ${pathname === '/' ? 'mb-8' : 'mb-1'}`}>
+        <div className={`flex items-center justify-between py-2 ${pathname === '/' ? 'mb-4' : 'mb-1'}`}>
           {/* Logo and Name - Top Left when not logged in */}
           {!user && (
             <div className="flex items-center gap-3">
@@ -57,12 +57,12 @@ export default function Header() {
             </div>
           )}
           
-          {/* User info and logout - Top Right when logged in */}
+          {/* User info and logout - TOP RIGHT when logged in */}
           {user && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 ml-auto">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
+                <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-medium">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -70,7 +70,7 @@ export default function Header() {
               </div>
               <button 
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white border-none px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
               >
                 Logout
               </button>
@@ -245,14 +245,14 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center mt-8 px-4">
+          <div className="text-center mt-4 px-4">
             <h1 
               id="title-dashboard" 
-              className="text-white text-4xl font-bold leading-tight mb-4"
+              className="text-white text-2xl font-bold leading-tight mb-2"
             >
               Welcome back, {user.name.split(' ')[0]}!
             </h1>
-            <p className="text-purple-300 text-lg leading-relaxed max-w-2xl mx-auto">
+            <p className="text-purple-300 text-sm leading-relaxed max-w-2xl mx-auto">
               Here's your personalized dashboard with your latest case updates and insights.
             </p>
           </div>
