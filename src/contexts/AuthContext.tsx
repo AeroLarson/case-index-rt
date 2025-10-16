@@ -19,6 +19,7 @@ interface AuthContextType {
   refreshProfile: () => void
   clearAllUserData: () => void
   debugUserData: () => void
+  validateSession: () => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Load user profile from localStorage
             const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
             setUserProfile(profile)
-            console.log('AuthContext: Profile loaded successfully')
+            console.log('AuthContext: Profile loaded successfully, plan:', profile.plan)
           } else {
             console.log('AuthContext: Invalid user data structure, clearing localStorage')
             localStorage.removeItem('user')
@@ -64,6 +65,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Always set loading to false after attempting to load user
     setIsLoading(false)
   }, [])
+
+  // Add a periodic session check to prevent unexpected logouts
+  useEffect(() => {
+    if (!user) return
+
+    const interval = setInterval(() => {
+      if (typeof window !== 'undefined') {
+        const savedUser = localStorage.getItem('user')
+        if (!savedUser && user) {
+          console.log('AuthContext: User data lost from localStorage, restoring...')
+          localStorage.setItem('user', JSON.stringify(user))
+        }
+      }
+    }, 5000) // Check every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [user])
 
   const login = (userData: User) => {
     console.log('AuthContext: Logging in user:', userData.email)
@@ -89,6 +107,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     console.log('AuthContext: Logout completed')
     // In a real app, you might also call a logout API endpoint
+  }
+
+  // Add session validation to prevent false logouts
+  const validateSession = () => {
+    if (typeof window === 'undefined') return true
+    
+    try {
+      const savedUser = localStorage.getItem('user')
+      const sessionTimestamp = localStorage.getItem('session_timestamp')
+      
+      if (!savedUser || !sessionTimestamp) {
+        console.log('AuthContext: No session data found')
+        return false
+      }
+      
+      // Check if session is older than 24 hours (optional)
+      const sessionAge = Date.now() - parseInt(sessionTimestamp)
+      const maxAge = 24 * 60 * 60 * 1000 // 24 hours
+      
+      if (sessionAge > maxAge) {
+        console.log('AuthContext: Session expired')
+        logout()
+        return false
+      }
+      
+      console.log('AuthContext: Session is valid')
+      return true
+    } catch (error) {
+      console.warn('AuthContext: Session validation failed:', error)
+      return false
+    }
   }
 
 
@@ -120,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, login, logout, isLoading, refreshProfile, clearAllUserData, debugUserData }}>
+    <AuthContext.Provider value={{ user, userProfile, login, logout, isLoading, refreshProfile, clearAllUserData, debugUserData, validateSession }}>
       {children}
     </AuthContext.Provider>
   )

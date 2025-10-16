@@ -24,6 +24,8 @@ export default function Home() {
   // Show personalized dashboard for authenticated users
   console.log('Home page: User state:', user)
   console.log('Home page: UserProfile state:', userProfile)
+  console.log('Home page: User plan:', userProfile?.plan)
+  console.log('Home page: Clio condition check:', userProfile && (userProfile.plan === 'pro' || userProfile.plan === 'team') && user)
   
   if (user) {
     // Check if user has any data
