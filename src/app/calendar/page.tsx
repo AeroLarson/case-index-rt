@@ -112,7 +112,7 @@ export default function CalendarPage() {
       {
         id: 'test_aero_filing',
         title: 'Case Filed: Larson v. Test Defendant',
-        date: '2024-03-15',
+        date: '2025-01-05',
         time: '09:00',
         type: 'deadline',
         caseNumber: 'FL-2024-001234',
@@ -127,14 +127,14 @@ export default function CalendarPage() {
           judge: 'Hon. Rebecca Kanter',
           department: 'Department 602',
           caseType: 'Family Law',
-          filingDate: '2024-03-15',
-          lastActivity: '2024-10-15'
+          filingDate: '2025-01-05',
+          lastActivity: '2025-01-20'
         }
       },
       {
         id: 'test_john_filing',
         title: 'Case Filed: People v. John Doe',
-        date: '2024-08-22',
+        date: '2025-01-10',
         time: '09:00',
         type: 'deadline',
         caseNumber: 'FL-2024-005678',
@@ -149,14 +149,14 @@ export default function CalendarPage() {
           judge: 'Hon. Michael Rodriguez',
           department: 'Department 703',
           caseType: 'Criminal',
-          filingDate: '2024-08-22',
-          lastActivity: '2024-12-03'
+          filingDate: '2025-01-10',
+          lastActivity: '2025-01-15'
         }
       },
       {
         id: 'test_aero_hearing',
         title: 'Hearing: Case Management Conference',
-        date: '2024-05-20',
+        date: '2025-01-15',
         time: '10:00',
         type: 'hearing',
         caseNumber: 'FL-2024-001234',
@@ -171,14 +171,14 @@ export default function CalendarPage() {
           judge: 'Hon. Rebecca Kanter',
           department: 'Department 602',
           caseType: 'Family Law',
-          filingDate: '2024-03-15',
-          lastActivity: '2024-10-15'
+          filingDate: '2025-01-05',
+          lastActivity: '2025-01-20'
         }
       },
       {
         id: 'test_john_hearing',
         title: 'Hearing: Pre-Trial Conference',
-        date: '2024-12-20',
+        date: '2025-01-25',
         time: '09:00',
         type: 'hearing',
         caseNumber: 'FL-2024-005678',
@@ -193,8 +193,8 @@ export default function CalendarPage() {
           judge: 'Hon. Michael Rodriguez',
           department: 'Department 703',
           caseType: 'Criminal',
-          filingDate: '2024-08-22',
-          lastActivity: '2024-12-03'
+          filingDate: '2025-01-10',
+          lastActivity: '2025-01-15'
         }
       }
     ]

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
           court: 'San Diego Superior Court - Central (Department 703)',
           judge: 'Hon. Michael Rodriguez',
           status: 'Active - Pre-Trial Proceedings',
-          lastActivity: 'December 3, 2024',
+          lastActivity: 'January 15, 2025',
           parties: {
             plaintiff: 'People of the State of California (Prosecution)',
             defendant: 'John Doe (Defendant)'
@@ -48,52 +48,52 @@ export async function POST(request: NextRequest) {
             court: 'San Diego Superior Court - Central (Department 703)',
             judge: 'Hon. Michael Rodriguez',
             status: 'Active - Pre-Trial Proceedings',
-            lastActivity: 'December 3, 2024',
+            lastActivity: 'January 15, 2025',
             parties: {
               plaintiff: 'People of the State of California (Prosecution)',
               defendant: 'John Doe (Defendant)'
             },
             caseHistory: [
               {
-                date: '2024-08-22',
+                date: '2025-01-10',
                 event: 'Case Filed',
                 description: 'Criminal complaint filed against John Doe'
               },
               {
-                date: '2024-09-15',
+                date: '2025-01-12',
                 event: 'Arraignment',
                 description: 'Defendant arraigned, plea entered'
               },
               {
-                date: '2024-10-10',
+                date: '2025-01-14',
                 event: 'Pre-Trial Conference',
                 description: 'Pre-trial conference scheduled'
               },
               {
-                date: '2024-12-03',
+                date: '2025-01-15',
                 event: 'Motion Hearing',
                 description: 'Motion to suppress evidence hearing'
               }
             ],
             upcomingEvents: [
               {
-                date: '2024-12-20',
+                date: '2025-01-25',
                 time: '09:00 AM',
                 event: 'Pre-Trial Conference',
                 location: 'Department 703, San Diego Superior Court'
               },
               {
-                date: '2025-01-15',
+                date: '2025-02-15',
                 time: '10:00 AM',
                 event: 'Trial Setting Conference',
                 location: 'Department 703, San Diego Superior Court'
               }
             ],
             documents: [
-              { name: 'Criminal Complaint', date: '2024-08-22', type: 'Filing' },
-              { name: 'Arraignment Minutes', date: '2024-09-15', type: 'Court Document' },
-              { name: 'Motion to Suppress', date: '2024-11-20', type: 'Motion' },
-              { name: 'Prosecution Response', date: '2024-11-25', type: 'Response' }
+              { name: 'Criminal Complaint', date: '2025-01-10', type: 'Filing' },
+              { name: 'Arraignment Minutes', date: '2025-01-12', type: 'Court Document' },
+              { name: 'Motion to Suppress', date: '2025-01-14', type: 'Motion' },
+              { name: 'Prosecution Response', date: '2025-01-15', type: 'Response' }
             ]
           }
         }
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
           court: 'San Diego Superior Court - Central (Department 602)',
           judge: 'Hon. Rebecca Kanter',
           status: 'Active - Post-Judgment Proceedings',
-          lastActivity: 'October 15, 2024',
+          lastActivity: 'January 20, 2025',
           parties: {
             plaintiff: 'Aero Larson (Petitioner)',
             defendant: 'Test Defendant (Respondent)'
@@ -119,46 +119,46 @@ export async function POST(request: NextRequest) {
             court: 'San Diego Superior Court - Central (Department 602)',
             judge: 'Hon. Rebecca Kanter',
             status: 'Active - Post-Judgment Proceedings',
-            lastActivity: 'October 15, 2024',
+            lastActivity: 'January 20, 2025',
             parties: {
               plaintiff: 'Aero Larson (Petitioner)',
               defendant: 'Test Defendant (Respondent)'
             },
             caseHistory: [
               {
-                date: '2024-03-15',
+                date: '2025-01-05',
                 event: 'Case Filed',
                 description: 'Initial dissolution petition filed',
                 documents: ['Petition for Dissolution', 'Civil Case Cover Sheet']
               },
               {
-                date: '2024-03-22',
+                date: '2025-01-07',
                 event: 'Service of Process',
                 description: 'Defendant served with summons and petition',
                 documents: ['Proof of Service', 'Summons']
               },
               {
-                date: '2024-04-15',
+                date: '2025-01-10',
                 event: 'Response Filed',
                 description: 'Defendant filed response to petition',
                 documents: ['Response to Petition', 'Declaration']
               },
               {
-                date: '2024-05-20',
+                date: '2025-01-15',
                 event: 'Case Management Conference',
                 description: 'Initial case management conference held',
                 documents: ['Case Management Statement'],
                 outcome: 'Discovery plan established, mediation scheduled'
               },
               {
-                date: '2024-07-10',
+                date: '2025-01-18',
                 event: 'Mediation',
                 description: 'Court-ordered mediation session',
                 documents: ['Mediation Report'],
                 outcome: 'Partial agreement reached on custody matters'
               },
               {
-                date: '2024-09-15',
+                date: '2025-01-20',
                 event: 'Judgment Entered',
                 description: 'Final judgment of dissolution entered',
                 documents: ['Judgment of Dissolution', 'Findings and Order']
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
             ],
             upcomingHearings: [
               {
-                date: '2024-11-20',
+                date: '2025-01-25',
                 time: '9:00 AM',
                 type: 'Post-Judgment Hearing',
                 location: 'San Diego Superior Court, Room 201',
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
               'Child Custody Agreement',
               'Property Settlement Agreement'
             ],
-            filedDate: '2024-03-15',
+            filedDate: '2025-01-05',
             caseType: 'Family Law - Dissolution with Minor Children'
           }
         }

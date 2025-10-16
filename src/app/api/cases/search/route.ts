@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
           court: 'San Diego Superior Court - Central (Department 703)',
           judge: 'Hon. Michael Rodriguez',
           status: 'Active - Pre-Trial Proceedings',
-          lastActivity: 'December 3, 2024',
+          lastActivity: 'January 15, 2025',
           parties: {
             plaintiff: 'People of the State of California (Prosecution)',
             defendant: 'John Doe (Defendant)'
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           department: 'Department 703',
           courtLocation: 'San Diego Superior Court - Central',
           judicialOfficer: 'Hon. Michael Rodriguez',
-          dateFiled: '2024-08-22',
+          dateFiled: '2025-01-10',
           countyData: {
             court: 'San Diego Superior Court',
             department: 'Department 703',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
           court: 'San Diego Superior Court - Central (Department 602)',
           judge: 'Hon. Rebecca Kanter',
           status: 'Active - Post-Judgment Proceedings',
-          lastActivity: 'October 15, 2024',
+          lastActivity: 'January 20, 2025',
           parties: {
             plaintiff: 'Aero Larson (Petitioner)',
             defendant: 'Test Defendant (Respondent)'
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
           department: 'Department 602',
           courtLocation: 'San Diego Superior Court - Central',
           judicialOfficer: 'Hon. Rebecca Kanter',
-          dateFiled: '2024-03-15',
+          dateFiled: '2025-01-05',
           countyData: {
             court: 'San Diego Superior Court',
             department: 'Department 602',
