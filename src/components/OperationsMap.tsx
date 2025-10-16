@@ -43,7 +43,7 @@ export default function OperationsMap() {
   return (
     <div className="vercel-card-premium p-8">
       <div className="text-center mb-8">
-        <h2 className="text-white text-3xl font-bold mb-4 vercel-text-gradient-intense">
+        <h2 className="text-white text-3xl font-bold mb-4">
           Operations Map
         </h2>
         <p className="text-gray-300 text-lg max-w-2xl mx-auto">
@@ -128,61 +128,6 @@ export default function OperationsMap() {
           </div>
         </div>
 
-        {/* State Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {states.map((state) => (
-            <div
-              key={state.id}
-              className={`relative p-6 rounded-2xl border transition-all duration-300 cursor-pointer ${
-                state.status === 'active'
-                  ? 'vercel-card-premium vercel-glow'
-                  : 'vercel-card hover:border-gray-500/50'
-              }`}
-              onMouseEnter={() => setHoveredState(state.id)}
-              onMouseLeave={() => setHoveredState(null)}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: state.color }}
-                  />
-                  <h3 className="text-white font-semibold text-lg">{state.name}</h3>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  state.status === 'active'
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                    : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-                }`}>
-                  {state.status === 'active' ? 'Active' : 'Planned'}
-                </div>
-              </div>
-              
-              <p className="text-gray-300 text-sm mb-4">{state.description}</p>
-              
-              {state.status === 'active' && state.counties.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-blue-300 text-xs font-medium">Serving Counties:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {state.counties.slice(0, 3).map((county) => (
-                      <span 
-                        key={county}
-                        className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-md border border-blue-500/30"
-                      >
-                        {county}
-                      </span>
-                    ))}
-                    {state.counties.length > 3 && (
-                      <span className="px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded-md">
-                        +{state.counties.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* California Focus Section */}
