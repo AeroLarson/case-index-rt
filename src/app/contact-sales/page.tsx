@@ -98,6 +98,7 @@ function ContactSalesForm() {
           </p>
           <p className="text-gray-400 mb-8">
             Our sales team will work with you to create a custom solution that fits your law firm's requirements.
+            You can also reach us directly at <span className="text-blue-400">caseindexrt@gmail.com</span> for immediate assistance.
           </p>
           <button
             onClick={() => window.location.href = '/'}
@@ -296,21 +297,18 @@ function ContactSalesForm() {
         {/* Contact Info */}
         <div className="mt-12 apple-card p-8 text-center">
           <h3 className="text-white text-xl font-semibold mb-4">Need immediate assistance?</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <i className="fa-solid fa-phone text-blue-400 text-2xl mb-2"></i>
-              <p className="text-white font-medium">Phone</p>
-              <p className="text-gray-400">(555) 123-4567</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <i className="fa-solid fa-envelope text-blue-400 text-2xl mb-2"></i>
               <p className="text-white font-medium">Email</p>
-              <p className="text-gray-400">sales@caseindexrt.com</p>
+              <p className="text-gray-400">caseindexrt@gmail.com</p>
+              <p className="text-gray-500 text-sm mt-1">Available 24 hours a day</p>
             </div>
             <div>
-              <i className="fa-solid fa-clock text-blue-400 text-2xl mb-2"></i>
-              <p className="text-white font-medium">Business Hours</p>
-              <p className="text-gray-400">Mon-Fri 9AM-6PM PST</p>
+              <i className="fa-solid fa-phone text-blue-400 text-2xl mb-2"></i>
+              <p className="text-white font-medium">Phone</p>
+              <p className="text-gray-400">Email us first, then we'll call you</p>
+              <p className="text-gray-500 text-sm mt-1">We'll schedule a call after receiving your email</p>
             </div>
           </div>
         </div>
