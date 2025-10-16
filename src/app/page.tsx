@@ -168,8 +168,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Clio Integration Status - Only show if user has Pro/Team plan */}
-          {userProfile && (userProfile.plan === 'pro' || userProfile.plan === 'team') && user && (
+          {/* Clio Integration Status - Show for all authenticated users */}
+          {user && (
             <div className="apple-card p-6 mb-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">

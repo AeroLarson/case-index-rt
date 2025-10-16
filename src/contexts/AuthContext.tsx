@@ -33,8 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check for existing session on mount (client-side only)
     if (typeof window !== 'undefined') {
       try {
-        const savedUser = localStorage.getItem('user')
+        let savedUser = localStorage.getItem('user')
         console.log('AuthContext: Checking for saved user:', savedUser ? 'Found' : 'Not found')
+        
+        // If main user data is missing, try backup locations
+        if (!savedUser) {
+          console.log('AuthContext: Main user data missing, checking backups...')
+          savedUser = sessionStorage.getItem('user_backup') || localStorage.getItem('user_data_backup')
+          
+          if (savedUser) {
+            console.log('AuthContext: Found backup user data, restoring...')
+            localStorage.setItem('user', savedUser)
+          }
+        }
         
         if (savedUser) {
           const userData = JSON.parse(savedUser)
@@ -53,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem('user')
           }
         } else {
-          console.log('AuthContext: No saved user found')
+          console.log('AuthContext: No saved user found in any location')
         }
       } catch (error) {
         console.warn('AuthContext: Failed to parse saved user:', error)
@@ -76,9 +87,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!savedUser && user) {
           console.log('AuthContext: User data lost from localStorage, restoring...')
           localStorage.setItem('user', JSON.stringify(user))
+          localStorage.setItem('session_timestamp', Date.now().toString())
+          sessionStorage.setItem('user_backup', JSON.stringify(user))
+        }
+        
+        // Also check if user state is null but we have backup data
+        if (!user && typeof window !== 'undefined') {
+          const backupUser = sessionStorage.getItem('user_backup') || localStorage.getItem('user_data_backup')
+          if (backupUser) {
+            try {
+              const userData = JSON.parse(backupUser)
+              console.log('AuthContext: Restoring user from backup data')
+              setUser(userData)
+              localStorage.setItem('user', backupUser)
+              const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
+              setUserProfile(profile)
+            } catch (error) {
+              console.warn('AuthContext: Failed to restore from backup:', error)
+            }
+          }
         }
       }
-    }, 5000) // Check every 5 seconds
+    }, 2000) // Check every 2 seconds for faster recovery
 
     return () => clearInterval(interval)
   }, [user])
@@ -87,9 +117,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('AuthContext: Logging in user:', userData.email)
     setUser(userData)
     if (typeof window !== 'undefined') {
+      // Store user data in multiple places for redundancy
       localStorage.setItem('user', JSON.stringify(userData))
-      // Set a session timestamp to track when user logged in
       localStorage.setItem('session_timestamp', Date.now().toString())
+      sessionStorage.setItem('user_backup', JSON.stringify(userData))
+      
+      // Also store in a more persistent way
+      try {
+        const userDataString = JSON.stringify(userData)
+        localStorage.setItem('user_data_backup', userDataString)
+        localStorage.setItem('user_id_backup', userData.id)
+        localStorage.setItem('user_email_backup', userData.email)
+      } catch (error) {
+        console.warn('AuthContext: Failed to store backup user data:', error)
+      }
     }
     // Load or create user profile from localStorage
     const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
@@ -104,6 +145,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('user')
       localStorage.removeItem('session_timestamp')
+      sessionStorage.removeItem('user_backup')
+      localStorage.removeItem('user_data_backup')
+      localStorage.removeItem('user_id_backup')
+      localStorage.removeItem('user_email_backup')
     }
     console.log('AuthContext: Logout completed')
     // In a real app, you might also call a logout API endpoint
