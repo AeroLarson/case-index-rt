@@ -592,7 +592,7 @@ export default function CalendarPage() {
       <div className="month-view">
         <div className="grid grid-cols-7 gap-1 mb-4">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-3 text-center text-gray-400 font-medium text-sm">
+            <div key={day} className="p-3 text-center text-gray-400 font-medium text-sm h-12 flex items-center justify-center">
               {day}
             </div>
           ))}
@@ -601,7 +601,7 @@ export default function CalendarPage() {
           {days.map((day, index) => (
             <div
               key={index}
-              className={`min-h-[100px] p-2 rounded-lg border cursor-pointer hover:bg-white/10 transition-colors ${
+              className={`h-[120px] p-2 rounded-lg border cursor-pointer hover:bg-white/10 transition-colors ${
                 day.isCurrentMonth 
                   ? 'bg-white/5 border-white/10' 
                   : 'bg-white/2 border-white/5'
@@ -671,8 +671,8 @@ export default function CalendarPage() {
       <div className="week-view">
         <div className="grid grid-cols-7 gap-4">
           {weekDays.map((day, index) => (
-            <div key={index} className="min-h-[400px]">
-              <div className={`p-3 rounded-lg mb-3 ${
+            <div key={index} className="h-[500px]">
+              <div className={`p-3 rounded-lg mb-3 h-16 flex flex-col justify-center ${
                 day.isToday ? 'bg-blue-500/20 border border-blue-500' : 'bg-white/5'
               }`}>
                 <div className="text-sm font-medium text-white">
@@ -997,24 +997,26 @@ export default function CalendarPage() {
                  'Daily Calendar'}
               </h3>
               
-              {isLoading ? (
-                <div className="h-96 flex items-center justify-center">
-                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <div className="calendar-container">
-                  {view === 'month' && renderMonthView()}
-                  {view === 'week' && renderWeekView()}
-                  {view === 'day' && renderDayView()}
-                </div>
-              )}
+              <div className="min-h-[600px]">
+                {isLoading ? (
+                  <div className="h-96 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  <div className="calendar-container">
+                    {view === 'month' && renderMonthView()}
+                    {view === 'week' && renderWeekView()}
+                    {view === 'day' && renderDayView()}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Quick Stats */}
-            <div className="apple-card p-6">
+            <div className="apple-card p-6 min-h-[200px]">
               <h3 className="text-white font-semibold text-lg mb-4">Calendar Stats</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -1047,7 +1049,7 @@ export default function CalendarPage() {
             </div>
 
             {/* County Integration Status */}
-            <div className="apple-card p-6">
+            <div className="apple-card p-6 min-h-[180px]">
               <h3 className="text-white font-semibold text-lg mb-4">County Integration</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -1073,7 +1075,7 @@ export default function CalendarPage() {
             </div>
 
             {/* Event Sources */}
-            <div className="apple-card p-6">
+            <div className="apple-card p-6 min-h-[160px]">
               <h3 className="text-white font-semibold text-lg mb-4">Event Sources</h3>
               <div className="space-y-3">
                 {[
