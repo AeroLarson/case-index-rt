@@ -5,17 +5,12 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 export default function Header() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleSignIn = () => {
-    router.push('/login')
-  }
-
-  const handleLogout = () => {
-    logout()
     router.push('/login')
   }
 
@@ -190,21 +185,13 @@ export default function Header() {
             </div>
           )}
           {user ? (
-            <div className="flex items-center gap-4 ml-auto mr-32">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="text-white text-sm font-medium">{user.name}</span>
+            <div className="flex items-center gap-2 ml-auto mr-32">
+              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
               </div>
-              <button 
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white border-none px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors"
-              >
-                Logout
-              </button>
+              <span className="text-white text-sm font-medium">{user.name}</span>
             </div>
           ) : (
             <button 
