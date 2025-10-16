@@ -226,7 +226,21 @@ export default function CalendarPage() {
       if (response.ok) {
         const data = await response.json()
         if (data.events && data.events.length > 0) {
-          setEvents(prev => [...prev, ...data.events])
+          // Update existing events or add new ones
+          setEvents(prev => {
+            const updatedEvents = [...prev]
+            data.events.forEach((newEvent: CalendarEvent) => {
+              const existingIndex = updatedEvents.findIndex(e => e.id === newEvent.id)
+              if (existingIndex >= 0) {
+                // Update existing event
+                updatedEvents[existingIndex] = newEvent
+              } else {
+                // Add new event
+                updatedEvents.push(newEvent)
+              }
+            })
+            return updatedEvents
+          })
         }
         setLastSyncTime(new Date())
         setSyncStatus('success')
@@ -240,6 +254,17 @@ export default function CalendarPage() {
     
     setTimeout(() => setSyncStatus('idle'), 3000)
   }
+
+  // Auto-sync every 5 minutes to check for updates
+  useEffect(() => {
+    if (!autoSyncEnabled || !user) return
+
+    const interval = setInterval(() => {
+      handleCountySync()
+    }, 5 * 60 * 1000) // 5 minutes
+
+    return () => clearInterval(interval)
+  }, [autoSyncEnabled, user])
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -620,10 +645,16 @@ export default function CalendarPage() {
       return eventDate.toDateString() === today.toDateString()
     }).sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
     
+    // Generate hours from 6 AM to 10 PM
+    const hours = []
+    for (let hour = 6; hour <= 22; hour++) {
+      hours.push(hour)
+    }
+    
     return (
       <div className="day-view">
-        <div className="mb-4">
-          <h4 className="text-xl font-semibold text-white">
+        <div className="mb-6">
+          <h4 className="text-2xl font-semibold text-white mb-2">
             {today.toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -631,38 +662,85 @@ export default function CalendarPage() {
               day: 'numeric' 
             })}
           </h4>
+          <p className="text-gray-400">
+            {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''} scheduled
+          </p>
         </div>
-        <div className="space-y-4">
-          {dayEvents.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              No events scheduled for today
-            </div>
-          ) : (
-            dayEvents.map(event => (
-              <div
-                key={event.id}
-                className="p-4 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer"
-                onClick={() => setSelectedEvent(event)}
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 ${getEventColor(event.type, event.caseNumber)} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                    <i className={`fa-solid ${getEventIcon(event.type)} text-white text-sm`}></i>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-white font-semibold text-lg">{event.title}</h4>
-                    <p className="text-gray-300 text-sm mb-2">{event.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <i className="fa-solid fa-clock"></i>
-                        {formatTime(event.time)}
-                      </span>
-                      <span className="text-blue-300">{event.caseNumber}</span>
+        
+        <div className="bg-white/5 rounded-2xl p-6">
+          <div className="space-y-4">
+            {hours.map(hour => {
+              const hourEvents = dayEvents.filter(event => {
+                const eventHour = parseInt(event.time.split(':')[0])
+                return eventHour === hour
+              })
+              
+              return (
+                <div key={hour} className="flex items-start gap-4 py-3 border-b border-white/10 last:border-b-0">
+                  {/* Time Column */}
+                  <div className="w-20 flex-shrink-0">
+                    <div className="text-white font-medium text-sm">
+                      {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
                     </div>
                   </div>
+                  
+                  {/* Events Column */}
+                  <div className="flex-1 min-h-[40px]">
+                    {hourEvents.length === 0 ? (
+                      <div className="h-10 flex items-center">
+                        <div className="w-full h-px bg-white/10"></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {hourEvents.map(event => (
+                          <div
+                            key={event.id}
+                            className={`p-3 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                              event.caseNumber === 'FL-2024-005678' 
+                                ? 'bg-red-500/20 border border-red-500/30 hover:bg-red-500/30' 
+                                : event.caseNumber === 'FL-2024-001234'
+                                ? 'bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500/30'
+                                : 'bg-white/10 border border-white/20 hover:bg-white/20'
+                            }`}
+                            onClick={() => setSelectedEvent(event)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 ${getEventColor(event.type, event.caseNumber)} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                                <i className={`fa-solid ${getEventIcon(event.type)} text-white text-xs`}></i>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h5 className="text-white font-semibold text-sm truncate">{event.title}</h5>
+                                <p className="text-gray-300 text-xs truncate">{event.description}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs text-gray-400">{event.caseNumber}</span>
+                                  {event.location && (
+                                    <span className="text-xs text-gray-400 truncate">
+                                      <i className="fa-solid fa-map-marker-alt mr-1"></i>
+                                      {event.location}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex-shrink-0">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  event.priority === 'urgent' ? 'bg-red-500/20 text-red-400' :
+                                  event.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                                  event.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-green-500/20 text-green-400'
+                                }`}>
+                                  {event.priority}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              )
+            })}
+          </div>
         </div>
       </div>
     )
@@ -699,19 +777,42 @@ export default function CalendarPage() {
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-white text-4xl font-bold mb-4 tracking-tight">Smart Calendar</h1>
-            <p className="text-gray-300 text-lg">Auto-populated with county case data and your events</p>
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
+            <div>
+              <h1 className="text-white text-4xl font-bold mb-2 tracking-tight">Smart Calendar</h1>
+              <p className="text-gray-300 text-lg">Auto-populated with county case data and your events</p>
+            </div>
+            
+            {/* Month Navigation */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+                className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all duration-200"
+              >
+                <i className="fa-solid fa-chevron-left"></i>
+              </button>
+              <h2 className="text-white text-2xl font-semibold min-w-[200px] text-center">
+                {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </h2>
+              <button
+                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+                className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all duration-200"
+              >
+                <i className="fa-solid fa-chevron-right"></i>
+              </button>
+              <button
+                onClick={() => setCurrentDate(new Date())}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200"
+              >
+                Today
+              </button>
+            </div>
           </div>
-          <div className="flex gap-4">
-            <button
-              onClick={loadCalendarData}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
-            >
-              <i className="fa-solid fa-refresh"></i>
-              Refresh
-            </button>
+
+          {/* Controls Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* View Controls */}
             <div className="flex bg-white/5 rounded-2xl p-1">
               <button
                 onClick={() => setView('month')}
@@ -738,54 +839,43 @@ export default function CalendarPage() {
                 Day
               </button>
             </div>
-            {/* Clio Sync Button */}
-            <button
-              onClick={() => {
-                setSyncStatus('syncing')
-                setTimeout(() => {
-                  setSyncStatus('success')
-                  setLastSyncTime(new Date())
-                  setTimeout(() => setSyncStatus('idle'), 2000)
-                }, 2000)
-              }}
-              disabled={syncStatus === 'syncing'}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:opacity-50 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {syncStatus === 'syncing' ? (
-                <>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={loadCalendarData}
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
+              >
+                <i className="fa-solid fa-refresh"></i>
+                Refresh
+              </button>
+              
+              <button
+                onClick={handleCountySync}
+                disabled={syncStatus === 'syncing'}
+                className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {syncStatus === 'syncing' ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Syncing Clio...</span>
-                </>
-              ) : syncStatus === 'success' ? (
-                <>
-                  <i className="fa-solid fa-check text-green-300"></i>
-                  <span>Clio Synced!</span>
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-link"></i>
-                  <span>Sync Clio</span>
-                </>
-              )}
-            </button>
-            
-            <button
-              onClick={handleCountySync}
-              disabled={syncStatus === 'syncing'}
-              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {syncStatus === 'syncing' ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <i className="fa-solid fa-sync"></i>
-              )}
-              Sync County Data
-            </button>
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200">
-              <i className="fa-solid fa-plus mr-2"></i>
-              Add Event
-            </button>
+                ) : (
+                  <i className="fa-solid fa-sync"></i>
+                )}
+                Sync
+              </button>
+              
+              <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
+                <i className="fa-solid fa-plus"></i>
+                Add Event
+              </button>
+            </div>
           </div>
+
+          {/* Sync Status */}
+          {lastSyncTime && (
+            <div className="mt-4 text-sm text-gray-400">
+              Last synced: {lastSyncTime.toLocaleTimeString()}
+            </div>
+          )}
         </div>
 
         {/* Sync Status */}
