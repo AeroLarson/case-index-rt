@@ -30,7 +30,7 @@ interface CalendarEvent {
 }
 
 export default function CalendarPage() {
-  const { user, userProfile, isLoading: authLoading } = useAuth()
+  const { user, userProfile, isLoading: authLoading, refreshProfile } = useAuth()
   const router = useRouter()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<'month' | 'week' | 'day'>('month')
@@ -52,9 +52,19 @@ export default function CalendarPage() {
     }
   }, [authLoading, user, userProfile, router])
 
+  // Refresh calendar when userProfile changes (new events added)
+  useEffect(() => {
+    if (userProfile && user) {
+      loadCalendarData()
+    }
+  }, [userProfile?.calendarEvents])
+
   const loadCalendarData = async () => {
     setIsLoading(true)
     await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Refresh the user profile to get latest data
+    refreshProfile()
     
     // Load events from user profile's calendar events
     const userEvents: CalendarEvent[] = []
@@ -441,6 +451,13 @@ export default function CalendarPage() {
             <p className="text-gray-300 text-lg">Auto-populated with county case data and your events</p>
           </div>
           <div className="flex gap-4">
+            <button
+              onClick={loadCalendarData}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
+            >
+              <i className="fa-solid fa-refresh"></i>
+              Refresh
+            </button>
             <div className="flex bg-white/5 rounded-2xl p-1">
               <button
                 onClick={() => setView('month')}

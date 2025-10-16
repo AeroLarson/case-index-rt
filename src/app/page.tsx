@@ -742,14 +742,14 @@ export default function Home() {
               <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-bell text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Real-Time Updates</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Real-Time Updates</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Instant notifications when new filings, motions, or orders are added</p>
             </div>
             <div className="text-center vercel-card-premium p-8 hover-lift fade-in-right stagger-6">
               <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
                 <i className="fa-solid fa-chart-line text-white text-3xl" />
               </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight vercel-text-gradient-intense">Analytics Dashboard</h3>
+              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Analytics Dashboard</h3>
               <p className="text-gray-300 text-lg leading-relaxed">Comprehensive insights into your case management activity and trends</p>
             </div>
           </div>
