@@ -59,18 +59,18 @@ export default function Header() {
           
           {/* User info and logout - TOP RIGHT when logged in */}
           {user && (
-            <div className="flex items-center gap-3 ml-auto">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-medium">
+            <div className="flex items-center gap-4 ml-auto">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="text-white text-sm font-medium">{user.name}</span>
+                <span className="text-white text-base font-medium">{user.name}</span>
               </div>
               <button 
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Logout
               </button>
