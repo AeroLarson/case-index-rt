@@ -1394,3 +1394,45 @@ input:checked + .toggle-slider:before {
     z-index: 50 !important;
   }
 }
+
+/* Better responsive containers for different screen sizes */
+.max-w-6xl {
+  max-width: 72rem; /* 1152px */
+}
+
+@media (min-width: 1280px) {
+  .max-w-6xl {
+    max-width: 80rem; /* 1280px */
+  }
+}
+
+@media (min-width: 1536px) {
+  .max-w-6xl {
+    max-width: 90rem; /* 1440px */
+  }
+}
+
+@media (min-width: 1920px) {
+  .max-w-6xl {
+    max-width: 100rem; /* 1600px */
+  }
+}
+
+/* Fix for ultra-wide displays */
+@media (min-width: 2560px) {
+  .max-w-6xl {
+    max-width: 120rem; /* 1920px */
+  }
+}
+
+/* Ensure main content fills available space properly */
+main {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Fix for pages with background gradients */
+main[id="main-content"] {
+  width: 100%;
+  min-height: 100vh;
+}
