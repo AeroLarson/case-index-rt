@@ -25,7 +25,7 @@ export default function Header() {
 
   return (
     <header 
-      className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
+        className={`relative overflow-hidden ${user ? 'lg:ml-60 xl:ml-64 2xl:ml-72' : ''}`}
       style={{
         background: 'linear-gradient(135deg, #0f0520 0%, #1a0b2e 25%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
         minHeight: user && pathname === '/' ? '150px' : '60px'
@@ -44,7 +44,7 @@ export default function Header() {
         <div className="particle" style={{ left: '90%', animationDelay: '3.5s' }}></div>
       </div>
       
-      <div className="container-responsive max-w-7xl mx-auto relative z-10">
+      <div className="container-responsive relative z-10">
         {/* Navigation */}
         <div className={`flex items-center justify-between py-2 ${pathname === '/' ? 'mb-4' : 'mb-1'}`}>
           {/* Logo and Name - Top Left when not logged in */}

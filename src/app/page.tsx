@@ -46,7 +46,7 @@ export default function Home() {
           padding: '40px 24px'
         }}
       >
-        <div className="container-responsive max-w-5xl mx-auto">
+        <div className="container-responsive">
           <EmptyState type="dashboard" />
         </div>
       </main>
@@ -65,7 +65,7 @@ export default function Home() {
           padding: '40px 24px'
         }}
       >
-        <div className="container-responsive max-w-7xl mx-auto">
+        <div className="container-responsive">
           {/* Plan Status */}
           <div className="apple-card p-6 mb-8">
             <div className="flex justify-between items-center">
@@ -382,7 +382,7 @@ export default function Home() {
 
       {/* Demo Preview Section */}
       <div className="py-8 px-4 lg:px-6">
-        <div className="container-responsive max-w-7xl mx-auto">
+        <div className="container-responsive">
           <div className="text-center mb-6 fade-in-up">
             <h2 className="text-white text-2xl lg:text-3xl font-bold mb-4">See What You Can Do</h2>
             <p className="text-purple-300 text-base lg:text-lg">Preview of your dashboard with sample data</p>
@@ -438,7 +438,7 @@ export default function Home() {
 
       {/* Calendar Preview Section */}
       <div className="py-6 px-4 lg:px-6">
-        <div className="container-responsive max-w-7xl mx-auto">
+        <div className="container-responsive">
           <div className="text-center mb-6 fade-in-up">
             <h2 className="text-white text-2xl lg:text-3xl font-bold mb-4">Smart Calendar Integration</h2>
             <p className="text-purple-300 text-base lg:text-lg">Never miss a hearing with intelligent calendar management</p>
@@ -506,7 +506,7 @@ export default function Home() {
 
       {/* AI Overview Preview Section */}
       <div className="py-6 px-4 lg:px-6">
-        <div className="container-responsive max-w-7xl mx-auto">
+        <div className="container-responsive">
           <div className="text-center mb-6 fade-in-up">
             <h2 className="text-white text-2xl lg:text-3xl font-bold mb-4">AI-Powered Case Intelligence</h2>
             <p className="text-purple-300 text-base lg:text-lg">Get instant insights and summaries with advanced AI</p>
@@ -601,7 +601,7 @@ export default function Home() {
 
       {/* Analytics Showcase Section */}
       <div className="py-12 px-6 bg-gradient-to-b from-transparent to-slate-900/30">
-        <div className="container-responsive max-w-7xl mx-auto">
+        <div className="container-responsive">
           <div className="text-center mb-8 fade-in-up">
             <h2 className="text-white text-4xl font-bold mb-4">Analytics That Matter</h2>
             <p className="text-purple-300 text-xl">Track every detail of your case management</p>
@@ -704,7 +704,7 @@ export default function Home() {
 
       {/* Features Section */}
       <div id="features" className="py-12 px-6">
-        <div className="container-responsive max-w-7xl mx-auto">
+        <div className="container-responsive">
           <div className="text-center mb-8 fade-in-up">
             <h2 className="text-white text-3xl font-bold mb-4">Powerful Features</h2>
             <p className="text-purple-300 text-lg">Everything you need to manage your legal cases</p>
@@ -758,7 +758,7 @@ export default function Home() {
 
       {/* Operations Map Section */}
       <div className="py-12 px-6">
-        <div className="container-responsive max-w-7xl mx-auto">
+        <div className="container-responsive">
           <OperationsMap />
         </div>
       </div>

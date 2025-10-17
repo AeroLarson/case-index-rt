@@ -842,7 +842,7 @@ export default function CalendarPage() {
         padding: '20px 12px 40px 12px' // Optimized mobile padding
       }}
     >
-      <div className="container-responsive max-w-7xl mx-auto">
+      <div className="container-responsive">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
