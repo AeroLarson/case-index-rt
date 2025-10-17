@@ -47,17 +47,11 @@ main[id="main-content"] {
   min-height: 100vh;
 }
 
-/* Ensure proper spacing with sidebar */
-@media (min-width: 1024px) {
-  main {
-    margin-left: 240px;
-  }
-}
 
 /* Responsive container */
 .container-responsive {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding-left: 1rem;
   padding-right: 1rem;
@@ -89,14 +83,14 @@ main[id="main-content"] {
 @media (min-width: 1536px) {
   .container-responsive { 
     padding: 0 3rem;
-    max-width: 1600px;
+    max-width: 1400px;
   }
 }
 
 @media (min-width: 1920px) {
   .container-responsive { 
     padding: 0 4rem;
-    max-width: 1800px;
+    max-width: 1600px;
   }
 }
 
@@ -104,14 +98,14 @@ main[id="main-content"] {
 @media (min-width: 2560px) {
   .container-responsive { 
     padding: 0 6rem;
-    max-width: 2400px;
+    max-width: 2000px;
   }
 }
 
 @media (min-width: 3440px) {
   .container-responsive { 
     padding: 0 8rem;
-    max-width: 3200px;
+    max-width: 2400px;
   }
 }
 
