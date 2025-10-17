@@ -25,7 +25,7 @@ export default function Header() {
 
   return (
     <header 
-        className={`relative overflow-hidden ${user ? 'lg:ml-60 xl:ml-64 2xl:ml-72' : ''}`}
+        className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
       style={{
         background: 'linear-gradient(135deg, #0f0520 0%, #1a0b2e 25%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
         minHeight: user && pathname === '/' ? '150px' : '60px'
