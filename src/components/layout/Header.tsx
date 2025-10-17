@@ -44,7 +44,7 @@ export default function Header() {
         <div className="particle" style={{ left: '90%', animationDelay: '3.5s' }}></div>
       </div>
       
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="container-responsive max-w-7xl mx-auto relative z-10">
         {/* Navigation */}
         <div className={`flex items-center justify-between py-2 ${pathname === '/' ? 'mb-4' : 'mb-1'}`}>
           {/* Logo and Name - Top Left when not logged in */}
@@ -53,7 +53,7 @@ export default function Header() {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
                 <i className="fa-solid fa-gavel text-white text-xl"></i>
               </div>
-              <span className="text-white text-xl font-bold hidden sm:block">Case Index RT</span>
+              <span className="text-white text-responsive-lg font-bold hidden sm:block">Case Index RT</span>
             </div>
           )}
           
@@ -66,7 +66,7 @@ export default function Header() {
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="text-white text-sm font-medium">{user.name}</span>
+                <span className="text-white text-responsive-sm font-medium">{user.name}</span>
               </div>
               <button 
                 onClick={handleLogout}
@@ -217,13 +217,13 @@ export default function Header() {
                      <div className="text-center mt-8 pb-12">
                        <h1 
                          id="title-dashboard" 
-                         className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
+                         className="text-white text-responsive-3xl sm:text-responsive-4xl lg:text-responsive-5xl font-bold leading-tight mb-6"
                          style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
                        >
                          Search California Court Cases<br className="hidden sm:block"/>
                          with AI-Powered Precision
                        </h1>
-                       <p className="text-purple-300 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto mb-8">
+                       <p className="text-purple-300 text-responsive-sm sm:text-responsive-base leading-relaxed max-w-2xl mx-auto mb-8">
                          Access comprehensive case data from San Diego County family law cases. Track filings, hearings, and documents in real-time with automated updates.
                        </p>
                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -248,11 +248,11 @@ export default function Header() {
           <div className="text-center mt-4 px-4">
             <h1 
               id="title-dashboard" 
-              className="text-white text-2xl font-bold leading-tight mb-2"
+              className="text-white text-responsive-2xl font-bold leading-tight mb-2"
             >
               Welcome back, {user.name.split(' ')[0]}!
             </h1>
-            <p className="text-purple-300 text-sm leading-relaxed max-w-2xl mx-auto">
+            <p className="text-purple-300 text-responsive-sm leading-relaxed max-w-2xl mx-auto">
               Here's your personalized dashboard with your latest case updates and insights.
             </p>
           </div>

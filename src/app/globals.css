@@ -11,6 +11,179 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Responsive base styles */
+:root {
+  --min-width: 320px;
+  --max-width: 1920px;
+}
+
+body {
+  min-width: var(--min-width);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* Responsive container */
+.container-responsive {
+  width: 100%;
+  max-width: 100vw;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Responsive breakpoints for different monitors */
+@media (min-width: 320px) {
+  .container-responsive { padding: 0 0.75rem; }
+}
+
+@media (min-width: 640px) {
+  .container-responsive { padding: 0 1rem; }
+}
+
+@media (min-width: 768px) {
+  .container-responsive { padding: 0 1.5rem; }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive { padding: 0 2rem; }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive { padding: 0 2.5rem; }
+}
+
+@media (min-width: 1536px) {
+  .container-responsive { padding: 0 3rem; }
+}
+
+@media (min-width: 1920px) {
+  .container-responsive { padding: 0 4rem; }
+}
+
+/* Ultra-wide monitor support */
+@media (min-width: 2560px) {
+  .container-responsive { 
+    padding: 0 6rem;
+    max-width: 2400px;
+  }
+}
+
+@media (min-width: 3440px) {
+  .container-responsive { 
+    padding: 0 8rem;
+    max-width: 3200px;
+  }
+}
+
+/* Responsive typography scaling */
+.text-responsive-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-responsive-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-responsive-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.text-responsive-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.text-responsive-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.text-responsive-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.text-responsive-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.text-responsive-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
+.text-responsive-5xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+/* Responsive scaling for different screen sizes */
+@media (min-width: 640px) {
+  .text-responsive-xs { font-size: 0.8rem; }
+  .text-responsive-sm { font-size: 0.9rem; }
+  .text-responsive-base { font-size: 1.1rem; }
+  .text-responsive-lg { font-size: 1.2rem; }
+  .text-responsive-xl { font-size: 1.3rem; }
+  .text-responsive-2xl { font-size: 1.6rem; }
+  .text-responsive-3xl { font-size: 2rem; }
+  .text-responsive-4xl { font-size: 2.4rem; }
+  .text-responsive-5xl { font-size: 3.2rem; }
+}
+
+@media (min-width: 1024px) {
+  .text-responsive-xs { font-size: 0.85rem; }
+  .text-responsive-sm { font-size: 0.95rem; }
+  .text-responsive-base { font-size: 1.15rem; }
+  .text-responsive-lg { font-size: 1.25rem; }
+  .text-responsive-xl { font-size: 1.35rem; }
+  .text-responsive-2xl { font-size: 1.7rem; }
+  .text-responsive-3xl { font-size: 2.1rem; }
+  .text-responsive-4xl { font-size: 2.5rem; }
+  .text-responsive-5xl { font-size: 3.4rem; }
+}
+
+@media (min-width: 1280px) {
+  .text-responsive-xs { font-size: 0.9rem; }
+  .text-responsive-sm { font-size: 1rem; }
+  .text-responsive-base { font-size: 1.2rem; }
+  .text-responsive-lg { font-size: 1.3rem; }
+  .text-responsive-xl { font-size: 1.4rem; }
+  .text-responsive-2xl { font-size: 1.8rem; }
+  .text-responsive-3xl { font-size: 2.2rem; }
+  .text-responsive-4xl { font-size: 2.6rem; }
+  .text-responsive-5xl { font-size: 3.6rem; }
+}
+
+@media (min-width: 1536px) {
+  .text-responsive-xs { font-size: 0.95rem; }
+  .text-responsive-sm { font-size: 1.05rem; }
+  .text-responsive-base { font-size: 1.25rem; }
+  .text-responsive-lg { font-size: 1.35rem; }
+  .text-responsive-xl { font-size: 1.45rem; }
+  .text-responsive-2xl { font-size: 1.9rem; }
+  .text-responsive-3xl { font-size: 2.3rem; }
+  .text-responsive-4xl { font-size: 2.7rem; }
+  .text-responsive-5xl { font-size: 3.8rem; }
+}
+
+/* Ultra-wide monitor typography scaling */
+@media (min-width: 2560px) {
+  .text-responsive-xs { font-size: 1rem; }
+  .text-responsive-sm { font-size: 1.1rem; }
+  .text-responsive-base { font-size: 1.3rem; }
+  .text-responsive-lg { font-size: 1.4rem; }
+  .text-responsive-xl { font-size: 1.5rem; }
+  .text-responsive-2xl { font-size: 2rem; }
+  .text-responsive-3xl { font-size: 2.4rem; }
+  .text-responsive-4xl { font-size: 2.8rem; }
+  .text-responsive-5xl { font-size: 4rem; }
+}
+
 /* Global rounded edges for all elements */
 button, input, select, textarea, .apple-card, .vercel-card, .vercel-card-premium {
   border-radius: 12px !important;

@@ -68,7 +68,7 @@ export default function Sidebar() {
   return (
     <aside 
       id="sidebar-navigation"
-      className="hidden lg:flex flex-col gap-6 h-screen fixed left-0 top-0 overflow-y-auto z-50"
+      className="hidden lg:flex xl:w-64 2xl:w-72 flex-col gap-6 h-screen fixed left-0 top-0 overflow-y-auto z-50"
       style={{
         width: '240px',
         background: 'linear-gradient(180deg,#1a0b2e 0%,#2d1b4e 100%)',

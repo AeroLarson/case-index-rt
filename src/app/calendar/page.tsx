@@ -842,7 +842,7 @@ export default function CalendarPage() {
         padding: '20px 12px 40px 12px' // Optimized mobile padding
       }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="container-responsive max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
@@ -987,9 +987,9 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 xl:gap-8">
           {/* Calendar View */}
-          <div className="lg:col-span-3">
+          <div className="xl:col-span-3">
             <div className="apple-card p-6">
               <h3 className="text-white text-2xl font-semibold mb-6">
                 {view === 'month' ? 'Monthly Calendar' : 
@@ -1014,7 +1014,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="xl:col-span-1 space-y-6">
             {/* Quick Stats */}
             <div className="apple-card p-6 min-h-[200px]">
               <h3 className="text-white font-semibold text-lg mb-4">Calendar Stats</h3>
