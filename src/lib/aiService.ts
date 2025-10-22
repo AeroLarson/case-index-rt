@@ -1,13 +1,36 @@
-// AI Service for handling AI-related operations
+// AI Service for handling AI-related operations with San Diego County data integration
 export class AIService {
-  // Generate AI response using OpenAI API or intelligent fallback
-  static async generateResponse(prompt: string): Promise<string> {
+  // Generate AI response using OpenAI API with real county data
+  static async generateResponse(prompt: string, countyData?: any): Promise<string> {
     try {
       // Check if OpenAI API key is available
       const openaiApiKey = process.env.OPENAI_API_KEY
       
       if (openaiApiKey) {
-        // Use real OpenAI API
+        // Use real OpenAI API with county data context
+        const systemPrompt = countyData 
+          ? `You are an expert legal assistant specializing in California family law with access to real San Diego County court data. Analyze the provided case information and provide practical, actionable advice based on actual court records. Be professional, helpful, and focus on California legal procedures and San Diego Superior Court practices.`
+          : 'You are an expert legal assistant specializing in California family law. Provide practical, actionable advice based on case facts. Be professional, helpful, and focus on California legal procedures.'
+
+        const messages = [
+          {
+            role: 'system',
+            content: systemPrompt
+          }
+        ]
+
+        if (countyData) {
+          messages.push({
+            role: 'system',
+            content: `Case Data from San Diego County: ${JSON.stringify(countyData, null, 2)}`
+          })
+        }
+
+        messages.push({
+          role: 'user',
+          content: prompt
+        })
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -16,16 +39,7 @@ export class AIService {
           },
           body: JSON.stringify({
             model: 'gpt-4',
-            messages: [
-              {
-                role: 'system',
-                content: 'You are an expert legal assistant specializing in California family law. Provide practical, actionable advice based on case facts. Be professional, helpful, and focus on California legal procedures.'
-              },
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
+            messages,
             max_tokens: 1000,
             temperature: 0.7,
           }),
@@ -39,17 +53,17 @@ export class AIService {
         return data.choices[0]?.message?.content || 'Unable to generate response.'
       } else {
         // No API key available - provide intelligent analysis based on case data
-        return this.generateIntelligentAnalysis(prompt)
+        return this.generateIntelligentAnalysis(prompt, countyData)
       }
     } catch (error) {
       console.error('AI Service Error:', error)
       // Fallback to intelligent analysis
-      return this.generateIntelligentAnalysis(prompt)
+      return this.generateIntelligentAnalysis(prompt, countyData)
     }
   }
 
   // Generate intelligent analysis based on case data without API
-  static generateIntelligentAnalysis(prompt: string): string {
+  static generateIntelligentAnalysis(prompt: string, countyData?: any): string {
     // Extract case information from prompt
     const caseNumberMatch = prompt.match(/Case Number: ([^\n]+)/)
     const caseTypeMatch = prompt.match(/Case Type: ([^\n]+)/)
@@ -196,8 +210,8 @@ export class AIService {
   }
 
   // Generate comprehensive case insights
-  static async generateCaseInsights(caseData: any): Promise<any> {
-    const prompt = `
+  static async generateCaseInsights(caseData: any, countyData?: any): Promise<any> {
+    let prompt = `
     Generate comprehensive case insights for:
     
     Case Number: ${caseData.caseNumber || 'N/A'}
@@ -210,6 +224,24 @@ export class AIService {
     Parties:
     - Petitioner: ${caseData.parties?.petitioner || 'N/A'}
     - Respondent: ${caseData.parties?.respondent || 'N/A'}
+    `
+    
+    // Add county data if available
+    if (countyData) {
+      prompt += `
+    
+    Real San Diego County Court Data:
+    - Department: ${countyData.department || 'N/A'}
+    - Judicial Officer: ${countyData.judge || 'N/A'}
+    - Case Type: ${countyData.caseType || 'N/A'}
+    - Date Filed: ${countyData.dateFiled || 'N/A'}
+    - Last Activity: ${countyData.lastActivity || 'N/A'}
+    - Register of Actions: ${countyData.registerOfActions?.length || 0} entries
+    - Upcoming Events: ${countyData.upcomingEvents?.length || 0} scheduled
+    `
+    }
+    
+    prompt += `
     
     Please provide:
     1. A detailed case summary
@@ -221,7 +253,7 @@ export class AIService {
     Focus on California family law procedures and practical advice.
     `
     
-    const insights = await this.generateResponse(prompt)
+    const insights = await this.generateResponse(prompt, countyData)
     
     return {
       summary: insights,
@@ -241,7 +273,8 @@ export class AIService {
           event: 'Case Review',
           description: 'Initial case analysis completed'
         }
-      ]
+      ],
+      dataSource: countyData ? 'san_diego_county' : 'fallback'
     }
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AIService, CaseData } from '@/lib/aiService'
+import { countyDataService } from '@/lib/countyDataService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,13 +23,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get AI insights - no fallback, only real AI
-    const insights = await AIService.generateCaseInsights(caseData)
+    try {
+      // Get real county data for enhanced AI insights
+      const countyData = await countyDataService.getCaseDetails(caseData.caseNumber)
+      
+      // Generate AI insights with real county data
+      const insights = await AIService.generateCaseInsights(caseData, countyData)
 
-    return NextResponse.json({
-      success: true,
-      insights
-    })
+      return NextResponse.json({
+        success: true,
+        insights,
+        dataSource: 'san_diego_county',
+        rateLimitStatus: countyDataService.getRateLimitStatus()
+      })
+
+    } catch (countyError) {
+      console.error('County data retrieval failed:', countyError)
+      
+      // Fallback to AI insights without county data
+      const insights = await AIService.generateCaseInsights(caseData)
+
+      return NextResponse.json({
+        success: true,
+        insights,
+        dataSource: 'fallback',
+        countyError: countyError instanceof Error ? countyError.message : 'Unknown error'
+      })
+    }
 
   } catch (error: any) {
     console.error('AI Insights API Error:', error)
