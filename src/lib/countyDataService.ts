@@ -134,29 +134,82 @@ class CountyDataService {
   }
 
   /**
-   * Search using public case search system
+   * Search using public case search system with multiple fallback methods
    */
   private async searchPublicCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
-    // Use the general search endpoint that we know works
-    const searchUrl = `${this.baseUrl}/search?search=${encodeURIComponent(searchQuery)}`;
+    // Try multiple search endpoints and methods
+    const searchMethods = [
+      // Method 1: Direct search endpoint
+      {
+        url: `${this.baseUrl}/search?search=${encodeURIComponent(searchQuery)}`,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        }
+      },
+      // Method 2: Alternative search endpoint
+      {
+        url: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?search=${encodeURIComponent(searchQuery)}`,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
+        }
+      },
+      // Method 3: Try with different parameters
+      {
+        url: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?partyName=${encodeURIComponent(searchQuery)}`,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        }
+      },
+      // Method 4: Try case number search if it looks like a case number
+      ...(searchQuery.match(/^[A-Z]{2}-\d{4}-\d{6}$/) ? [{
+        url: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?caseNumber=${encodeURIComponent(searchQuery)}`,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        }
+      }] : [])
+    ];
     
-    console.log('Searching public cases with URL:', searchUrl);
-    
-    const response = await fetch(searchUrl, {
-      headers: {
-        'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    for (const method of searchMethods) {
+      try {
+        console.log('Trying search method:', method.url);
+        
+        const response = await fetch(method.url, {
+          headers: method.headers,
+          timeout: 15000
+        });
+
+        if (response.ok) {
+          const html = await response.text();
+          console.log('✅ Search successful, HTML length:', html.length);
+          
+          // Check if we got actual results
+          if (html.includes('case') || html.includes('Case') || html.includes('court') || html.includes('Court') || html.includes('result') || html.includes('Result')) {
+            const results = this.parseCaseSearchHTML(html, searchQuery);
+            if (results.length > 0) {
+              console.log('✅ Found results with this method');
+              return results;
+            }
+          }
+        } else {
+          console.log(`❌ Search method failed: HTTP ${response.status}`);
+        }
+      } catch (error) {
+        console.log('❌ Search method error:', error);
+        continue;
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Public search error: ${response.status}`);
     }
-
-    const html = await response.text();
-    console.log('Public search HTML length:', html.length);
     
-    return this.parseCaseSearchHTML(html, searchQuery);
+    // If all methods fail, return a helpful error message
+    throw new Error('All search methods failed - San Diego County search system may be temporarily unavailable');
   }
 
   /**
