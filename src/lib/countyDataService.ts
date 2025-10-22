@@ -345,19 +345,34 @@ class CountyDataService {
       console.log('San Diego County search HTML response length:', html.length);
       console.log('HTML preview:', html.substring(0, 1000));
       
-      // Look for case numbers in the HTML (FL-2024-XXXXXX, CR-2024-XXXXXX, etc.)
-      const caseNumberRegex = /([A-Z]{2}-\d{4}-\d{6})/g;
-      const caseNumbers = [];
-      let caseMatch;
+      // Look for case numbers in the HTML with multiple patterns
+      const caseNumberPatterns = [
+        /([A-Z]{2}-\d{4}-\d{6})/g,  // Standard format FL-2024-123456
+        /([A-Z]{2}-\d{4}-\d{5})/g,  // 5-digit format
+        /([A-Z]{2}-\d{4}-\d{7})/g,  // 7-digit format
+        /([A-Z]{2}-\d{4}-\d{4})/g,  // 4-digit format
+        /([A-Z]{2}-\d{4}-\d{8})/g,  // 8-digit format
+        /([A-Z]{2}-\d{4}-\d{3})/g,  // 3-digit format
+        /([A-Z]{2}-\d{4}-\d{9})/g,  // 9-digit format
+        /([A-Z]{2}-\d{4}-\d{2})/g,  // 2-digit format
+        /([A-Z]{2}-\d{4}-\d{10})/g, // 10-digit format
+        /([A-Z]{2}-\d{4}-\d{1})/g,  // 1-digit format
+      ];
       
-      while ((caseMatch = caseNumberRegex.exec(html)) !== null) {
-        caseNumbers.push(caseMatch[1]);
+      const allCaseNumbers = [];
+      for (const pattern of caseNumberPatterns) {
+        const matches = html.match(pattern);
+        if (matches) {
+          allCaseNumbers.push(...matches);
+        }
       }
       
-      console.log('Found case numbers:', caseNumbers);
+      // Remove duplicates
+      const uniqueCaseNumbers = [...new Set(allCaseNumbers)];
+      console.log('Found case numbers:', uniqueCaseNumbers);
       
       // For each case number found, create case data
-      for (const caseNumber of caseNumbers) {
+      for (const caseNumber of uniqueCaseNumbers) {
         const caseData: CountyCaseData = {
           caseNumber,
           caseTitle: `Case ${caseNumber} - ${searchTerm}`,
