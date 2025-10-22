@@ -39,7 +39,7 @@ interface CountyAction {
 }
 
 class CountyDataService {
-  private baseUrl = 'https://www.sdcourt.ca.gov';
+  private baseUrl = 'https://roasearch.sdcourt.ca.gov';
   private rateLimiter = new Map<string, number>();
   private readonly RATE_LIMIT = 450; // requests per 10 seconds
   private readonly TIME_WINDOW = 10000; // 10 seconds in milliseconds
@@ -85,41 +85,44 @@ class CountyDataService {
   }
 
   /**
-   * Search for cases by party name
+   * Search for cases by party name using ROA search system
    */
   async searchCases(partyName: string): Promise<CountyCaseData[]> {
     await this.respectRateLimit();
     
     try {
-      console.log('Searching San Diego County for:', partyName);
+      console.log('Searching San Diego County ROA system for:', partyName);
       
-      // Use the search form with GET method and search parameter
-      const searchUrl = `${this.baseUrl}/search?search=${encodeURIComponent(partyName)}`;
+      // Use the ROA search system for parties
+      const searchUrl = `${this.baseUrl}/Parties`;
       
-      console.log('Search URL:', searchUrl);
+      console.log('ROA Search URL:', searchUrl);
       
-      const response = await fetch(searchUrl, {
+      // First, get the search form to understand the structure
+      const formResponse = await fetch(searchUrl, {
         method: 'GET',
         headers: {
           'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`County API error: ${response.status}`);
+      if (!formResponse.ok) {
+        throw new Error(`ROA form error: ${formResponse.status}`);
       }
 
-      const html = await response.text();
-      console.log('Search results HTML:', html.substring(0, 1000));
+      const formHtml = await formResponse.text();
+      console.log('ROA form HTML:', formHtml.substring(0, 1000));
       
-      // Parse the HTML response to extract case data
-      return this.parseCaseSearchHTML(html, partyName);
+      // TODO: Parse the form and submit the search properly
+      // For now, return empty results until we implement proper form submission
+      console.log('ROA form submission not yet implemented - returning empty results');
+      
+      return [];
       
     } catch (error) {
-      console.error('County data search failed:', error);
-      throw new Error('Unable to search county records at this time');
+      console.error('ROA search failed:', error);
+      throw new Error('Unable to search ROA records at this time');
     }
   }
 
