@@ -134,14 +134,16 @@ class CountyDataService {
   }
 
   /**
-   * Search using public case search system with multiple fallback methods
+   * Search using public case search system with proper form submission
    */
   private async searchPublicCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
-    // Try multiple search endpoints and methods
-    const searchMethods = [
-      // Method 1: Direct search endpoint
-      {
-        url: `${this.baseUrl}/search?search=${encodeURIComponent(searchQuery)}`,
+    try {
+      console.log('🔍 Searching San Diego County with proper form submission for:', searchQuery);
+      
+      // First, get the search form to extract required fields
+      const formUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
+      
+      const formResponse = await fetch(formUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -150,66 +152,85 @@ class CountyDataService {
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1',
         }
-      },
-      // Method 2: Alternative search endpoint
-      {
-        url: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?search=${encodeURIComponent(searchQuery)}`,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
-        }
-      },
-      // Method 3: Try with different parameters
-      {
-        url: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?partyName=${encodeURIComponent(searchQuery)}`,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        }
-      },
-      // Method 4: Try case number search if it looks like a case number
-      ...(searchQuery.match(/^[A-Z]{2}-\d{4}-\d{6}$/) ? [{
-        url: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?caseNumber=${encodeURIComponent(searchQuery)}`,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        }
-      }] : [])
-    ];
-    
-    for (const method of searchMethods) {
-      try {
-        console.log('Trying search method:', method.url);
-        
-        const response = await fetch(method.url, {
-          headers: method.headers,
-          timeout: 15000
-        });
+      });
 
-        if (response.ok) {
-          const html = await response.text();
-          console.log('✅ Search successful, HTML length:', html.length);
-          
-          // Check if we got actual results
-          if (html.includes('case') || html.includes('Case') || html.includes('court') || html.includes('Court') || html.includes('result') || html.includes('Result')) {
-            const results = this.parseCaseSearchHTML(html, searchQuery);
-            if (results.length > 0) {
-              console.log('✅ Found results with this method');
-              return results;
-            }
-          }
-        } else {
-          console.log(`❌ Search method failed: HTTP ${response.status}`);
-        }
-      } catch (error) {
-        console.log('❌ Search method error:', error);
-        continue;
+      if (!formResponse.ok) {
+        throw new Error(`Form fetch error: ${formResponse.status}`);
       }
+
+      const formHtml = await formResponse.text();
+      console.log('Form HTML length:', formHtml.length);
+      
+      // Extract form action and method
+      const formActionMatch = formHtml.match(/<form[^>]*action="([^"]*)"[^>]*>/i);
+      const formMethodMatch = formHtml.match(/<form[^>]*method="([^"]*)"[^>]*>/i);
+      const formAction = formActionMatch ? formActionMatch[1] : '/sdcourt/generalinformation/courtrecords2/onlinecasesearch';
+      const formMethod = formMethodMatch ? formMethodMatch[1] : 'POST';
+      
+      console.log('Form action:', formAction);
+      console.log('Form method:', formMethod);
+      
+      // Extract hidden fields
+      const hiddenFields = [];
+      const hiddenFieldRegex = /<input[^>]*type="hidden"[^>]*name="([^"]*)"[^>]*value="([^"]*)"[^>]*>/gi;
+      let hiddenMatch;
+      while ((hiddenMatch = hiddenFieldRegex.exec(formHtml)) !== null) {
+        hiddenFields.push({
+          name: hiddenMatch[1],
+          value: hiddenMatch[2]
+        });
+      }
+      
+      console.log('Hidden fields found:', hiddenFields.length);
+      
+      // Determine search field based on search type and query
+      let searchField = 'search';
+      if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
+        searchField = 'caseNumber';
+      } else if (searchType === 'attorney') {
+        searchField = 'attorneyName';
+      } else {
+        searchField = 'partyName';
+      }
+      
+      // Prepare form data
+      const formData = new URLSearchParams();
+      formData.append(searchField, searchQuery);
+      
+      // Add hidden fields
+      for (const field of hiddenFields) {
+        formData.append(field.name, field.value);
+      }
+      
+      console.log('Submitting form with field:', searchField, 'value:', searchQuery);
+      
+      // Submit the form
+      const searchResponse = await fetch(`${this.baseUrl}${formAction}`, {
+        method: formMethod,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Referer': formUrl,
+          'Origin': this.baseUrl,
+        },
+        body: formData.toString()
+      });
+
+      if (!searchResponse.ok) {
+        throw new Error(`Search submission error: ${searchResponse.status}`);
+      }
+
+      const searchHtml = await searchResponse.text();
+      console.log('Search results HTML length:', searchHtml.length);
+      
+      // Parse the search results
+      return this.parseCaseSearchHTML(searchHtml, searchQuery);
+      
+    } catch (error) {
+      console.error('Form submission search error:', error);
+      throw new Error('Unable to search county records - form submission failed');
     }
-    
-    // If all methods fail, return a helpful error message
-    throw new Error('All search methods failed - San Diego County search system may be temporarily unavailable');
   }
 
   /**
@@ -347,16 +368,17 @@ class CountyDataService {
       
       // Look for case numbers in the HTML with multiple patterns
       const caseNumberPatterns = [
-        /([A-Z]{2}-\d{4}-\d{6})/g,  // Standard format FL-2024-123456
-        /([A-Z]{2}-\d{4}-\d{5})/g,  // 5-digit format
-        /([A-Z]{2}-\d{4}-\d{7})/g,  // 7-digit format
-        /([A-Z]{2}-\d{4}-\d{4})/g,  // 4-digit format
-        /([A-Z]{2}-\d{4}-\d{8})/g,  // 8-digit format
-        /([A-Z]{2}-\d{4}-\d{3})/g,  // 3-digit format
-        /([A-Z]{2}-\d{4}-\d{9})/g,  // 9-digit format
-        /([A-Z]{2}-\d{4}-\d{2})/g,  // 2-digit format
-        /([A-Z]{2}-\d{4}-\d{10})/g, // 10-digit format
-        /([A-Z]{2}-\d{4}-\d{1})/g,  // 1-digit format
+        /(\d{2}[A-Z]{2}\d{6}[A-Z]?)/g,  // Format like 22FL001581C
+        /([A-Z]{2}-\d{4}-\d{6})/g,      // Standard format FL-2024-123456
+        /([A-Z]{2}-\d{4}-\d{5})/g,      // 5-digit format
+        /([A-Z]{2}-\d{4}-\d{7})/g,      // 7-digit format
+        /([A-Z]{2}-\d{4}-\d{4})/g,      // 4-digit format
+        /([A-Z]{2}-\d{4}-\d{8})/g,      // 8-digit format
+        /([A-Z]{2}-\d{4}-\d{3})/g,      // 3-digit format
+        /([A-Z]{2}-\d{4}-\d{9})/g,      // 9-digit format
+        /([A-Z]{2}-\d{4}-\d{2})/g,      // 2-digit format
+        /([A-Z]{2}-\d{4}-\d{10})/g,     // 10-digit format
+        /([A-Z]{2}-\d{4}-\d{1})/g,      // 1-digit format
       ];
       
       const allCaseNumbers = [];
@@ -371,23 +393,41 @@ class CountyDataService {
       const uniqueCaseNumbers = [...new Set(allCaseNumbers)];
       console.log('Found case numbers:', uniqueCaseNumbers);
       
-      // For each case number found, create case data
+      // For each case number found, extract detailed information
       for (const caseNumber of uniqueCaseNumbers) {
-        const caseData: CountyCaseData = {
-          caseNumber,
-          caseTitle: `Case ${caseNumber} - ${searchTerm}`,
-          caseType: this.determineCaseType(caseNumber),
-          status: 'Active',
-          dateFiled: new Date().toISOString().split('T')[0],
-          lastActivity: new Date().toISOString().split('T')[0],
-          department: 'San Diego Superior Court',
-          judge: 'Unknown',
-          parties: [searchTerm],
-          upcomingEvents: [],
-          registerOfActions: []
-        };
-        
-        cases.push(caseData);
+        // Find the context around this case number
+        const caseNumberIndex = html.indexOf(caseNumber);
+        if (caseNumberIndex !== -1) {
+          // Extract context around the case number (1000 characters before and after)
+          const contextStart = Math.max(0, caseNumberIndex - 1000);
+          const contextEnd = Math.min(html.length, caseNumberIndex + 1000);
+          const context = html.substring(contextStart, contextEnd);
+          
+          // Extract case information from context
+          const caseTitle = this.extractCaseTitle(context, searchTerm);
+          const caseType = this.extractCaseType(context);
+          const status = this.extractStatus(context);
+          const dateFiled = this.extractDateFiled(context);
+          const department = this.extractDepartment(context);
+          const judge = this.extractJudge(context);
+          const parties = this.extractParties(context, searchTerm);
+          
+          const caseData: CountyCaseData = {
+            caseNumber,
+            caseTitle,
+            caseType,
+            status,
+            dateFiled,
+            lastActivity: new Date().toISOString().split('T')[0],
+            department,
+            judge,
+            parties,
+            upcomingEvents: [],
+            registerOfActions: []
+          };
+          
+          cases.push(caseData);
+        }
       }
       
       // If no case numbers found, look for other case-related content
@@ -430,24 +470,179 @@ class CountyDataService {
   }
 
   /**
+   * Extract case title from context
+   */
+  private extractCaseTitle(context: string, searchTerm: string): string {
+    const titlePatterns = [
+      /Case Title[:\s]*([^<\n]+)/i,
+      /Title[:\s]*([^<\n]+)/i,
+      /([^<\n]*vs[^<\n]*)/i,
+      /([^<\n]*v[^<\n]*)/i
+    ];
+    
+    for (const pattern of titlePatterns) {
+      const match = context.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    return `Case involving ${searchTerm}`;
+  }
+
+  /**
+   * Extract case type from context
+   */
+  private extractCaseType(context: string): string {
+    const typePatterns = [
+      /Case Type[:\s]*([^<\n]+)/i,
+      /Type[:\s]*([^<\n]+)/i,
+      /(Family Law|Criminal|Civil|Small Claims|Traffic|Juvenile|Administrative|Appeals|Guardianship|Mental Health|Probate)/i
+    ];
+    
+    for (const pattern of typePatterns) {
+      const match = context.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    return 'Unknown';
+  }
+
+  /**
+   * Extract case status from context
+   */
+  private extractStatus(context: string): string {
+    const statusPatterns = [
+      /Case Status[:\s]*([^<\n]+)/i,
+      /Status[:\s]*([^<\n]+)/i,
+      /(Active|Closed|Pending|Post Judgment|Open|Dismissed)/i
+    ];
+    
+    for (const pattern of statusPatterns) {
+      const match = context.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    return 'Active';
+  }
+
+  /**
+   * Extract date filed from context
+   */
+  private extractDateFiled(context: string): string {
+    const datePatterns = [
+      /Date Filed[:\s]*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})/i,
+      /Filed[:\s]*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})/i,
+      /([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})/i
+    ];
+    
+    for (const pattern of datePatterns) {
+      const match = context.match(pattern);
+      if (match && match[1]) {
+        const dateStr = match[1];
+        // Convert MM/DD/YYYY to YYYY-MM-DD
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const month = parts[0].padStart(2, '0');
+          const day = parts[1].padStart(2, '0');
+          const year = parts[2];
+          return `${year}-${month}-${day}`;
+        }
+        return dateStr;
+      }
+    }
+    
+    return new Date().toISOString().split('T')[0];
+  }
+
+  /**
+   * Extract department from context
+   */
+  private extractDepartment(context: string): string {
+    const deptPatterns = [
+      /Department[:\s]*([^<\n]+)/i,
+      /Dept[:\s]*([^<\n]+)/i,
+      /Court Location[:\s]*([^<\n]+)/i
+    ];
+    
+    for (const pattern of deptPatterns) {
+      const match = context.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    return 'San Diego Superior Court';
+  }
+
+  /**
+   * Extract judge from context
+   */
+  private extractJudge(context: string): string {
+    const judgePatterns = [
+      /Judicial Officer[:\s]*([^<\n]+)/i,
+      /Judge[:\s]*([^<\n]+)/i,
+      /Hon[.\s]*([^<\n]+)/i,
+      /Assigned[:\s]*([^<\n]+)/i
+    ];
+    
+    for (const pattern of judgePatterns) {
+      const match = context.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    return 'Unknown';
+  }
+
+  /**
+   * Extract parties from context
+   */
+  private extractParties(context: string, searchTerm: string): string[] {
+    const parties = [searchTerm];
+    
+    const partyPatterns = [
+      /Petitioner[:\s]*([^<\n]+)/i,
+      /Respondent[:\s]*([^<\n]+)/i,
+      /Plaintiff[:\s]*([^<\n]+)/i,
+      /Defendant[:\s]*([^<\n]+)/i,
+      /Party[:\s]*([^<\n]+)/i
+    ];
+    
+    for (const pattern of partyPatterns) {
+      const match = context.match(pattern);
+      if (match && match[1]) {
+        parties.push(match[1].trim());
+      }
+    }
+    
+    return [...new Set(parties)]; // Remove duplicates
+  }
+
+  /**
    * Determine case type based on case number
    */
   private determineCaseType(caseNumber: string): string {
-    if (caseNumber.startsWith('FL-')) return 'Family Law';
-    if (caseNumber.startsWith('CR-')) return 'Criminal';
-    if (caseNumber.startsWith('CV-')) return 'Civil';
-    if (caseNumber.startsWith('SC-')) return 'Small Claims';
-    if (caseNumber.startsWith('TR-')) return 'Traffic';
-    if (caseNumber.startsWith('JC-')) return 'Juvenile';
-    if (caseNumber.startsWith('AD-')) return 'Administrative';
-    if (caseNumber.startsWith('AP-')) return 'Appeals';
-    if (caseNumber.startsWith('GU-')) return 'Guardianship';
-    if (caseNumber.startsWith('MH-')) return 'Mental Health';
-    if (caseNumber.startsWith('PR-')) return 'Probate';
-    if (caseNumber.startsWith('SB-')) return 'Superior Court Business';
-    if (caseNumber.startsWith('SS-')) return 'Superior Court Special';
-    if (caseNumber.startsWith('ST-')) return 'Superior Court Special';
-    if (caseNumber.startsWith('WS-')) return 'Workers Compensation';
+    if (caseNumber.includes('FL')) return 'Family Law';
+    if (caseNumber.includes('CR')) return 'Criminal';
+    if (caseNumber.includes('CV')) return 'Civil';
+    if (caseNumber.includes('SC')) return 'Small Claims';
+    if (caseNumber.includes('TR')) return 'Traffic';
+    if (caseNumber.includes('JC')) return 'Juvenile';
+    if (caseNumber.includes('AD')) return 'Administrative';
+    if (caseNumber.includes('AP')) return 'Appeals';
+    if (caseNumber.includes('GU')) return 'Guardianship';
+    if (caseNumber.includes('MH')) return 'Mental Health';
+    if (caseNumber.includes('PR')) return 'Probate';
+    if (caseNumber.includes('SB')) return 'Superior Court Business';
+    if (caseNumber.includes('SS')) return 'Superior Court Special';
+    if (caseNumber.includes('ST')) return 'Superior Court Special';
+    if (caseNumber.includes('WS')) return 'Workers Compensation';
     return 'Unknown';
   }
 
