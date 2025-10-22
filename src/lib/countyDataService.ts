@@ -93,7 +93,7 @@ class CountyDataService {
     try {
       // San Diego Superior Court case search endpoint
       // This is the actual public case search system
-      const searchUrl = `${this.baseUrl}/portal/portal.portal?_nfpb=true&_pageLabel=portal_portal_page_1&_nfls=false`;
+      const searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
       
       // Use the public case search form
       const formData = new URLSearchParams();
@@ -106,7 +106,7 @@ class CountyDataService {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Referer': `${this.baseUrl}/portal/portal.portal`,
+          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
         },
         body: formData.toString()
       });
@@ -133,12 +133,12 @@ class CountyDataService {
     
     try {
       // San Diego Superior Court case details endpoint
-      const caseUrl = `${this.baseUrl}/portal/portal.portal?_nfpb=true&_pageLabel=portal_portal_page_2&_nfls=false&caseNumber=${encodeURIComponent(caseNumber)}`;
+      const caseUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?caseNumber=${encodeURIComponent(caseNumber)}`;
       
       const response = await fetch(caseUrl, {
         headers: {
           'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Referer': `${this.baseUrl}/portal/portal.portal`,
+          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
         }
       });
 

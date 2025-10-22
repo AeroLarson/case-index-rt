@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const baseUrl = 'https://www.sdcourt.ca.gov'
     
     // Test the San Diego County portal
-    const testUrl = `${baseUrl}/portal/portal.portal?_nfpb=true&_pageLabel=portal_portal_page_1&_nfls=false`
+    const testUrl = `${baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`
     
     console.log('Testing San Diego County connection...')
     console.log('URL:', testUrl)
