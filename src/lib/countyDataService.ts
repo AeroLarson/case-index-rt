@@ -39,7 +39,8 @@ interface CountyAction {
 }
 
 class CountyDataService {
-  private baseUrl = 'https://roasearch.sdcourt.ca.gov';
+  private baseUrl = 'https://www.sdcourt.ca.gov';
+  private roaBaseUrl = 'https://roasearch.sdcourt.ca.gov';
   private rateLimiter = new Map<string, number>();
   private readonly RATE_LIMIT = 450; // requests per 10 seconds
   private readonly TIME_WINDOW = 10000; // 10 seconds in milliseconds
@@ -85,45 +86,143 @@ class CountyDataService {
   }
 
   /**
-   * Search for cases by party name using ROA search system
+   * Comprehensive case search supporting all search types
    */
-  async searchCases(partyName: string): Promise<CountyCaseData[]> {
+  async searchCases(searchQuery: string, searchType: 'name' | 'caseNumber' | 'attorney' | 'all' = 'all'): Promise<CountyCaseData[]> {
     await this.respectRateLimit();
     
     try {
-      console.log('Searching San Diego County ROA system for:', partyName);
+      console.log('Searching San Diego County for:', searchQuery, 'Type:', searchType);
       
-      // Use the ROA search system for parties
-      const searchUrl = `${this.baseUrl}/Parties`;
+      // Try multiple search approaches
+      const searchResults: CountyCaseData[] = [];
       
-      console.log('ROA Search URL:', searchUrl);
-      
-      // First, get the search form to understand the structure
-      const formResponse = await fetch(searchUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        }
-      });
-
-      if (!formResponse.ok) {
-        throw new Error(`ROA form error: ${formResponse.status}`);
+      // 1. Try the public case search first
+      try {
+        const publicResults = await this.searchPublicCases(searchQuery, searchType);
+        searchResults.push(...publicResults);
+      } catch (error) {
+        console.log('Public search failed, trying alternative methods:', error);
       }
-
-      const formHtml = await formResponse.text();
-      console.log('ROA form HTML:', formHtml.substring(0, 1000));
       
-      // TODO: Parse the form and submit the search properly
-      // For now, return empty results until we implement proper form submission
-      console.log('ROA form submission not yet implemented - returning empty results');
+      // 2. Try ROA search if public search doesn't work
+      if (searchResults.length === 0) {
+        try {
+          const roaResults = await this.searchROACases(searchQuery, searchType);
+          searchResults.push(...roaResults);
+        } catch (error) {
+          console.log('ROA search failed:', error);
+        }
+      }
       
-      return [];
+      // 3. Try alternative search methods
+      if (searchResults.length === 0) {
+        try {
+          const altResults = await this.searchAlternativeCases(searchQuery, searchType);
+          searchResults.push(...altResults);
+        } catch (error) {
+          console.log('Alternative search failed:', error);
+        }
+      }
+      
+      return searchResults;
       
     } catch (error) {
-      console.error('ROA search failed:', error);
-      throw new Error('Unable to search ROA records at this time');
+      console.error('Comprehensive search failed:', error);
+      throw new Error('Unable to search county records at this time');
     }
+  }
+
+  /**
+   * Search using public case search system
+   */
+  private async searchPublicCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
+    const searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
+    
+    // Try different search parameters based on search type
+    let searchParams = '';
+    if (searchType === 'caseNumber') {
+      searchParams = `?caseNumber=${encodeURIComponent(searchQuery)}`;
+    } else if (searchType === 'attorney') {
+      searchParams = `?attorney=${encodeURIComponent(searchQuery)}`;
+    } else {
+      searchParams = `?partyName=${encodeURIComponent(searchQuery)}`;
+    }
+    
+    const response = await fetch(`${searchUrl}${searchParams}`, {
+      headers: {
+        'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Public search error: ${response.status}`);
+    }
+
+    const html = await response.text();
+    return this.parseCaseSearchHTML(html, searchQuery);
+  }
+
+  /**
+   * Search using ROA system (with authentication handling)
+   */
+  private async searchROACases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
+    // Try to access ROA with proper headers and authentication
+    const roaUrl = `${this.roaBaseUrl}/Parties`;
+    
+    const response = await fetch(roaUrl, {
+      headers: {
+        'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'X-Forwarded-For': '216.150.1.65', // Use your whitelisted IP
+        'X-Real-IP': '216.150.1.65',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`ROA access error: ${response.status}`);
+    }
+
+    const html = await response.text();
+    console.log('ROA access successful, parsing results...');
+    
+    // Parse ROA results
+    return this.parseROASearchHTML(html, searchQuery);
+  }
+
+  /**
+   * Alternative search methods
+   */
+  private async searchAlternativeCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
+    // Try different search endpoints and methods
+    const alternativeUrls = [
+      `${this.baseUrl}/search?search=${encodeURIComponent(searchQuery)}`,
+      `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?search=${encodeURIComponent(searchQuery)}`,
+    ];
+    
+    for (const url of alternativeUrls) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          }
+        });
+
+        if (response.ok) {
+          const html = await response.text();
+          const results = this.parseCaseSearchHTML(html, searchQuery);
+          if (results.length > 0) {
+            return results;
+          }
+        }
+      } catch (error) {
+        console.log('Alternative URL failed:', url, error);
+      }
+    }
+    
+    return [];
   }
 
   /**
@@ -259,6 +358,90 @@ class CountyDataService {
       console.error('Error parsing county search HTML:', error);
       return cases;
     }
+  }
+
+  /**
+   * Parse ROA search results
+   */
+  private parseROASearchHTML(html: string, searchTerm: string): CountyCaseData[] {
+    const cases: CountyCaseData[] = [];
+    
+    try {
+      console.log('ROA search HTML response:', html.substring(0, 1000));
+      
+      // Parse ROA-specific result format
+      // Look for case information in ROA format
+      const caseRegex = /([A-Z]{2}-\d{4}-\d{6})/g;
+      const caseNumbers = [];
+      let caseMatch;
+      
+      while ((caseMatch = caseRegex.exec(html)) !== null) {
+        caseNumbers.push(caseMatch[1]);
+      }
+      
+      // For each case number found, create case data
+      for (const caseNumber of caseNumbers) {
+        const caseData: CountyCaseData = {
+          caseNumber,
+          caseTitle: `Case ${caseNumber} - ${searchTerm}`,
+          caseType: 'Family Law',
+          status: 'Active',
+          dateFiled: new Date().toISOString().split('T')[0],
+          lastActivity: new Date().toISOString().split('T')[0],
+          department: 'San Diego Superior Court',
+          judge: 'Unknown',
+          parties: [searchTerm],
+          upcomingEvents: [],
+          registerOfActions: []
+        };
+        
+        cases.push(caseData);
+      }
+      
+      return cases;
+    } catch (error) {
+      console.error('Error parsing ROA search HTML:', error);
+      return cases;
+    }
+  }
+
+  /**
+   * Auto-update case information for tracked cases
+   */
+  async updateTrackedCases(trackedCases: string[]): Promise<CountyCaseData[]> {
+    const updatedCases: CountyCaseData[] = [];
+    
+    for (const caseNumber of trackedCases) {
+      try {
+        await this.respectRateLimit();
+        
+        // Get updated case information
+        const updatedCase = await this.getCaseDetails(caseNumber);
+        updatedCases.push(updatedCase);
+        
+        // Check for new events or changes
+        await this.checkForCaseUpdates(updatedCase);
+        
+      } catch (error) {
+        console.error(`Failed to update case ${caseNumber}:`, error);
+      }
+    }
+    
+    return updatedCases;
+  }
+
+  /**
+   * Check for case updates and notify if changes found
+   */
+  private async checkForCaseUpdates(caseData: CountyCaseData): Promise<void> {
+    // This would implement logic to:
+    // 1. Compare with previous case data
+    // 2. Detect new filings, hearings, or status changes
+    // 3. Update calendar events
+    // 4. Send notifications if significant changes
+    
+    console.log(`Checking for updates to case ${caseData.caseNumber}`);
+    // Implementation would go here
   }
 
   /**

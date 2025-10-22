@@ -16,11 +16,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Search query is required' }, { status: 400 })
     }
 
-    console.log(`Searching San Diego County records for: "${query}" by user: ${userId}`)
+    console.log(`Searching San Diego County records for: "${query}" by user: ${userId}, type: ${searchType}`)
 
     try {
-      // Search real San Diego County court data
-      const countyResults = await countyDataService.searchCases(query.trim())
+      // Search real San Diego County court data with comprehensive search
+      const countyResults = await countyDataService.searchCases(query.trim(), searchType as any)
       
       // Transform county data to our format
       const cases = countyResults.map(caseData => ({
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
         cases,
         total: cases.length,
         source: 'san_diego_county',
+        searchType,
         rateLimitStatus: countyDataService.getRateLimitStatus()
       })
 
