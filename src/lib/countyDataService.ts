@@ -91,34 +91,32 @@ class CountyDataService {
     await this.respectRateLimit();
     
     try {
-      // San Diego Superior Court case search endpoint
-      // This is the actual public case search system
+      // First, get the search form to extract any required tokens or form data
       const searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
       
-      // Use the public case search form
-      const formData = new URLSearchParams();
-      formData.append('partyName', partyName);
-      formData.append('caseNumber', '');
-      formData.append('searchType', 'party');
+      console.log('Searching San Diego County for:', partyName);
       
-      const response = await fetch(searchUrl, {
-        method: 'POST',
+      // Try a GET request first to see the search form
+      const getResponse = await fetch(searchUrl, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
           'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
-        },
-        body: formData.toString()
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`County API error: ${response.status}`);
+      if (!getResponse.ok) {
+        throw new Error(`County API error: ${getResponse.status}`);
       }
 
-      const html = await response.text();
+      const formHtml = await getResponse.text();
+      console.log('Got search form HTML:', formHtml.substring(0, 1000));
       
-      // Parse the HTML response to extract case data
-      return this.parseCaseSearchHTML(html, partyName);
+      // For now, return empty results since we need to implement proper form submission
+      // The San Diego County system likely requires specific form tokens and CSRF protection
+      console.log('Form submission not yet implemented - returning empty results');
+      
+      return [];
+      
     } catch (error) {
       console.error('County data search failed:', error);
       throw new Error('Unable to search county records at this time');
@@ -194,13 +192,64 @@ class CountyDataService {
     const cases: CountyCaseData[] = [];
     
     try {
-      // This is a simplified parser - in production, you'd use a proper HTML parser
-      // For now, we'll return empty results and log the HTML for debugging
-      console.log('San Diego County search HTML response:', html.substring(0, 500));
+      console.log('San Diego County search HTML response:', html.substring(0, 1000));
       
-      // TODO: Implement proper HTML parsing for San Diego County case search results
-      // The actual implementation would parse the HTML table structure
-      // and extract case information from the search results
+      // Look for case search results in the HTML
+      // The San Diego County system returns results in a table format
+      const caseTableRegex = /<table[^>]*class="[^"]*case[^"]*"[^>]*>(.*?)<\/table>/gis;
+      const tableMatch = caseTableRegex.exec(html);
+      
+      if (tableMatch) {
+        console.log('Found case results table:', tableMatch[1].substring(0, 500));
+        
+        // Parse table rows for case information
+        const rowRegex = /<tr[^>]*>(.*?)<\/tr>/gis;
+        let rowMatch;
+        
+        while ((rowMatch = rowRegex.exec(tableMatch[1])) !== null) {
+          const rowHtml = rowMatch[1];
+          
+          // Extract case number, title, status, etc. from table cells
+          const cellRegex = /<td[^>]*>(.*?)<\/td>/gis;
+          const cells = [];
+          let cellMatch;
+          
+          while ((cellMatch = cellRegex.exec(rowHtml)) !== null) {
+            const cellText = cellMatch[1].replace(/<[^>]*>/g, '').trim();
+            if (cellText) {
+              cells.push(cellText);
+            }
+          }
+          
+          if (cells.length >= 3) {
+            // Create case data from table cells
+            const caseData: CountyCaseData = {
+              caseNumber: cells[0] || 'Unknown',
+              caseTitle: cells[1] || 'Unknown',
+              caseType: cells[2] || 'Unknown',
+              status: cells[3] || 'Unknown',
+              dateFiled: cells[4] || new Date().toISOString().split('T')[0],
+              lastActivity: cells[5] || new Date().toISOString().split('T')[0],
+              department: 'San Diego Superior Court',
+              judge: 'Unknown',
+              parties: [searchTerm],
+              upcomingEvents: [],
+              registerOfActions: []
+            };
+            
+            cases.push(caseData);
+          }
+        }
+      } else {
+        console.log('No case results table found in HTML');
+        
+        // Check if there's a "no results" message
+        if (html.includes('No cases found') || html.includes('no results') || html.includes('No records found')) {
+          console.log('No cases found for search term:', searchTerm);
+        } else {
+          console.log('Unexpected HTML structure - may need different parsing approach');
+        }
+      }
       
       return cases;
     } catch (error) {
