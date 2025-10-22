@@ -134,16 +134,29 @@ class CountyDataService {
   }
 
   /**
-   * Search using public case search system with proper form submission
+   * Search using public case search system with working GET method
    */
   private async searchPublicCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
     try {
-      console.log('🔍 Searching San Diego County with proper form submission for:', searchQuery);
+      console.log('🔍 Searching San Diego County with working GET method for:', searchQuery);
       
-      // First, get the search form to extract required fields
-      const formUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
+      // Use the working GET method that we tested
+      let searchUrl: string;
       
-      const formResponse = await fetch(formUrl, {
+      if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
+        // Case number search
+        searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?caseNumber=${encodeURIComponent(searchQuery)}`;
+      } else if (searchType === 'attorney') {
+        // Attorney search
+        searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?attorneyName=${encodeURIComponent(searchQuery)}`;
+      } else {
+        // Party name search
+        searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?partyName=${encodeURIComponent(searchQuery)}`;
+      }
+      
+      console.log('Search URL:', searchUrl);
+      
+      const searchResponse = await fetch(searchUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -154,71 +167,8 @@ class CountyDataService {
         }
       });
 
-      if (!formResponse.ok) {
-        throw new Error(`Form fetch error: ${formResponse.status}`);
-      }
-
-      const formHtml = await formResponse.text();
-      console.log('Form HTML length:', formHtml.length);
-      
-      // Extract form action and method
-      const formActionMatch = formHtml.match(/<form[^>]*action="([^"]*)"[^>]*>/i);
-      const formMethodMatch = formHtml.match(/<form[^>]*method="([^"]*)"[^>]*>/i);
-      const formAction = formActionMatch ? formActionMatch[1] : '/sdcourt/generalinformation/courtrecords2/onlinecasesearch';
-      const formMethod = formMethodMatch ? formMethodMatch[1] : 'POST';
-      
-      console.log('Form action:', formAction);
-      console.log('Form method:', formMethod);
-      
-      // Extract hidden fields
-      const hiddenFields = [];
-      const hiddenFieldRegex = /<input[^>]*type="hidden"[^>]*name="([^"]*)"[^>]*value="([^"]*)"[^>]*>/gi;
-      let hiddenMatch;
-      while ((hiddenMatch = hiddenFieldRegex.exec(formHtml)) !== null) {
-        hiddenFields.push({
-          name: hiddenMatch[1],
-          value: hiddenMatch[2]
-        });
-      }
-      
-      console.log('Hidden fields found:', hiddenFields.length);
-      
-      // Determine search field based on search type and query
-      let searchField = 'search';
-      if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
-        searchField = 'caseNumber';
-      } else if (searchType === 'attorney') {
-        searchField = 'attorneyName';
-      } else {
-        searchField = 'partyName';
-      }
-      
-      // Prepare form data
-      const formData = new URLSearchParams();
-      formData.append(searchField, searchQuery);
-      
-      // Add hidden fields
-      for (const field of hiddenFields) {
-        formData.append(field.name, field.value);
-      }
-      
-      console.log('Submitting form with field:', searchField, 'value:', searchQuery);
-      
-      // Submit the form
-      const searchResponse = await fetch(`${this.baseUrl}${formAction}`, {
-        method: formMethod,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Referer': formUrl,
-          'Origin': this.baseUrl,
-        },
-        body: formData.toString()
-      });
-
       if (!searchResponse.ok) {
-        throw new Error(`Search submission error: ${searchResponse.status}`);
+        throw new Error(`Search error: ${searchResponse.status}`);
       }
 
       const searchHtml = await searchResponse.text();
@@ -228,8 +178,8 @@ class CountyDataService {
       return this.parseCaseSearchHTML(searchHtml, searchQuery);
       
     } catch (error) {
-      console.error('Form submission search error:', error);
-      throw new Error('Unable to search county records - form submission failed');
+      console.error('Search error:', error);
+      throw new Error('Unable to search county records');
     }
   }
 
@@ -398,10 +348,12 @@ class CountyDataService {
         // Find the context around this case number
         const caseNumberIndex = html.indexOf(caseNumber);
         if (caseNumberIndex !== -1) {
-          // Extract context around the case number (1000 characters before and after)
-          const contextStart = Math.max(0, caseNumberIndex - 1000);
-          const contextEnd = Math.min(html.length, caseNumberIndex + 1000);
+          // Extract context around the case number (2000 characters before and after)
+          const contextStart = Math.max(0, caseNumberIndex - 2000);
+          const contextEnd = Math.min(html.length, caseNumberIndex + 2000);
           const context = html.substring(contextStart, contextEnd);
+          
+          console.log('Context around case number:', context.substring(0, 500));
           
           // Extract case information from context
           const caseTitle = this.extractCaseTitle(context, searchTerm);
