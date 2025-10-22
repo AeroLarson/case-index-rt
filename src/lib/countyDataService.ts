@@ -91,31 +91,31 @@ class CountyDataService {
     await this.respectRateLimit();
     
     try {
-      // First, get the search form to extract any required tokens or form data
-      const searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
-      
       console.log('Searching San Diego County for:', partyName);
       
-      // Try a GET request first to see the search form
-      const getResponse = await fetch(searchUrl, {
+      // Use the search form with GET method and search parameter
+      const searchUrl = `${this.baseUrl}/search?search=${encodeURIComponent(partyName)}`;
+      
+      console.log('Search URL:', searchUrl);
+      
+      const response = await fetch(searchUrl, {
+        method: 'GET',
         headers: {
           'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
         }
       });
 
-      if (!getResponse.ok) {
-        throw new Error(`County API error: ${getResponse.status}`);
+      if (!response.ok) {
+        throw new Error(`County API error: ${response.status}`);
       }
 
-      const formHtml = await getResponse.text();
-      console.log('Got search form HTML:', formHtml.substring(0, 1000));
+      const html = await response.text();
+      console.log('Search results HTML:', html.substring(0, 1000));
       
-      // For now, return empty results since we need to implement proper form submission
-      // The San Diego County system likely requires specific form tokens and CSRF protection
-      console.log('Form submission not yet implemented - returning empty results');
-      
-      return [];
+      // Parse the HTML response to extract case data
+      return this.parseCaseSearchHTML(html, partyName);
       
     } catch (error) {
       console.error('County data search failed:', error);
