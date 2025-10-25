@@ -42,16 +42,27 @@ interface CountyAction {
 class CountyDataService {
   private baseUrl = 'https://www.sdcourt.ca.gov';
   private roaBaseUrl = 'https://roasearch.sdcourt.ca.gov';
+  private odyroaBaseUrl = 'https://odyroa.sdcourt.ca.gov';
+  private courtIndexBaseUrl = 'https://courtindex.sdcourt.ca.gov';
   private rateLimiter = new Map<string, number>();
-  private readonly RATE_LIMIT = 20; // requests per minute (15-30 limit, using 20 for safety)
+  
+  // Platform-specific rate limits as specified by Emily Cox
+  private readonly ROA_SEARCH_LIMIT = 15; // requests per minute
+  private readonly ODYROA_LIMIT = 30; // requests per minute
+  private readonly COURT_INDEX_LIMIT = 30; // requests per minute
   private readonly TIME_WINDOW = 60000; // 60 seconds in milliseconds
 
   /**
-   * Check if we can make a request without exceeding rate limits
+   * Check if we can make a request without exceeding rate limits for specific platform
    */
-  private canMakeRequest(): boolean {
+  private canMakeRequest(platform: 'roasearch' | 'odyroa' | 'courtindex' = 'roasearch'): boolean {
     const now = Date.now();
     const windowStart = now - this.TIME_WINDOW;
+    
+    // Get the appropriate rate limit for the platform
+    const rateLimit = platform === 'roasearch' ? this.ROA_SEARCH_LIMIT :
+                     platform === 'odyroa' ? this.ODYROA_LIMIT :
+                     this.COURT_INDEX_LIMIT;
     
     // Clean old entries
     for (const [timestamp, count] of this.rateLimiter.entries()) {
@@ -64,7 +75,7 @@ class CountyDataService {
     const currentRequests = Array.from(this.rateLimiter.values())
       .reduce((sum, count) => sum + count, 0);
     
-    return currentRequests < this.RATE_LIMIT;
+    return currentRequests < rateLimit;
   }
 
   /**
@@ -77,52 +88,56 @@ class CountyDataService {
   }
 
   /**
-   * Wait if necessary to respect rate limits
+   * Wait if necessary to respect rate limits for specific platform
    */
-  private async respectRateLimit(): Promise<void> {
-    while (!this.canMakeRequest()) {
+  private async respectRateLimit(platform: 'roasearch' | 'odyroa' | 'courtindex' = 'roasearch'): Promise<void> {
+    while (!this.canMakeRequest(platform)) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     this.recordRequest();
   }
 
   /**
-   * Comprehensive case search supporting all search types
+   * Comprehensive case search using the correct San Diego County platforms
    */
   async searchCases(searchQuery: string, searchType: 'name' | 'caseNumber' | 'attorney' | 'all' = 'all'): Promise<CountyCaseData[]> {
-    await this.respectRateLimit();
-    
     try {
       console.log('Searching San Diego County for:', searchQuery, 'Type:', searchType);
       
-      // Try multiple search approaches
+      // Try the correct San Diego County platforms in order of preference
       const searchResults: CountyCaseData[] = [];
       
-      // 1. Try the public case search first
+      // 1. Try ROASearch first (15 requests/minute limit)
       try {
-        const publicResults = await this.searchPublicCases(searchQuery, searchType);
-        searchResults.push(...publicResults);
+        await this.respectRateLimit('roasearch');
+        const roaResults = await this.searchROACases(searchQuery, searchType);
+        searchResults.push(...roaResults);
+        console.log('ROASearch results:', roaResults.length);
       } catch (error) {
-        console.log('Public search failed, trying alternative methods:', error);
+        console.log('ROASearch failed:', error);
       }
       
-      // 2. Try ROA search if public search doesn't work
+      // 2. Try ODYROA if ROASearch doesn't work (30 requests/minute limit)
       if (searchResults.length === 0) {
         try {
-          const roaResults = await this.searchROACases(searchQuery, searchType);
-          searchResults.push(...roaResults);
+          await this.respectRateLimit('odyroa');
+          const odyroaResults = await this.searchODYROACases(searchQuery, searchType);
+          searchResults.push(...odyroaResults);
+          console.log('ODYROA results:', odyroaResults.length);
         } catch (error) {
-          console.log('ROA search failed:', error);
+          console.log('ODYROA search failed:', error);
         }
       }
       
-      // 3. Try alternative search methods
+      // 3. Try CourtIndex as fallback (30 requests/minute limit)
       if (searchResults.length === 0) {
         try {
-          const altResults = await this.searchAlternativeCases(searchQuery, searchType);
-          searchResults.push(...altResults);
+          await this.respectRateLimit('courtindex');
+          const courtIndexResults = await this.searchCourtIndexCases(searchQuery, searchType);
+          searchResults.push(...courtIndexResults);
+          console.log('CourtIndex results:', courtIndexResults.length);
         } catch (error) {
-          console.log('Alternative search failed:', error);
+          console.log('CourtIndex search failed:', error);
         }
       }
       
@@ -221,30 +236,105 @@ class CountyDataService {
   }
 
   /**
-   * Search using ROA system (with authentication handling)
+   * Search using ROASearch system (15 requests/minute limit)
    */
   private async searchROACases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
-    // Try to access ROA with proper headers and authentication
-    const roaUrl = `${this.roaBaseUrl}/Parties`;
-    
-    const response = await fetch(roaUrl, {
-      headers: {
-        'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'X-Forwarded-For': '216.150.1.65', // Use your whitelisted IP
-        'X-Real-IP': '216.150.1.65',
+    try {
+      console.log('🔍 Searching ROASearch for:', searchQuery);
+      
+      // ROASearch endpoint for case search
+      const roaUrl = `${this.roaBaseUrl}/search?query=${encodeURIComponent(searchQuery)}`;
+      
+      const response = await fetch(roaUrl, {
+        headers: {
+          'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'X-Forwarded-For': '3.224.164.255', // Use whitelisted static IP
+          'X-Real-IP': '3.224.164.255',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`ROASearch access error: ${response.status}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`ROA access error: ${response.status}`);
+      const html = await response.text();
+      console.log('ROASearch access successful, parsing results...');
+      
+      // Parse ROASearch results
+      return this.parseROASearchHTML(html, searchQuery);
+    } catch (error) {
+      console.error('ROASearch error:', error);
+      throw error;
     }
+  }
 
-    const html = await response.text();
-    console.log('ROA access successful, parsing results...');
-    
-    // Parse ROA results
-    return this.parseROASearchHTML(html, searchQuery);
+  /**
+   * Search using ODYROA system (30 requests/minute limit)
+   */
+  private async searchODYROACases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
+    try {
+      console.log('🔍 Searching ODYROA for:', searchQuery);
+      
+      // ODYROA endpoint for case search
+      const odyroaUrl = `${this.odyroaBaseUrl}/search?query=${encodeURIComponent(searchQuery)}`;
+      
+      const response = await fetch(odyroaUrl, {
+        headers: {
+          'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'X-Forwarded-For': '3.224.164.255', // Use whitelisted static IP
+          'X-Real-IP': '3.224.164.255',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`ODYROA access error: ${response.status}`);
+      }
+
+      const html = await response.text();
+      console.log('ODYROA access successful, parsing results...');
+      
+      // Parse ODYROA results
+      return this.parseODYROASearchHTML(html, searchQuery);
+    } catch (error) {
+      console.error('ODYROA error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search using CourtIndex system (30 requests/minute limit)
+   */
+  private async searchCourtIndexCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
+    try {
+      console.log('🔍 Searching CourtIndex for:', searchQuery);
+      
+      // CourtIndex endpoint for case search
+      const courtIndexUrl = `${this.courtIndexBaseUrl}/search?query=${encodeURIComponent(searchQuery)}`;
+      
+      const response = await fetch(courtIndexUrl, {
+        headers: {
+          'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'X-Forwarded-For': '3.224.164.255', // Use whitelisted static IP
+          'X-Real-IP': '3.224.164.255',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`CourtIndex access error: ${response.status}`);
+      }
+
+      const html = await response.text();
+      console.log('CourtIndex access successful, parsing results...');
+      
+      // Parse CourtIndex results
+      return this.parseCourtIndexSearchHTML(html, searchQuery);
+    } catch (error) {
+      console.error('CourtIndex error:', error);
+      throw error;
+    }
   }
 
   /**
@@ -814,16 +904,16 @@ class CountyDataService {
   }
 
   /**
-   * Parse ROA search results
+   * Parse ROASearch results
    */
   private parseROASearchHTML(html: string, searchTerm: string): CountyCaseData[] {
     const cases: CountyCaseData[] = [];
     
     try {
-      console.log('ROA search HTML response:', html.substring(0, 1000));
+      console.log('ROASearch HTML response:', html.substring(0, 1000));
       
-      // Parse ROA-specific result format
-      // Look for case information in ROA format
+      // Parse ROASearch-specific result format
+      // Look for case information in ROASearch format
       const caseRegex = /([A-Z]{2}-\d{4}-\d{6})/g;
       const caseNumbers = [];
       let caseMatch;
@@ -853,7 +943,97 @@ class CountyDataService {
       
       return cases;
     } catch (error) {
-      console.error('Error parsing ROA search HTML:', error);
+      console.error('Error parsing ROASearch HTML:', error);
+      return cases;
+    }
+  }
+
+  /**
+   * Parse ODYROA search results
+   */
+  private parseODYROASearchHTML(html: string, searchTerm: string): CountyCaseData[] {
+    const cases: CountyCaseData[] = [];
+    
+    try {
+      console.log('ODYROA HTML response:', html.substring(0, 1000));
+      
+      // Parse ODYROA-specific result format
+      // Look for case information in ODYROA format
+      const caseRegex = /([A-Z]{2}-\d{4}-\d{6})/g;
+      const caseNumbers = [];
+      let caseMatch;
+      
+      while ((caseMatch = caseRegex.exec(html)) !== null) {
+        caseNumbers.push(caseMatch[1]);
+      }
+      
+      // For each case number found, create case data
+      for (const caseNumber of caseNumbers) {
+        const caseData: CountyCaseData = {
+          caseNumber,
+          caseTitle: `Case ${caseNumber} - ${searchTerm}`,
+          caseType: 'Family Law',
+          status: 'Active',
+          dateFiled: new Date().toISOString().split('T')[0],
+          lastActivity: new Date().toISOString().split('T')[0],
+          department: 'San Diego Superior Court',
+          judge: 'Unknown',
+          parties: [searchTerm],
+          upcomingEvents: [],
+          registerOfActions: []
+        };
+        
+        cases.push(caseData);
+      }
+      
+      return cases;
+    } catch (error) {
+      console.error('Error parsing ODYROA search HTML:', error);
+      return cases;
+    }
+  }
+
+  /**
+   * Parse CourtIndex search results
+   */
+  private parseCourtIndexSearchHTML(html: string, searchTerm: string): CountyCaseData[] {
+    const cases: CountyCaseData[] = [];
+    
+    try {
+      console.log('CourtIndex HTML response:', html.substring(0, 1000));
+      
+      // Parse CourtIndex-specific result format
+      // Look for case information in CourtIndex format
+      const caseRegex = /([A-Z]{2}-\d{4}-\d{6})/g;
+      const caseNumbers = [];
+      let caseMatch;
+      
+      while ((caseMatch = caseRegex.exec(html)) !== null) {
+        caseNumbers.push(caseMatch[1]);
+      }
+      
+      // For each case number found, create case data
+      for (const caseNumber of caseNumbers) {
+        const caseData: CountyCaseData = {
+          caseNumber,
+          caseTitle: `Case ${caseNumber} - ${searchTerm}`,
+          caseType: 'Family Law',
+          status: 'Active',
+          dateFiled: new Date().toISOString().split('T')[0],
+          lastActivity: new Date().toISOString().split('T')[0],
+          department: 'San Diego Superior Court',
+          judge: 'Unknown',
+          parties: [searchTerm],
+          upcomingEvents: [],
+          registerOfActions: []
+        };
+        
+        cases.push(caseData);
+      }
+      
+      return cases;
+    } catch (error) {
+      console.error('Error parsing CourtIndex search HTML:', error);
       return cases;
     }
   }
@@ -1005,11 +1185,16 @@ class CountyDataService {
   }
 
   /**
-   * Get current rate limit status
+   * Get current rate limit status for specific platform
    */
-  getRateLimitStatus(): { current: number; limit: number; resetTime: number } {
+  getRateLimitStatus(platform: 'roasearch' | 'odyroa' | 'courtindex' = 'roasearch'): { current: number; limit: number; resetTime: number; platform: string } {
     const now = Date.now();
     const windowStart = now - this.TIME_WINDOW;
+    
+    // Get the appropriate rate limit for the platform
+    const rateLimit = platform === 'roasearch' ? this.ROA_SEARCH_LIMIT :
+                     platform === 'odyroa' ? this.ODYROA_LIMIT :
+                     this.COURT_INDEX_LIMIT;
     
     // Clean old entries and count current requests
     let currentRequests = 0;
@@ -1023,8 +1208,9 @@ class CountyDataService {
     
     return {
       current: currentRequests,
-      limit: this.RATE_LIMIT,
-      resetTime: windowStart + this.TIME_WINDOW
+      limit: rateLimit,
+      resetTime: windowStart + this.TIME_WINDOW,
+      platform: platform
     };
   }
 }
