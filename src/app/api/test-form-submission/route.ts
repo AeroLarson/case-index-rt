@@ -1,16 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * Test Form Submission
- * This endpoint tests proper form submission to get actual search results
- */
 export async function GET(request: NextRequest) {
   try {
-    const searchQuery = 'tonya larson'
-    console.log('Testing form submission for:', searchQuery)
+    const { JSDOM } = require('jsdom');
     
-    // First, get the search form to extract any required fields
-    const formUrl = `https://www.sdcourt.ca.gov/sdcourt/generalinformation/courtrecords2/onlinecasesearch`
+    // Step 1: Get the search form page
+    const formUrl = 'https://www.sdcourt.ca.gov/sdcourt/generalinformation/courtrecords2/onlinecasesearch';
     
     const formResponse = await fetch(formUrl, {
       headers: {
@@ -21,197 +16,128 @@ export async function GET(request: NextRequest) {
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
       }
-    })
+    });
 
     if (!formResponse.ok) {
-      return NextResponse.json({
-        success: false,
-        error: `Form fetch error: ${formResponse.status}`,
-        url: formUrl
-      })
+      return NextResponse.json({ error: `Form fetch error: ${formResponse.status}` });
     }
 
-    const formHtml = await formResponse.text()
-    console.log('Form HTML length:', formHtml.length)
-    
-    // Extract form action and method
-    const formActionMatch = formHtml.match(/<form[^>]*action="([^"]*)"[^>]*>/i)
-    const formMethodMatch = formHtml.match(/<form[^>]*method="([^"]*)"[^>]*>/i)
-    const formAction = formActionMatch ? formActionMatch[1] : '/sdcourt/generalinformation/courtrecords2/onlinecasesearch'
-    const formMethod = formMethodMatch ? formMethodMatch[1] : 'POST'
-    
-    console.log('Form action:', formAction)
-    console.log('Form method:', formMethod)
-    
-    // Extract any hidden fields or tokens
-    const hiddenFields = []
-    const hiddenFieldRegex = /<input[^>]*type="hidden"[^>]*name="([^"]*)"[^>]*value="([^"]*)"[^>]*>/gi
-    let hiddenMatch
-    while ((hiddenMatch = hiddenFieldRegex.exec(formHtml)) !== null) {
-      hiddenFields.push({
-        name: hiddenMatch[1],
-        value: hiddenMatch[2]
-      })
+    const formHtml = await formResponse.text();
+    const formDom = new JSDOM(formHtml);
+    const formDocument = formDom.window.document;
+
+    // Step 2: Find the search form and extract its action/method
+    const searchForm = formDocument.querySelector('form');
+    if (!searchForm) {
+      return NextResponse.json({ error: 'No search form found' });
     }
+
+    const formAction = searchForm.getAttribute('action') || '/search';
+    const formMethod = searchForm.getAttribute('method') || 'get';
     
-    console.log('Hidden fields found:', hiddenFields.length)
+    // Step 3: Extract all form fields (including hidden ones)
+    const formData = new URLSearchParams();
+    const inputs = formDocument.querySelectorAll('input, select, textarea');
     
-    // Try different search approaches
-    const searchApproaches = [
-      // Approach 1: POST to the form action
-      {
-        name: 'POST Form Submission',
-        url: `https://www.sdcourt.ca.gov${formAction}`,
+    inputs.forEach(input => {
+      const name = input.getAttribute('name');
+      const value = input.getAttribute('value') || '';
+      const type = input.getAttribute('type');
+      
+      if (name) {
+        if (type === 'hidden' || type === 'text') {
+          formData.append(name, value);
+        }
+      }
+    });
+    
+    // Step 4: Set the search query
+    formData.set('search', '22FL001581C');
+    
+    // Step 5: Submit the form
+    const searchUrl = formAction.startsWith('http') ? formAction : `https://www.sdcourt.ca.gov${formAction}`;
+    
+    let searchResponse;
+    if (formMethod.toLowerCase() === 'get') {
+      // For GET requests, append form data to URL
+      const urlWithParams = `${searchUrl}?${formData.toString()}`;
+      searchResponse = await fetch(urlWithParams, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Referer': formUrl
+        }
+      });
+    } else {
+      // For POST requests, send form data in body
+      searchResponse = await fetch(searchUrl, {
         method: 'POST',
-        body: new URLSearchParams({
-          search: searchQuery,
-          ...Object.fromEntries(hiddenFields.map(f => [f.name, f.value]))
-        }),
         headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Referer': formUrl,
-        }
-      },
-      // Approach 2: GET with different parameters
-      {
-        name: 'GET with partyName parameter',
-        url: `https://www.sdcourt.ca.gov/sdcourt/generalinformation/courtrecords2/onlinecasesearch?partyName=${encodeURIComponent(searchQuery)}`,
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        }
-      },
-      // Approach 3: GET with caseNumber parameter
-      {
-        name: 'GET with caseNumber parameter',
-        url: `https://www.sdcourt.ca.gov/sdcourt/generalinformation/courtrecords2/onlinecasesearch?caseNumber=${encodeURIComponent(searchQuery)}`,
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        }
-      },
-      // Approach 4: Try the alternative search endpoint
-      {
-        name: 'Alternative Search Endpoint',
-        url: `https://courtindex.sdcourt.ca.gov/CISPublic/enter?search=${encodeURIComponent(searchQuery)}`,
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        }
-      }
-    ]
-    
-    const results = []
-    
-    for (const approach of searchApproaches) {
-      try {
-        console.log(`Trying ${approach.name}: ${approach.url}`)
-        
-        const response = await fetch(approach.url, {
-          method: approach.method,
-          headers: approach.headers,
-          body: approach.body,
-          timeout: 15000
-        })
-        
-        const result = {
-          name: approach.name,
-          url: approach.url,
-          method: approach.method,
-          status: response.status,
-          statusText: response.statusText,
-          success: response.ok,
-          htmlLength: 0,
-          hasCaseContent: false,
-          hasCaseNumbers: false,
-          caseNumbers: [],
-          hasTables: false,
-          hasResults: false,
-          hasNoResults: false,
-          error: null
-        }
-        
-        if (response.ok) {
-          const html = await response.text()
-          result.htmlLength = html.length
-          result.hasCaseContent = html.includes('case') || html.includes('Case') || html.includes('court') || html.includes('Court')
-          result.hasTables = html.includes('<table')
-          result.hasResults = html.includes('result') || html.includes('Result') || html.includes('found') || html.includes('Found')
-          result.hasNoResults = html.includes('No results') || html.includes('no results') || html.includes('No cases found') || html.includes('no cases found')
-          
-          // Look for case numbers
-          const caseNumberRegex = /([A-Z]{2}-\d{4}-\d{6})/g
-          const caseNumbers = []
-          let caseMatch
-          while ((caseMatch = caseNumberRegex.exec(html)) !== null) {
-            caseNumbers.push(caseMatch[1])
-          }
-          result.caseNumbers = caseNumbers
-          result.hasCaseNumbers = caseNumbers.length > 0
-          
-          console.log(`✅ ${approach.name} successful: ${result.htmlLength} chars, ${caseNumbers.length} case numbers`)
-        } else {
-          result.error = `HTTP ${response.status}: ${response.statusText}`
-          console.log(`❌ ${approach.name} failed: ${result.error}`)
-        }
-        
-        results.push(result)
-        
-      } catch (error) {
-        console.log(`❌ ${approach.name} error:`, error)
-        results.push({
-          name: approach.name,
-          url: approach.url,
-          method: approach.method,
-          status: 0,
-          statusText: 'Error',
-          success: false,
-          htmlLength: 0,
-          hasCaseContent: false,
-          hasCaseNumbers: false,
-          caseNumbers: [],
-          hasTables: false,
-          hasResults: false,
-          hasNoResults: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        })
-      }
+          'Referer': formUrl
+        },
+        body: formData.toString()
+      });
     }
-    
-    const successfulResults = results.filter(r => r.success)
-    const totalCaseNumbers = results.reduce((sum, r) => sum + r.caseNumbers.length, 0)
-    const bestResult = successfulResults.find(r => r.hasCaseNumbers) || successfulResults.find(r => r.hasTables) || successfulResults[0]
-    
-    return NextResponse.json({
-      success: true,
-      searchQuery,
+
+    if (!searchResponse.ok) {
+      return NextResponse.json({ error: `Search error: ${searchResponse.status}` });
+    }
+
+    const searchHtml = await searchResponse.text();
+    const searchDom = new JSDOM(searchHtml);
+    const searchDocument = searchDom.window.document;
+
+    // Step 6: Analyze the results
+    const analysis = {
       formAction,
       formMethod,
-      hiddenFields,
-      results,
-      summary: {
-        totalApproaches: results.length,
-        successfulApproaches: successfulResults.length,
-        totalCaseNumbers,
-        bestApproach: bestResult?.name || 'None'
-      },
+      formFields: Array.from(inputs).map(input => ({
+        name: input.getAttribute('name'),
+        type: input.getAttribute('type'),
+        value: input.getAttribute('value')
+      })),
+      searchUrl,
+      searchHtmlLength: searchHtml.length,
+      hasCaseNumber: searchHtml.includes('22FL001581C'),
+      hasResults: searchHtml.includes('Case Number') || searchHtml.includes('Case Title'),
+      tables: Array.from(searchDocument.querySelectorAll('table')).map((table, i) => ({
+        index: i,
+        rows: table.rows.length,
+        text: table.textContent?.trim().substring(0, 500) || ''
+      })),
+      caseElements: Array.from(searchDocument.querySelectorAll('*')).filter(el => 
+        el.textContent && el.textContent.includes('22FL001581C')
+      ).map((el, i) => ({
+        index: i,
+        tagName: el.tagName,
+        text: el.textContent?.trim().substring(0, 200) || '',
+        className: el.className
+      }))
+    };
+
+    return NextResponse.json({
+      success: true,
+      analysis,
       message: 'Form submission test completed'
-    })
-    
+    });
+
   } catch (error) {
-    console.error('Form submission test error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        message: 'Form submission test failed'
-      },
-      { status: 500 }
-    )
+    console.error('Form submission test error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 }
