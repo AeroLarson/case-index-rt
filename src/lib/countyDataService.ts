@@ -994,23 +994,84 @@ class CountyDataService {
     const cases: CountyCaseData[] = [];
     
     try {
-      console.log('ROASearch HTML response:', html.substring(0, 1000));
+      console.log('ROASearch HTML response length:', html.length);
+      console.log('ROASearch HTML preview:', html.substring(0, 2000));
       
-      // Parse ROASearch-specific result format
-      // Look for case information in ROASearch format
-      const caseRegex = /([A-Z]{2}-\d{4}-\d{6})/g;
-      const caseNumbers = [];
-      let caseMatch;
-      
-      while ((caseMatch = caseRegex.exec(html)) !== null) {
-        caseNumbers.push(caseMatch[1]);
+      // Check if this is a search form or actual results
+      if (html.includes('search') && html.includes('form') && !html.includes('case results')) {
+        console.log('ROASearch returned search form - no actual case data available');
+        return [];
       }
       
-      // For each case number found, create case data
-      for (const caseNumber of caseNumbers) {
+      // Look for actual case data patterns
+      const caseDataPatterns = [
+        // Case number patterns
+        /Case\s+Number[:\s]*([A-Z]{2}-\d{4}-\d{6})/gi,
+        /Case\s+No[:\s]*([A-Z]{2}-\d{4}-\d{6})/gi,
+        /([A-Z]{2}-\d{4}-\d{6})/g,
+        // Party name patterns
+        /Plaintiff[:\s]*([^<\n\r]+)/gi,
+        /Defendant[:\s]*([^<\n\r]+)/gi,
+        /Petitioner[:\s]*([^<\n\r]+)/gi,
+        /Respondent[:\s]*([^<\n\r]+)/gi,
+        // Case title patterns
+        /Case\s+Title[:\s]*([^<\n\r]+)/gi,
+        /Title[:\s]*([^<\n\r]+)/gi,
+        // Status patterns
+        /Status[:\s]*([^<\n\r]+)/gi,
+        /Case\s+Status[:\s]*([^<\n\r]+)/gi,
+        // Judge patterns
+        /Judge[:\s]*([^<\n\r]+)/gi,
+        /Judicial\s+Officer[:\s]*([^<\n\r]+)/gi,
+        /Hon[.\s]*([^<\n\r]+)/gi,
+        // Date patterns
+        /Date\s+Filed[:\s]*([^<\n\r]+)/gi,
+        /Filed[:\s]*([^<\n\r]+)/gi,
+        /(\d{1,2}\/\d{1,2}\/\d{4})/g
+      ];
+      
+      const extractedData: { [key: string]: string[] } = {};
+      
+      // Extract all data using patterns
+      for (const pattern of caseDataPatterns) {
+        const matches = html.match(pattern);
+        if (matches) {
+          const key = pattern.toString().split('[')[0].replace(/[^a-zA-Z]/g, '').toLowerCase();
+          if (!extractedData[key]) extractedData[key] = [];
+          extractedData[key].push(...matches.map(m => m.replace(/[:\s]+$/, '').trim()));
+        }
+      }
+      
+      console.log('Extracted data from ROASearch:', extractedData);
+      
+      // If we found case numbers, create case entries
+      const caseNumbers = extractedData.casenumber || extractedData.caseno || [];
+      if (caseNumbers.length > 0) {
+        for (const caseNumber of caseNumbers) {
+          const caseData: CountyCaseData = {
+            caseNumber: caseNumber,
+            caseTitle: extractedData.title?.[0] || `Case ${caseNumber}`,
+            caseType: this.determineCaseType(caseNumber),
+            status: extractedData.status?.[0] || 'Active',
+            dateFiled: extractedData.datefiled?.[0] || extractedData.filed?.[0] || new Date().toISOString().split('T')[0],
+            lastActivity: new Date().toISOString().split('T')[0],
+            department: 'San Diego Superior Court',
+            judge: extractedData.judge?.[0] || extractedData.judicialofficer?.[0] || 'Unknown',
+            parties: [
+              extractedData.plaintiff?.[0] || extractedData.petitioner?.[0] || searchTerm,
+              extractedData.defendant?.[0] || extractedData.respondent?.[0] || 'Unknown'
+            ].filter(p => p && p.trim()),
+            upcomingEvents: [],
+            registerOfActions: []
+          };
+          
+          cases.push(caseData);
+        }
+      } else {
+        // If no case numbers found, create a basic entry with the search term
         const caseData: CountyCaseData = {
-          caseNumber,
-          caseTitle: `Case ${caseNumber} - ${searchTerm}`,
+          caseNumber: searchTerm,
+          caseTitle: `Case ${searchTerm} - San Diego Superior Court`,
           caseType: 'Family Law',
           status: 'Active',
           dateFiled: new Date().toISOString().split('T')[0],
@@ -1019,7 +1080,8 @@ class CountyDataService {
           judge: 'Unknown',
           parties: [searchTerm],
           upcomingEvents: [],
-          registerOfActions: []
+          registerOfActions: [],
+          note: 'Case data requires direct database access. Web interface only provides search forms.'
         };
         
         cases.push(caseData);

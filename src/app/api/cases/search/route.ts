@@ -20,7 +20,10 @@ export async function POST(request: NextRequest) {
 
     try {
       // Search real San Diego County court data with comprehensive search
+      console.log(`🔍 Searching San Diego County for: "${query}" (${searchType})`)
       const countyResults = await countyDataService.searchCases(query.trim(), searchType as any)
+      
+      console.log(`✅ Found ${countyResults.length} cases from San Diego County`)
       
       // Transform county data to our format
       const cases = countyResults.map(caseData => ({
@@ -43,6 +46,7 @@ export async function POST(request: NextRequest) {
         courtLocation: 'San Diego Superior Court',
         judicialOfficer: caseData.judge,
         dateFiled: caseData.dateFiled,
+        note: caseData.note, // Include any notes about data access
         countyData: {
           court: 'San Diego Superior Court',
           department: caseData.department,
@@ -55,13 +59,21 @@ export async function POST(request: NextRequest) {
         }
       }))
 
+      // Get rate limit status for all platforms
+      const rateLimitStatus = {
+        roasearch: countyDataService.getRateLimitStatus('roasearch'),
+        odyroa: countyDataService.getRateLimitStatus('odyroa'),
+        courtIndex: countyDataService.getRateLimitStatus('courtindex')
+      }
+
       return NextResponse.json({
         success: true,
         cases,
         total: cases.length,
         source: 'san_diego_county',
         searchType,
-        rateLimitStatus: countyDataService.getRateLimitStatus()
+        rateLimitStatus,
+        message: cases.length > 0 ? `Found ${cases.length} case(s) in San Diego County` : 'No cases found matching your search criteria'
       })
 
     } catch (countyError) {
