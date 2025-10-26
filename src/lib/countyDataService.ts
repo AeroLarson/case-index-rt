@@ -141,6 +141,18 @@ class CountyDataService {
         }
       }
       
+      // 4. Try the main San Diego County search as final fallback
+      if (searchResults.length === 0) {
+        try {
+          console.log('Trying main San Diego County search as fallback...');
+          const mainCountyResults = await this.searchPublicCases(searchQuery, searchType);
+          searchResults.push(...mainCountyResults);
+          console.log('Main county search results:', mainCountyResults.length);
+        } catch (error) {
+          console.log('Main county search failed:', error);
+        }
+      }
+      
       return searchResults;
       
     } catch (error) {
@@ -242,27 +254,51 @@ class CountyDataService {
     try {
       console.log('🔍 Searching ROASearch for:', searchQuery);
       
-      // ROASearch endpoint for case search
-      const roaUrl = `${this.roaBaseUrl}/search?query=${encodeURIComponent(searchQuery)}`;
+      // Try multiple ROASearch endpoints
+      const roaEndpoints = [
+        `${this.roaBaseUrl}/Parties?search=${encodeURIComponent(searchQuery)}`,
+        `${this.roaBaseUrl}/search?search=${encodeURIComponent(searchQuery)}`,
+        `${this.roaBaseUrl}/?search=${encodeURIComponent(searchQuery)}`,
+        `${this.roaBaseUrl}/Parties?caseNumber=${encodeURIComponent(searchQuery)}`,
+        `${this.roaBaseUrl}/Parties?partyName=${encodeURIComponent(searchQuery)}`,
+      ];
       
-      const response = await fetch(roaUrl, {
-        headers: {
-          'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'X-Forwarded-For': '3.224.164.255', // Use whitelisted static IP
-          'X-Real-IP': '3.224.164.255',
+      for (const roaUrl of roaEndpoints) {
+        try {
+          console.log('Trying ROASearch endpoint:', roaUrl);
+          
+          const response = await fetch(roaUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+              'Accept-Encoding': 'gzip, deflate, br',
+              'Connection': 'keep-alive',
+              'Upgrade-Insecure-Requests': '1',
+              'X-Forwarded-For': '3.224.164.255',
+              'X-Real-IP': '3.224.164.255',
+            }
+          });
+
+          if (response.ok) {
+            const html = await response.text();
+            console.log('ROASearch access successful, parsing results...');
+            console.log('Response length:', html.length);
+            
+            // Check if we got actual case data
+            if (html.includes('case') || html.includes('Case') || html.includes(searchQuery)) {
+              const results = this.parseROASearchHTML(html, searchQuery);
+              if (results.length > 0) {
+                return results;
+              }
+            }
+          }
+        } catch (endpointError) {
+          console.log('ROASearch endpoint failed:', roaUrl, endpointError);
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`ROASearch access error: ${response.status}`);
       }
-
-      const html = await response.text();
-      console.log('ROASearch access successful, parsing results...');
       
-      // Parse ROASearch results
-      return this.parseROASearchHTML(html, searchQuery);
+      throw new Error('All ROASearch endpoints failed');
     } catch (error) {
       console.error('ROASearch error:', error);
       throw error;
@@ -276,27 +312,51 @@ class CountyDataService {
     try {
       console.log('🔍 Searching ODYROA for:', searchQuery);
       
-      // ODYROA endpoint for case search
-      const odyroaUrl = `${this.odyroaBaseUrl}/search?query=${encodeURIComponent(searchQuery)}`;
+      // Try multiple ODYROA endpoints
+      const odyroaEndpoints = [
+        `${this.odyroaBaseUrl}/Parties?search=${encodeURIComponent(searchQuery)}`,
+        `${this.odyroaBaseUrl}/search?search=${encodeURIComponent(searchQuery)}`,
+        `${this.odyroaBaseUrl}/?search=${encodeURIComponent(searchQuery)}`,
+        `${this.odyroaBaseUrl}/Parties?caseNumber=${encodeURIComponent(searchQuery)}`,
+        `${this.odyroaBaseUrl}/Parties?partyName=${encodeURIComponent(searchQuery)}`,
+      ];
       
-      const response = await fetch(odyroaUrl, {
-        headers: {
-          'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'X-Forwarded-For': '3.224.164.255', // Use whitelisted static IP
-          'X-Real-IP': '3.224.164.255',
+      for (const odyroaUrl of odyroaEndpoints) {
+        try {
+          console.log('Trying ODYROA endpoint:', odyroaUrl);
+          
+          const response = await fetch(odyroaUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+              'Accept-Encoding': 'gzip, deflate, br',
+              'Connection': 'keep-alive',
+              'Upgrade-Insecure-Requests': '1',
+              'X-Forwarded-For': '3.224.164.255',
+              'X-Real-IP': '3.224.164.255',
+            }
+          });
+
+          if (response.ok) {
+            const html = await response.text();
+            console.log('ODYROA access successful, parsing results...');
+            console.log('Response length:', html.length);
+            
+            // Check if we got actual case data
+            if (html.includes('case') || html.includes('Case') || html.includes(searchQuery)) {
+              const results = this.parseODYROASearchHTML(html, searchQuery);
+              if (results.length > 0) {
+                return results;
+              }
+            }
+          }
+        } catch (endpointError) {
+          console.log('ODYROA endpoint failed:', odyroaUrl, endpointError);
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`ODYROA access error: ${response.status}`);
       }
-
-      const html = await response.text();
-      console.log('ODYROA access successful, parsing results...');
       
-      // Parse ODYROA results
-      return this.parseODYROASearchHTML(html, searchQuery);
+      throw new Error('All ODYROA endpoints failed');
     } catch (error) {
       console.error('ODYROA error:', error);
       throw error;
@@ -310,27 +370,51 @@ class CountyDataService {
     try {
       console.log('🔍 Searching CourtIndex for:', searchQuery);
       
-      // CourtIndex endpoint for case search
-      const courtIndexUrl = `${this.courtIndexBaseUrl}/search?query=${encodeURIComponent(searchQuery)}`;
+      // Try multiple CourtIndex endpoints
+      const courtIndexEndpoints = [
+        `${this.courtIndexBaseUrl}/Parties?search=${encodeURIComponent(searchQuery)}`,
+        `${this.courtIndexBaseUrl}/search?search=${encodeURIComponent(searchQuery)}`,
+        `${this.courtIndexBaseUrl}/?search=${encodeURIComponent(searchQuery)}`,
+        `${this.courtIndexBaseUrl}/Parties?caseNumber=${encodeURIComponent(searchQuery)}`,
+        `${this.courtIndexBaseUrl}/Parties?partyName=${encodeURIComponent(searchQuery)}`,
+      ];
       
-      const response = await fetch(courtIndexUrl, {
-        headers: {
-          'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'X-Forwarded-For': '3.224.164.255', // Use whitelisted static IP
-          'X-Real-IP': '3.224.164.255',
+      for (const courtIndexUrl of courtIndexEndpoints) {
+        try {
+          console.log('Trying CourtIndex endpoint:', courtIndexUrl);
+          
+          const response = await fetch(courtIndexUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+              'Accept-Encoding': 'gzip, deflate, br',
+              'Connection': 'keep-alive',
+              'Upgrade-Insecure-Requests': '1',
+              'X-Forwarded-For': '3.224.164.255',
+              'X-Real-IP': '3.224.164.255',
+            }
+          });
+
+          if (response.ok) {
+            const html = await response.text();
+            console.log('CourtIndex access successful, parsing results...');
+            console.log('Response length:', html.length);
+            
+            // Check if we got actual case data
+            if (html.includes('case') || html.includes('Case') || html.includes(searchQuery)) {
+              const results = this.parseCourtIndexSearchHTML(html, searchQuery);
+              if (results.length > 0) {
+                return results;
+              }
+            }
+          }
+        } catch (endpointError) {
+          console.log('CourtIndex endpoint failed:', courtIndexUrl, endpointError);
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`CourtIndex access error: ${response.status}`);
       }
-
-      const html = await response.text();
-      console.log('CourtIndex access successful, parsing results...');
       
-      // Parse CourtIndex results
-      return this.parseCourtIndexSearchHTML(html, searchQuery);
+      throw new Error('All CourtIndex endpoints failed');
     } catch (error) {
       console.error('CourtIndex error:', error);
       throw error;
