@@ -110,7 +110,13 @@ function SearchPageContent() {
 
       if (response.ok) {
         const data = await response.json()
-        setSearchResults(data.cases || [])
+        const cases = data.cases || []
+        setSearchResults(cases)
+        
+        // Show message if no matches found
+        if (cases.length === 0) {
+          console.log('No matches found for search query:', searchQuery)
+        }
       } else {
         // API search failed
         console.log('API search failed')
@@ -525,7 +531,7 @@ function SearchPageContent() {
             </div>
 
         {/* Search Results */}
-        {searchResults.length > 0 && (
+        {searchResults.length > 0 ? (
           <div className="space-y-4">
             <h2 className="text-white text-2xl font-semibold mb-4">Search Results</h2>
             {searchResults.map((case_) => (
@@ -645,8 +651,8 @@ function SearchPageContent() {
         {searchResults.length === 0 && searchQuery && !isSearching && (
           <div className="apple-card p-8 text-center">
             <i className="fa-solid fa-search text-4xl text-gray-400 mb-4"></i>
-            <h3 className="text-white text-xl font-semibold mb-2">No cases found</h3>
-            <p className="text-gray-400">Try adjusting your search terms or search criteria</p>
+            <h3 className="text-white text-xl font-semibold mb-2">No matches found</h3>
+            <p className="text-gray-400">No cases found for your search. Try adjusting your search terms or search criteria.</p>
           </div>
         )}
               </>

@@ -74,6 +74,12 @@ export async function POST(request: NextRequest) {
         searchType,
         rateLimitStatus,
         message: cases.length > 0 ? `Found ${cases.length} case(s) in San Diego County` : 'No cases found matching your search criteria'
+      }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       })
 
     } catch (countyError) {
@@ -166,6 +172,12 @@ export async function POST(request: NextRequest) {
           total: 1,
           source: 'test_data_fallback',
           countyError: countyError instanceof Error ? countyError.message : 'Unknown error'
+        }, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         })
       } else {
         // Return empty results for non-matching searches
@@ -176,6 +188,12 @@ export async function POST(request: NextRequest) {
           message: 'No cases found matching your search criteria',
           source: 'test_data_fallback',
           countyError: countyError instanceof Error ? countyError.message : 'Unknown error'
+        }, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         })
       }
     }
