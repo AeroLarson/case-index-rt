@@ -84,10 +84,6 @@ function SearchPageContent() {
   const monthlyUsage = userProfile?.monthlyUsage || 0
   const maxMonthlyUsage = userProfile?.maxMonthlyUsage || 1
 
-  // Don't render anything if not logged in
-  if (!user) return null
-
-
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim() || !user) return
@@ -356,17 +352,17 @@ function SearchPageContent() {
       
       // Add calendar event for the case hearing
       userProfileManager.addCalendarEvent(user.id, {
-      title: `Hearing - ${case_.title}`,
-      date: '2026-01-27', // Format: YYYY-MM-DD
-      time: '09:00',
-      type: 'hearing',
-      caseNumber: case_.caseNumber,
-      location: case_.court,
-      description: `Request for Order Hearing for ${case_.title}`,
-      duration: 60, // 1 hour
-      priority: 'high',
-      status: 'scheduled',
-      virtualMeetingInfo: 'Zoom ID: 123-456-7890, Passcode: 123456'
+        title: `Hearing - ${case_.title}`,
+        date: '2026-01-27', // Format: YYYY-MM-DD
+        time: '09:00',
+        type: 'hearing',
+        caseNumber: case_.caseNumber,
+        location: case_.court,
+        description: `Request for Order Hearing for ${case_.title}`,
+        duration: 60, // 1 hour
+        priority: 'high',
+        status: 'scheduled',
+        virtualMeetingInfo: 'Zoom ID: 123-456-7890, Passcode: 123456'
       })
       
       await refreshProfile()
@@ -418,6 +414,9 @@ function SearchPageContent() {
       console.error('Failed to toggle star status:', error)
     }
   }
+
+  // Don't render anything if not logged in
+  if (!user) return null
 
   return (
     <main 
@@ -646,7 +645,7 @@ function SearchPageContent() {
               </div>
             ))}
           </div>
-        )}
+        ) : null}
 
         {searchResults.length === 0 && searchQuery && !isSearching && (
           <div className="apple-card p-8 text-center">
