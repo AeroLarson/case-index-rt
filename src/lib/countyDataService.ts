@@ -107,17 +107,29 @@ class CountyDataService {
       // Try the correct San Diego County platforms in order of preference
       const searchResults: CountyCaseData[] = [];
       
-      // 1. Try ROASearch first (15 requests/minute limit)
+      // 1. Try the main San Diego County search first (this is the only one that works!)
       try {
-        await this.respectRateLimit('roasearch');
-        const roaResults = await this.searchROACases(searchQuery, searchType);
-        searchResults.push(...roaResults);
-        console.log('ROASearch results:', roaResults.length);
+        console.log('🔍 Searching main San Diego County website...');
+        const mainCountyResults = await this.searchPublicCases(searchQuery, searchType);
+        searchResults.push(...mainCountyResults);
+        console.log('Main county search results:', mainCountyResults.length);
       } catch (error) {
-        console.log('ROASearch failed:', error);
+        console.log('Main county search failed:', error);
       }
       
-      // 2. Try ODYROA if ROASearch doesn't work (30 requests/minute limit)
+      // 2. Try ROASearch (currently returning 403, but keeping for future)
+      if (searchResults.length === 0) {
+        try {
+          await this.respectRateLimit('roasearch');
+          const roaResults = await this.searchROACases(searchQuery, searchType);
+          searchResults.push(...roaResults);
+          console.log('ROASearch results:', roaResults.length);
+        } catch (error) {
+          console.log('ROASearch failed (403 Forbidden):', error);
+        }
+      }
+      
+      // 3. Try ODYROA (currently returning 403, but keeping for future)
       if (searchResults.length === 0) {
         try {
           await this.respectRateLimit('odyroa');
@@ -125,11 +137,11 @@ class CountyDataService {
           searchResults.push(...odyroaResults);
           console.log('ODYROA results:', odyroaResults.length);
         } catch (error) {
-          console.log('ODYROA search failed:', error);
+          console.log('ODYROA search failed (403 Forbidden):', error);
         }
       }
       
-      // 3. Try CourtIndex as fallback (30 requests/minute limit)
+      // 4. Try CourtIndex (currently returning 403, but keeping for future)
       if (searchResults.length === 0) {
         try {
           await this.respectRateLimit('courtindex');
@@ -137,19 +149,7 @@ class CountyDataService {
           searchResults.push(...courtIndexResults);
           console.log('CourtIndex results:', courtIndexResults.length);
         } catch (error) {
-          console.log('CourtIndex search failed:', error);
-        }
-      }
-      
-      // 4. Try the main San Diego County search as final fallback
-      if (searchResults.length === 0) {
-        try {
-          console.log('Trying main San Diego County search as fallback...');
-          const mainCountyResults = await this.searchPublicCases(searchQuery, searchType);
-          searchResults.push(...mainCountyResults);
-          console.log('Main county search results:', mainCountyResults.length);
-        } catch (error) {
-          console.log('Main county search failed:', error);
+          console.log('CourtIndex search failed (403 Forbidden):', error);
         }
       }
       
@@ -212,6 +212,15 @@ class CountyDataService {
 
       const searchHtml = await searchResponse.text();
       console.log('Search results HTML length:', searchHtml.length);
+      
+      // Try to extract real case data from the HTML first
+      console.log('🔍 Attempting to extract real case data from San Diego County HTML...');
+      const extractedCases = this.extractRealCaseDataFromHTML(searchHtml, searchQuery);
+      
+      if (extractedCases.length > 0) {
+        console.log('✅ Successfully extracted real case data:', extractedCases.length, 'cases');
+        return extractedCases;
+      }
       
       // Check if we got actual case data or just the search form
       const hasCaseData = searchHtml.includes('Case Title') || searchHtml.includes('Larson') || searchHtml.includes('Tonya');
@@ -985,6 +994,88 @@ class CountyDataService {
     if (caseNumber.includes('ST')) return 'Superior Court Special';
     if (caseNumber.includes('WS')) return 'Workers Compensation';
     return 'Unknown';
+  }
+
+  /**
+   * Extract real case data from San Diego County HTML
+   */
+  private extractRealCaseDataFromHTML(html: string, searchQuery: string): CountyCaseData[] {
+    const cases: CountyCaseData[] = [];
+    
+    try {
+      console.log('🔍 Extracting real case data from San Diego County HTML...');
+      
+      // Look for case data patterns in the HTML
+      const caseDataPatterns = [
+        // Case number patterns
+        /Case\s+Number[:\s]*([A-Z]{2}-\d{4}-\d{6})/gi,
+        /Case\s+No[:\s]*([A-Z]{2}-\d{4}-\d{6})/gi,
+        /([A-Z]{2}-\d{4}-\d{6})/g,
+        // Party name patterns
+        /Plaintiff[:\s]*([^<\n\r]+)/gi,
+        /Defendant[:\s]*([^<\n\r]+)/gi,
+        /Petitioner[:\s]*([^<\n\r]+)/gi,
+        /Respondent[:\s]*([^<\n\r]+)/gi,
+        // Case title patterns
+        /Case\s+Title[:\s]*([^<\n\r]+)/gi,
+        /Title[:\s]*([^<\n\r]+)/gi,
+        // Status patterns
+        /Status[:\s]*([^<\n\r]+)/gi,
+        /Case\s+Status[:\s]*([^<\n\r]+)/gi,
+        // Judge patterns
+        /Judge[:\s]*([^<\n\r]+)/gi,
+        /Judicial\s+Officer[:\s]*([^<\n\r]+)/gi,
+        /Hon[.\s]*([^<\n\r]+)/gi,
+        // Date patterns
+        /Date\s+Filed[:\s]*([^<\n\r]+)/gi,
+        /Filed[:\s]*([^<\n\r]+)/gi,
+        /(\d{1,2}\/\d{1,2}\/\d{4})/g
+      ];
+      
+      const extractedData: { [key: string]: string[] } = {};
+      
+      // Extract all data using patterns
+      for (const pattern of caseDataPatterns) {
+        const matches = html.match(pattern);
+        if (matches) {
+          const key = pattern.toString().split('[')[0].replace(/[^a-zA-Z]/g, '').toLowerCase();
+          if (!extractedData[key]) extractedData[key] = [];
+          extractedData[key].push(...matches.map(m => m.replace(/[:\s]+$/, '').trim()));
+        }
+      }
+      
+      console.log('📊 Extracted data from San Diego County HTML:', extractedData);
+      
+      // If we found case numbers, create case entries
+      const caseNumbers = extractedData.casenumber || extractedData.caseno || [];
+      if (caseNumbers.length > 0) {
+        for (const caseNumber of caseNumbers) {
+          const caseData: CountyCaseData = {
+            caseNumber: caseNumber,
+            caseTitle: extractedData.title?.[0] || `Case ${caseNumber}`,
+            caseType: this.determineCaseType(caseNumber),
+            status: extractedData.status?.[0] || 'Active',
+            dateFiled: extractedData.datefiled?.[0] || extractedData.filed?.[0] || new Date().toISOString().split('T')[0],
+            lastActivity: new Date().toISOString().split('T')[0],
+            department: 'San Diego Superior Court',
+            judge: extractedData.judge?.[0] || extractedData.judicialofficer?.[0] || 'Unknown',
+            parties: [
+              extractedData.plaintiff?.[0] || extractedData.petitioner?.[0] || searchQuery,
+              extractedData.defendant?.[0] || extractedData.respondent?.[0] || 'Unknown'
+            ].filter(p => p && p.trim()),
+            upcomingEvents: [],
+            registerOfActions: []
+          };
+          
+          cases.push(caseData);
+        }
+      }
+      
+      return cases;
+    } catch (error) {
+      console.error('Error extracting real case data from HTML:', error);
+      return cases;
+    }
   }
 
   /**
