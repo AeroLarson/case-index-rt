@@ -28,6 +28,7 @@
     "next": "15.0.3",
     "nodemailer": "^6.10.1",
     "openai": "^6.3.0",
+    "puppeteer": "^24.26.1",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.5.0",
