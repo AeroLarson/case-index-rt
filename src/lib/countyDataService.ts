@@ -250,8 +250,8 @@ class CountyDataService {
         note: 'Case search form not accessible. Please try again or contact support.'
       }];
       
-      // Parse the search results
-      return this.parseCaseSearchHTML(searchHtml, searchQuery);
+      // Use the comprehensive database approach
+      return this.getComprehensiveCaseDataFromOurDatabase(searchQuery, searchType);
       
     } catch (error) {
       console.error('Search error:', error);
