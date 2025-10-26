@@ -39,6 +39,21 @@ function SearchPageContent() {
   const [caseDetails, setCaseDetails] = useState<any>(null)
   const [selectedCase, setSelectedCase] = useState<CaseResult | null>(null)
   const [activeTab, setActiveTab] = useState<'search' | 'saved' | 'recent' | 'starred'>('search')
+  
+  // Enhanced search fields
+  const [searchFields, setSearchFields] = useState({
+    caseNumber: '',
+    partyName: '',
+    defendantName: '',
+    complainantName: '',
+    attorneyName: '',
+    caseType: '',
+    dateRange: {
+      start: '',
+      end: ''
+    }
+  })
+  const [activeSearchType, setActiveSearchType] = useState<'caseNumber' | 'partyName' | 'defendantName' | 'complainantName' | 'attorneyName' | 'all'>('all')
 
   // Redirect to login if not authenticated (only after loading is complete)
   useEffect(() => {
@@ -78,6 +93,38 @@ function SearchPageContent() {
     }
   }, [searchParams])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + K to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement
+        if (searchInput) {
+          searchInput.focus()
+        }
+      }
+      
+      // Escape to clear search
+      if (e.key === 'Escape') {
+        setSearchQuery('')
+        setSearchFields({
+          caseNumber: '',
+          partyName: '',
+          defendantName: '',
+          complainantName: '',
+          attorneyName: '',
+          caseType: '',
+          dateRange: { start: '', end: '' }
+        })
+        setSearchResults([])
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   // Get user subscription status from profile
   const isProUser = userProfile?.plan === 'pro' || userProfile?.plan === 'team'
   const isBasicUser = userProfile?.plan === 'free'
@@ -86,7 +133,38 @@ function SearchPageContent() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!searchQuery.trim() || !user) return
+    if (!user) return
+
+    // Determine search query and type based on active search type
+    let query = ''
+    let searchType = 'all'
+    
+    if (activeSearchType === 'caseNumber' && searchFields.caseNumber.trim()) {
+      query = searchFields.caseNumber.trim()
+      searchType = 'caseNumber'
+    } else if (activeSearchType === 'partyName' && searchFields.partyName.trim()) {
+      query = searchFields.partyName.trim()
+      searchType = 'name'
+    } else if (activeSearchType === 'defendantName' && searchFields.defendantName.trim()) {
+      query = searchFields.defendantName.trim()
+      searchType = 'name'
+    } else if (activeSearchType === 'complainantName' && searchFields.complainantName.trim()) {
+      query = searchFields.complainantName.trim()
+      searchType = 'name'
+    } else if (activeSearchType === 'attorneyName' && searchFields.attorneyName.trim()) {
+      query = searchFields.attorneyName.trim()
+      searchType = 'attorney'
+    } else if (activeSearchType === 'all') {
+      // Use the general search query if available, otherwise try to find any filled field
+      query = searchQuery.trim() || 
+              searchFields.caseNumber.trim() || 
+              searchFields.partyName.trim() || 
+              searchFields.defendantName.trim() || 
+              searchFields.complainantName.trim() || 
+              searchFields.attorneyName.trim()
+    }
+
+    if (!query) return
 
     setIsSearching(true)
     
@@ -99,8 +177,8 @@ function SearchPageContent() {
           'Authorization': `Bearer ${user.id}`
         },
         body: JSON.stringify({
-          query: searchQuery.trim(),
-          searchType: 'case'
+          query: query,
+          searchType: searchType
         })
       })
 
@@ -111,7 +189,7 @@ function SearchPageContent() {
         
         // Show message if no matches found
         if (cases.length === 0) {
-          console.log('No matches found for search query:', searchQuery)
+          console.log('No matches found for search query:', query)
         }
       } else {
         // API search failed
@@ -129,8 +207,8 @@ function SearchPageContent() {
     // Save search to user profile in localStorage
     try {
       userProfileManager.addRecentSearch(user.id, {
-        query: searchQuery,
-        searchType: 'case',
+        query: query,
+        searchType: searchType,
         resultsCount: searchResults.length
       })
       refreshProfile()
@@ -496,43 +574,223 @@ function SearchPageContent() {
             {/* Tab Content */}
             {activeTab === 'search' && (
               <>
-                {/* Search Form */}
-            <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
-              <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3 md:gap-4">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by case number, party name, or case title..."
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 md:py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
-                  />
-                  <i className="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                {/* Enhanced Search Form */}
+                <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
+                  <div className="mb-6">
+                    <h3 className="text-white text-lg font-semibold mb-4">Search Cases</h3>
+                    
+                    {/* Search Type Tabs */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {[
+                        { key: 'all', label: 'All', icon: 'fa-search' },
+                        { key: 'caseNumber', label: 'Case Number', icon: 'fa-hashtag' },
+                        { key: 'partyName', label: 'Party Name', icon: 'fa-user' },
+                        { key: 'defendantName', label: 'Defendant', icon: 'fa-user-minus' },
+                        { key: 'complainantName', label: 'Complainant', icon: 'fa-user-plus' },
+                        { key: 'attorneyName', label: 'Attorney', icon: 'fa-gavel' }
+                      ].map(({ key, label, icon }) => (
+                        <button
+                          key={key}
+                          onClick={() => setActiveSearchType(key as any)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                            activeSearchType === key
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          <i className={`fa-solid ${icon}`}></i>
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Search Fields */}
+                    <form onSubmit={handleSearch} className="space-y-4">
+                      {/* General Search (when "All" is selected) */}
+                      {activeSearchType === 'all' && (
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search by any field - case number, party name, attorney, etc..."
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
+                          />
+                          <i className="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                          <div className="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">
+                            <kbd className="px-1 py-0.5 bg-white/10 rounded text-xs">Ctrl+K</kbd>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Case Number Search */}
+                      {activeSearchType === 'caseNumber' && (
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <label className="block text-gray-300 text-sm font-medium mb-2">Case Number</label>
+                            <input
+                              type="text"
+                              value={searchFields.caseNumber}
+                              onChange={(e) => setSearchFields(prev => ({ ...prev, caseNumber: e.target.value }))}
+                              placeholder="e.g., 22FL001581C, 23CV123456"
+                              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <i className="fa-solid fa-hashtag absolute right-4 top-8 transform -translate-y-1/2 text-gray-400"></i>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Party Name Search */}
+                      {activeSearchType === 'partyName' && (
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <label className="block text-gray-300 text-sm font-medium mb-2">Party Name</label>
+                            <input
+                              type="text"
+                              value={searchFields.partyName}
+                              onChange={(e) => setSearchFields(prev => ({ ...prev, partyName: e.target.value }))}
+                              placeholder="e.g., John Smith, Jane Doe"
+                              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <i className="fa-solid fa-user absolute right-4 top-8 transform -translate-y-1/2 text-gray-400"></i>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Defendant Name Search */}
+                      {activeSearchType === 'defendantName' && (
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <label className="block text-gray-300 text-sm font-medium mb-2">Defendant Name</label>
+                            <input
+                              type="text"
+                              value={searchFields.defendantName}
+                              onChange={(e) => setSearchFields(prev => ({ ...prev, defendantName: e.target.value }))}
+                              placeholder="e.g., John Smith, ABC Corporation"
+                              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <i className="fa-solid fa-user-minus absolute right-4 top-8 transform -translate-y-1/2 text-gray-400"></i>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Complainant Name Search */}
+                      {activeSearchType === 'complainantName' && (
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <label className="block text-gray-300 text-sm font-medium mb-2">Complainant Name</label>
+                            <input
+                              type="text"
+                              value={searchFields.complainantName}
+                              onChange={(e) => setSearchFields(prev => ({ ...prev, complainantName: e.target.value }))}
+                              placeholder="e.g., Jane Doe, State of California"
+                              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <i className="fa-solid fa-user-plus absolute right-4 top-8 transform -translate-y-1/2 text-gray-400"></i>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Attorney Name Search */}
+                      {activeSearchType === 'attorneyName' && (
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <label className="block text-gray-300 text-sm font-medium mb-2">Attorney Name</label>
+                            <input
+                              type="text"
+                              value={searchFields.attorneyName}
+                              onChange={(e) => setSearchFields(prev => ({ ...prev, attorneyName: e.target.value }))}
+                              placeholder="e.g., Smith & Associates, John Attorney"
+                              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <i className="fa-solid fa-gavel absolute right-4 top-8 transform -translate-y-1/2 text-gray-400"></i>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Advanced Filters */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-gray-300 text-sm font-medium mb-2">Case Type (Optional)</label>
+                          <select
+                            value={searchFields.caseType}
+                            onChange={(e) => setSearchFields(prev => ({ ...prev, caseType: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors text-base min-h-[48px] focus:ring-2 focus:ring-blue-500/20"
+                          >
+                            <option value="">All Case Types</option>
+                            <option value="Family Law">Family Law</option>
+                            <option value="Civil">Civil</option>
+                            <option value="Criminal">Criminal</option>
+                            <option value="Probate">Probate</option>
+                            <option value="Small Claims">Small Claims</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-gray-300 text-sm font-medium mb-2">Date Range (Optional)</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="date"
+                              value={searchFields.dateRange.start}
+                              onChange={(e) => setSearchFields(prev => ({ 
+                                ...prev, 
+                                dateRange: { ...prev.dateRange, start: e.target.value }
+                              }))}
+                              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                              placeholder="Start Date"
+                            />
+                            <input
+                              type="date"
+                              value={searchFields.dateRange.end}
+                              onChange={(e) => setSearchFields(prev => ({ 
+                                ...prev, 
+                                dateRange: { ...prev.dateRange, end: e.target.value }
+                              }))}
+                              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                              placeholder="End Date"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Search Button */}
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={isSearching}
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
+                        >
+                          {isSearching ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>Searching...</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-search"></i>
+                              <span>Search Cases</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isSearching}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 md:px-8 py-3 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
-                >
-                  {isSearching ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Searching...</span>
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-search"></i>
-                      <span>Search</span>
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
 
         {/* Search Results */}
-        {searchResults.length > 0 ? (
+        {isSearching && (
+          <div className="apple-card p-8 text-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h3 className="text-white text-xl font-semibold mb-2">Searching Cases...</h3>
+            <p className="text-gray-400">Please wait while we search the court records</p>
+          </div>
+        )}
+
+        {!isSearching && searchResults.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-white text-2xl font-semibold mb-4">Search Results</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-white text-2xl font-semibold">Search Results</h2>
+              <span className="text-gray-400 text-sm">{searchResults.length} case{searchResults.length !== 1 ? 's' : ''} found</span>
+            </div>
             {searchResults.map((case_) => (
               <div
                 key={case_.id}
@@ -647,11 +905,37 @@ function SearchPageContent() {
           </div>
         ) : null}
 
-        {searchResults.length === 0 && searchQuery && !isSearching && (
+        {!isSearching && searchResults.length === 0 && (searchQuery || Object.values(searchFields).some(field => typeof field === 'string' ? field.trim() : false)) && (
           <div className="apple-card p-8 text-center">
             <i className="fa-solid fa-search text-4xl text-gray-400 mb-4"></i>
             <h3 className="text-white text-xl font-semibold mb-2">No matches found</h3>
-            <p className="text-gray-400">No cases found for your search. Try adjusting your search terms or search criteria.</p>
+            <p className="text-gray-400 mb-4">No cases found for your search. Try adjusting your search terms or search criteria.</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <button
+                onClick={() => {
+                  setActiveSearchType('all')
+                  setSearchQuery('')
+                  setSearchFields({
+                    caseNumber: '',
+                    partyName: '',
+                    defendantName: '',
+                    complainantName: '',
+                    attorneyName: '',
+                    caseType: '',
+                    dateRange: { start: '', end: '' }
+                  })
+                }}
+                className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-2 rounded-lg text-sm transition-all duration-200"
+              >
+                Clear Search
+              </button>
+              <button
+                onClick={() => setActiveSearchType('caseNumber')}
+                className="bg-green-500/10 hover:bg-green-500/20 text-green-400 px-4 py-2 rounded-lg text-sm transition-all duration-200"
+              >
+                Try Case Number
+              </button>
+            </div>
           </div>
         )}
               </>
@@ -942,7 +1226,7 @@ function SearchPageContent() {
             )}
 
             {/* Quick Stats */}
-            <div className="apple-card p-6">
+            <div className="apple-card p-6 mb-6">
               <h3 className="text-white font-semibold text-lg mb-4">Search Statistics</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -956,6 +1240,91 @@ function SearchPageContent() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">AI insights generated</span>
                   <span className="text-white font-semibold">{userProfile?.savedCases?.filter(c => c.aiSummary).length || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Starred cases</span>
+                  <span className="text-white font-semibold">{userProfile?.starredCases?.length || 0}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="apple-card p-6 mb-6">
+              <h3 className="text-white font-semibold text-lg mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setActiveSearchType('caseNumber')
+                    setSearchFields(prev => ({ ...prev, caseNumber: '' }))
+                  }}
+                  className="w-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3"
+                >
+                  <i className="fa-solid fa-hashtag"></i>
+                  <span>Search by Case Number</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveSearchType('partyName')
+                    setSearchFields(prev => ({ ...prev, partyName: '' }))
+                  }}
+                  className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 px-4 py-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3"
+                >
+                  <i className="fa-solid fa-user"></i>
+                  <span>Search by Party Name</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveSearchType('attorneyName')
+                    setSearchFields(prev => ({ ...prev, attorneyName: '' }))
+                  }}
+                  className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 px-4 py-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3"
+                >
+                  <i className="fa-solid fa-gavel"></i>
+                  <span>Search by Attorney</span>
+                </button>
+              </div>
+            </div>
+
+            {/* System Status */}
+            <div className="apple-card p-6">
+              <h3 className="text-white font-semibold text-lg mb-4">System Status</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">San Diego County Court</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                    <span className="text-yellow-400 text-sm">Maintenance</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">ROASearch Platform</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-red-400 text-sm">Offline</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">CourtIndex Platform</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-red-400 text-sm">Offline</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Enhanced Database</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <i className="fa-solid fa-info-circle text-yellow-400 text-sm mt-0.5"></i>
+                  <div className="text-yellow-300 text-sm">
+                    <p className="font-medium mb-1">Court Systems Maintenance</p>
+                    <p>San Diego County court systems are currently undergoing maintenance. We're using our enhanced database to provide case information until they're back online.</p>
+                  </div>
                 </div>
               </div>
             </div>
