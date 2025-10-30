@@ -496,9 +496,7 @@ function SearchPageContent() {
   // Don't render anything if not logged in
   if (!user) return null
 
-  ;
   return (
-    <React.Fragment>
     <main 
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
@@ -575,7 +573,7 @@ function SearchPageContent() {
 
             {/* Tab Content */}
             {activeTab === 'search' && (
-              <React.Fragment>
+              <div>
                 {/* Enhanced Search Form */}
                 <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
                   <div className="mb-6">
@@ -940,7 +938,7 @@ function SearchPageContent() {
             </div>
           </div>
         )}
-              </React.Fragment>
+              </div>
             )}
 
             {/* Saved Cases Tab */}
@@ -1196,7 +1194,7 @@ function SearchPageContent() {
           {/* AI Overview and Timeline Sidebar */}
           <div className="lg:col-span-1">
             {selectedCase ? (
-              <>
+              <div>
                 <SimpleErrorBoundary>
                   <AIOverview 
                     caseId={selectedCase.caseNumber}
@@ -1215,7 +1213,7 @@ function SearchPageContent() {
                     className="mb-6"
                   />
                 </SimpleErrorBoundary>
-              </>
+              </div>
             ) : (
               <div className="apple-card p-6 mb-6">
                 <h3 className="text-white font-semibold text-lg mb-4">AI Case Overview</h3>
@@ -1410,7 +1408,6 @@ function SearchPageContent() {
         )}
       </div>
     </main>
-    </React.Fragment>
   )
 }
 
