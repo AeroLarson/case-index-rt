@@ -497,7 +497,7 @@ function SearchPageContent() {
   if (!user) return null
 
   return (
-    <main 
+    <div role="main"
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
@@ -1407,14 +1407,14 @@ function SearchPageContent() {
           />
         )}
       </div>
-    </main>
+    </div>
   )
 }
 
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <main 
+      <div role="main"
         className="min-h-screen animated-aura"
         style={{
           background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
@@ -1427,7 +1427,7 @@ export default function SearchPage() {
             <p className="text-gray-400">Loading search page...</p>
           </div>
         </div>
-      </main>
+      </div>
     }>
       <SearchPageContent />
     </Suspense>
