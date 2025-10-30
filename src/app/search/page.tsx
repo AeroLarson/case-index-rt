@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import EnhancedCaseDetails from '@/components/EnhancedCaseDetails'
@@ -498,7 +498,7 @@ function SearchPageContent() {
 
   ;
   return (
-    <>
+    <React.Fragment>
     <main 
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
@@ -575,7 +575,7 @@ function SearchPageContent() {
 
             {/* Tab Content */}
             {activeTab === 'search' && (
-              <>
+              <React.Fragment>
                 {/* Enhanced Search Form */}
                 <div className="apple-card p-4 md:p-6 mb-4 md:mb-6">
                   <div className="mb-6">
@@ -940,7 +940,7 @@ function SearchPageContent() {
             </div>
           </div>
         )}
-              </>
+              </React.Fragment>
             )}
 
             {/* Saved Cases Tab */}
@@ -1410,7 +1410,7 @@ function SearchPageContent() {
         )}
       </div>
     </main>
-    </>
+    </React.Fragment>
   )
 }
 
