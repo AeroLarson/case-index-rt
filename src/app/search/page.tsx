@@ -498,6 +498,7 @@ function SearchPageContent() {
 
   ;
   return (
+    <>
     <main 
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
@@ -1409,6 +1410,7 @@ function SearchPageContent() {
         )}
       </div>
     </main>
+    </>
   )
 }
 
