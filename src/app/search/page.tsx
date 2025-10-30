@@ -496,6 +496,7 @@ function SearchPageContent() {
   // Don't render anything if not logged in
   if (!user) return null
 
+  ;
   return (
     <main 
       className="min-h-screen animated-aura pb-20 lg:pb-10"
