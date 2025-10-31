@@ -308,41 +308,17 @@ class CountyDataService {
 
       const searchHtml = await searchResponse.text();
       console.log('Search results HTML length:', searchHtml.length);
+      console.log('🔍 Parsing San Diego County HTML for real case data...');
       
-      // San Diego County web interface ONLY provides search forms, not actual case data
-      // This is confirmed by our testing - we need to implement a hybrid business model
-      console.log('🔍 San Diego County returned search form (confirmed behavior)');
-      console.log('💡 Implementing hybrid approach: validate case exists + provide comprehensive data');
-      
-      // Check if this is a search form (which it always is)
-      const hasSearchForm = searchHtml.includes('search') && searchHtml.includes('form') && searchHtml.includes('input');
-      
-      if (hasSearchForm) {
-        console.log('✅ Case search form accessible - case likely exists in San Diego County system');
-        
-        // Return comprehensive case data from our database
-        // This is where we make money by providing value-added services
-        return this.getComprehensiveCaseDataFromOurDatabase(searchQuery, searchType);
+      // Attempt to parse real case data from the HTML
+      const realData = this.parseCaseSearchHTML(searchHtml, searchQuery);
+      if (realData.length > 0) {
+        console.log('✅ Successfully parsed real data from main San Diego County site!');
+        return realData;
       }
       
-      // If no search form, return basic info
-      return [{
-        caseNumber: searchQuery,
-        caseTitle: `Case ${searchQuery} - San Diego Superior Court`,
-        caseType: this.determineCaseType(searchQuery),
-        status: 'Active',
-        dateFiled: new Date().toISOString().split('T')[0],
-        lastActivity: new Date().toISOString().split('T')[0],
-        department: 'San Diego Superior Court',
-        judge: 'Unknown',
-        parties: [searchQuery],
-        upcomingEvents: [],
-        registerOfActions: [],
-        note: 'Case search form not accessible. Please try again or contact support.'
-      }];
-      
-      // Use the comprehensive database approach
-      return this.getComprehensiveCaseDataFromOurDatabase(searchQuery, searchType);
+      console.log('❌ Main San Diego County site returned no parsable real data.');
+      return [];
       
     } catch (error) {
       console.error('Search error:', error);
@@ -619,21 +595,8 @@ class CountyDataService {
       
       if (isSearchForm && !hasActualCaseData || hasGarbledContent) {
         console.log('San Diego County returned search form or garbled content - no actual case data available');
-        // Return a clean case entry with the search term
-        return [{
-          caseNumber: searchTerm,
-          caseTitle: `Case ${searchTerm} - San Diego Superior Court`,
-          caseType: 'Family Law',
-          status: 'Active',
-          dateFiled: '2025-10-22',
-          lastActivity: '2025-10-22',
-          department: 'San Diego Superior Court',
-          judge: 'Unknown',
-          parties: [searchTerm],
-          upcomingEvents: [],
-          registerOfActions: [],
-          note: 'Case data requires direct database access. Web interface only provides search forms.'
-        }];
+        // Return empty array - no real data found
+        return [];
       }
       
       // Use JSDOM to parse HTML properly
@@ -671,24 +634,9 @@ class CountyDataService {
       // Check if this is a search form response with garbled content
       if (html.includes('lesheet') || html.includes('bootstrap') || html.includes('drupal') || 
           html.includes('application/json') || html.includes('data-drupal-selector')) {
-        console.log('Detected garbled HTML content - returning clean case entry');
-        // Return a clean case entry instead of parsing garbled HTML
-        const caseData: CountyCaseData = {
-          caseNumber: searchTerm,
-          caseTitle: `Case ${searchTerm} - San Diego Superior Court`,
-          caseType: 'Family Law',
-          status: 'Active',
-          dateFiled: '2025-10-22',
-          lastActivity: '2025-10-22',
-          department: 'San Diego Superior Court',
-          judge: 'Unknown',
-          parties: [searchTerm],
-          upcomingEvents: [],
-          registerOfActions: [],
-          note: 'Case data requires direct database access. Web interface only provides search forms.'
-        };
-        cases.push(caseData);
-        return cases;
+        console.log('Detected garbled HTML content - no real case data available');
+        // Return empty array - no real data found
+        return [];
       }
       
       // For each case number found, extract detailed information using DOM selectors
@@ -1073,471 +1021,6 @@ class CountyDataService {
     return 'Unknown';
   }
 
-  /**
-   * Get comprehensive case data from our database
-   * This is where we provide REAL value and make money
-   */
-  private getEnhancedComprehensiveCaseData(searchQuery: string, searchType: string): CountyCaseData[] {
-    console.log('💼 Providing enhanced comprehensive case data for:', searchQuery);
-    
-    const cases: CountyCaseData[] = [];
-    
-    if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
-      // Case number search - return realistic case data
-      const caseData = this.generateRealisticCaseData(searchQuery);
-      cases.push(caseData);
-    } else {
-      // Name search - return multiple potential cases
-      const nameResults = this.generateNameSearchResults(searchQuery);
-      cases.push(...nameResults);
-    }
-    
-    console.log('✅ Generated enhanced case data:', cases.length, 'cases');
-    return cases;
-  }
-
-  private generateRealisticCaseData(caseNumber: string): CountyCaseData {
-    const caseType = this.determineCaseType(caseNumber);
-    const year = caseNumber.substring(0, 2);
-    const fullYear = `20${year}`;
-    
-    // Generate realistic dates based on case type and year
-    const dateFiled = this.generateRealisticDate(fullYear, caseType);
-    const lastActivity = this.generateRecentDate();
-    
-    // Generate realistic parties based on case type
-    const parties = this.generateRealisticParties(caseType);
-    
-    // Generate realistic upcoming events
-    const upcomingEvents = this.generateUpcomingEvents(caseType, fullYear);
-    
-    // Generate realistic register of actions
-    const registerOfActions = this.generateRegisterOfActions(caseType, dateFiled, lastActivity);
-    
-    return {
-      caseNumber,
-      caseTitle: `${parties[0]} v. ${parties[1]} - ${caseType} Case`,
-      caseType,
-      status: this.generateCaseStatus(caseType),
-      dateFiled,
-      lastActivity,
-      department: `San Diego Superior Court - ${this.getDepartmentForCaseType(caseType)}`,
-      judge: this.generateJudgeName(),
-      parties,
-      upcomingEvents,
-      registerOfActions,
-      note: 'Enhanced case data with realistic information. Upgrade to Premium for real-time updates and document access.',
-      upgradeOptions: {
-        premium: true,
-        features: [
-          'Real-time case updates',
-          'Document access and downloads',
-          'Hearing notifications',
-          'Judge and department assignments',
-          'Complete case history',
-          'Party contact information'
-        ],
-        pricing: '$29.99/month'
-      }
-    };
-  }
-
-  private generateNameSearchResults(searchQuery: string): CountyCaseData[] {
-    const cases: CountyCaseData[] = [];
-    const cleanSearchQuery = this.cleanSearchQuery(searchQuery);
-    
-    // Common San Diego names for realistic results
-    const commonNames = [
-      'Smith', 'Johnson', 'Williams', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 
-      'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Garcia',
-      'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall',
-      'Allen', 'Young', 'Hernandez', 'King', 'Wright', 'Lopez', 'Hill', 'Scott'
-    ];
-    
-    const matchingNames = commonNames.filter(name => 
-      name.toLowerCase().includes(cleanSearchQuery.toLowerCase()) || 
-      cleanSearchQuery.toLowerCase().includes(name.toLowerCase())
-    );
-    
-    if (matchingNames.length > 0) {
-      matchingNames.slice(0, 3).forEach((name, index) => {
-        const caseNumber = this.generateCaseNumber('FL', 2022 + index);
-        const caseData = this.generateRealisticCaseData(caseNumber);
-        caseData.caseTitle = `${name} v. ${name} - Family Law Case`;
-        caseData.parties = [`${name} (Petitioner)`, `${name} (Respondent)`];
-        cases.push(caseData);
-      });
-    }
-    
-    return cases;
-  }
-
-  private cleanSearchQuery(searchQuery: string): string {
-    return searchQuery
-      .replace(/Case Information.*$/i, '')
-      .replace(/Status.*$/i, '')
-      .replace(/Filed Date.*$/i, '')
-      .replace(/Case Type.*$/i, '')
-      .replace(/County.*$/i, '')
-      .replace(/Judge.*$/i, '')
-      .replace(/Next Hearing.*$/i, '')
-      .replace(/Quick Actions.*$/i, '')
-      .replace(/Sync Latest.*$/i, '')
-      .replace(/Check Tentative.*$/i, '')
-      .replace(/Join Meeting.*$/i, '')
-      .replace(/San Diego Superior Court.*$/i, '')
-      .replace(/Unknown.*$/i, '')
-      .replace(/Active.*$/i, '')
-      .replace(/Family Law.*$/i, '')
-      .replace(/2024-03-01.*$/i, '')
-      .replace(/2024-03-25.*$/i, '')
-      .replace(/9:00 AM.*$/i, '')
-      .replace(/Status Conference.*$/i, '')
-      .replace(/[:\-\s]+$/, '')
-      .trim();
-  }
-
-  private generateRealisticCaseData(caseNumber: string): CountyCaseData {
-    const caseType = this.determineCaseType(caseNumber);
-    const year = caseNumber.substring(0, 2);
-    const fullYear = `20${year}`;
-    
-    // Generate realistic dates based on case type and year
-    const dateFiled = this.generateRealisticDate(fullYear, caseType);
-    const lastActivity = this.generateRecentDate();
-    
-    // Generate realistic parties based on case type
-    const parties = this.generateRealisticParties(caseType);
-    
-    // Generate realistic upcoming events
-    const upcomingEvents = this.generateUpcomingEvents(caseType, fullYear);
-    
-    // Generate realistic register of actions
-    const registerOfActions = this.generateRegisterOfActions(caseType, dateFiled, lastActivity);
-    
-    return {
-      caseNumber,
-      caseTitle: `${parties[0]} v. ${parties[1]} - ${caseType} Case`,
-      caseType,
-      status: this.generateCaseStatus(caseType),
-      dateFiled,
-      lastActivity,
-      department: `San Diego Superior Court - ${this.getDepartmentForCaseType(caseType)}`,
-      judge: this.generateJudgeName(),
-      parties,
-      upcomingEvents,
-      registerOfActions,
-      note: 'Enhanced case data with realistic information. Upgrade to Premium for real-time updates and document access.',
-      upgradeOptions: {
-        premium: true,
-        features: [
-          'Real-time case updates',
-          'Document access and downloads',
-          'Hearing notifications',
-          'Judge and department assignments',
-          'Complete case history',
-          'Party contact information'
-        ],
-        pricing: '$29.99/month'
-      }
-    };
-  }
-
-  private generateCaseNumber(type: string, year: number): string {
-    const yearStr = year.toString().substring(2);
-    const randomNum = Math.floor(Math.random() * 999999).toString().padStart(6, '0');
-    return `${yearStr}${type}${randomNum}`;
-  }
-
-  private generateRealisticDate(year: string, caseType: string): string {
-    const yearNum = parseInt(year);
-    const month = Math.floor(Math.random() * 12) + 1;
-    const day = Math.floor(Math.random() * 28) + 1;
-    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-  }
-
-  private generateRecentDate(): string {
-    const today = new Date();
-    const daysAgo = Math.floor(Math.random() * 30);
-    const recentDate = new Date(today.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
-    return recentDate.toISOString().split('T')[0];
-  }
-
-  private generateRealisticParties(caseType: string): string[] {
-    const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Lisa', 'Robert', 'Jennifer', 'William', 'Maria'];
-    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson'];
-    
-    const firstName1 = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName1 = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const firstName2 = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName2 = lastNames[Math.floor(Math.random() * lastNames.length)];
-    
-    if (caseType === 'Family Law') {
-      return [`${firstName1} ${lastName1} (Petitioner)`, `${firstName2} ${lastName2} (Respondent)`];
-    } else if (caseType === 'Civil') {
-      return [`${firstName1} ${lastName1} (Plaintiff)`, `${firstName2} ${lastName2} (Defendant)`];
-    } else if (caseType === 'Criminal') {
-      return [`People of the State of California`, `${firstName1} ${lastName1} (Defendant)`];
-    }
-    
-    return [`${firstName1} ${lastName1}`, `${firstName2} ${lastName2}`];
-  }
-
-  private generateUpcomingEvents(caseType: string, year: string): any[] {
-    const events = [];
-    const eventTypes = ['Hearing', 'Trial', 'Status Conference', 'Motion Hearing', 'Settlement Conference'];
-    
-    // Generate 1-3 upcoming events
-    const numEvents = Math.floor(Math.random() * 3) + 1;
-    
-    for (let i = 0; i < numEvents; i++) {
-      const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      const daysFromNow = Math.floor(Math.random() * 90) + 7; // 7-97 days from now
-      const eventDate = new Date();
-      eventDate.setDate(eventDate.getDate() + daysFromNow);
-      
-      events.push({
-        date: eventDate.toISOString().split('T')[0],
-        time: `${Math.floor(Math.random() * 12) + 8}:${Math.floor(Math.random() * 4) * 15} AM`,
-        eventType,
-        department: `Department ${Math.floor(Math.random() * 20) + 1}`,
-        judge: this.generateJudgeName(),
-        description: `${eventType} for ${caseType} case`,
-        virtualInfo: {
-          zoomId: `${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}`,
-          passcode: Math.floor(Math.random() * 900000 + 100000).toString(),
-          link: 'https://zoom.us/j/123456789'
-        }
-      });
-    }
-    
-    return events;
-  }
-
-  private generateRegisterOfActions(caseType: string, dateFiled: string, lastActivity: string): any[] {
-    const actions = [];
-    
-    // Initial filing
-    actions.push({
-      date: dateFiled,
-      action: `${caseType} case filed`,
-      party: 'Court',
-      description: `Initial ${caseType.toLowerCase()} case filing`
-    });
-    
-    // Generate 3-8 additional actions
-    const numActions = Math.floor(Math.random() * 6) + 3;
-    const actionTypes = [
-      'Motion filed',
-      'Response filed',
-      'Order issued',
-      'Hearing scheduled',
-      'Discovery request',
-      'Settlement conference scheduled',
-      'Trial date set',
-      'Judgment entered'
-    ];
-    
-    for (let i = 0; i < numActions; i++) {
-      const actionType = actionTypes[Math.floor(Math.random() * actionTypes.length)];
-      const daysAfterFiling = Math.floor(Math.random() * 365);
-      const actionDate = new Date(dateFiled);
-      actionDate.setDate(actionDate.getDate() + daysAfterFiling);
-      
-      if (actionDate <= new Date()) {
-        actions.push({
-          date: actionDate.toISOString().split('T')[0],
-          action: actionType,
-          party: Math.random() > 0.5 ? 'Plaintiff' : 'Defendant',
-          description: `${actionType} in ${caseType.toLowerCase()} case`
-        });
-      }
-    }
-    
-    return actions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }
-
-  private generateCaseStatus(caseType: string): string {
-    const statuses = ['Active', 'Pending', 'Settled', 'Dismissed', 'Judgment Entered'];
-    return statuses[Math.floor(Math.random() * statuses.length)];
-  }
-
-  private getDepartmentForCaseType(caseType: string): string {
-    const departments = {
-      'Family Law': 'Family Law Division',
-      'Civil': 'Civil Division',
-      'Criminal': 'Criminal Division',
-      'Probate': 'Probate Division',
-      'Traffic': 'Traffic Division'
-    };
-    return departments[caseType as keyof typeof departments] || 'General Division';
-  }
-
-  private generateJudgeName(): string {
-    const judges = [
-      'Hon. Sarah M. Johnson',
-      'Hon. Michael R. Davis',
-      'Hon. Jennifer L. Wilson',
-      'Hon. Robert K. Martinez',
-      'Hon. Lisa A. Thompson',
-      'Hon. David P. Rodriguez',
-      'Hon. Maria S. Garcia',
-      'Hon. William T. Anderson'
-    ];
-    return judges[Math.floor(Math.random() * judges.length)];
-  }
-
-  private getComprehensiveCaseDataFromOurDatabase(searchQuery: string, searchType: string): CountyCaseData[] {
-    console.log('💼 Providing comprehensive case data from our database for:', searchQuery);
-    
-    // This is where we would integrate with our comprehensive case database
-    // For now, we'll return realistic case data that demonstrates the value proposition
-    
-    const cases: CountyCaseData[] = [];
-    
-    // Generate realistic case data based on the search query
-    if (searchType === 'caseNumber' && !searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
-      // Invalid case number format - return no matches
-      console.log('Invalid case number format:', searchQuery);
-      return [];
-    } else if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
-      // Case number search - return specific case
-      cases.push({
-        caseNumber: searchQuery,
-        caseTitle: `Case ${searchQuery} - San Diego Superior Court`,
-        caseType: this.determineCaseType(searchQuery),
-        status: 'Active',
-        dateFiled: '2022-03-15',
-        lastActivity: '2025-01-22',
-        department: 'San Diego Superior Court - Family Law Division',
-        judge: 'Hon. Sarah M. Johnson',
-        parties: ['Petitioner', 'Respondent'],
-        upcomingEvents: [
-          {
-            date: '2025-02-15',
-            time: '9:00 AM',
-            eventType: 'Hearing',
-            department: 'Department 12',
-            judge: 'Hon. Sarah M. Johnson',
-            description: 'Motion for Child Support Modification',
-            virtualInfo: {
-              zoomId: '123-456-789',
-              passcode: '123456',
-              link: 'https://zoom.us/j/123456789'
-            }
-          }
-        ],
-        registerOfActions: [
-          {
-            date: '2025-01-22',
-            action: 'Motion for Child Support Modification filed',
-            party: 'Petitioner',
-            description: 'Petitioner filed motion to modify child support based on changed circumstances'
-          },
-          {
-            date: '2022-03-15',
-            action: 'Petition for Dissolution filed',
-            party: 'Petitioner',
-            description: 'Initial petition for dissolution of marriage filed'
-          }
-        ],
-        note: 'Comprehensive case data available with Premium subscription. Includes complete case history, document access, and real-time updates.',
-        upgradeOptions: {
-          premium: true,
-          features: [
-            'Complete case history',
-            'Document access',
-            'Real-time updates',
-            'Hearing notifications',
-            'Judge assignments',
-            'Party information'
-          ],
-          pricing: '$29.99/month'
-        }
-      });
-    } else {
-      // Name search - return multiple potential cases
-      const commonNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson'];
-      const searchName = searchQuery.toLowerCase();
-      
-      // Clean the search query to extract just the name part
-      const cleanSearchQuery = searchQuery
-        .replace(/Case Information.*$/i, '') // Remove "Case Information" and everything after
-        .replace(/Status.*$/i, '') // Remove "Status" and everything after
-        .replace(/Filed Date.*$/i, '') // Remove "Filed Date" and everything after
-        .replace(/Case Type.*$/i, '') // Remove "Case Type" and everything after
-        .replace(/County.*$/i, '') // Remove "County" and everything after
-        .replace(/Judge.*$/i, '') // Remove "Judge" and everything after
-        .replace(/Next Hearing.*$/i, '') // Remove "Next Hearing" and everything after
-        .replace(/Quick Actions.*$/i, '') // Remove "Quick Actions" and everything after
-        .replace(/Sync Latest.*$/i, '') // Remove "Sync Latest" and everything after
-        .replace(/Check Tentative.*$/i, '') // Remove "Check Tentative" and everything after
-        .replace(/Join Meeting.*$/i, '') // Remove "Join Meeting" and everything after
-        .replace(/San Diego Superior Court.*$/i, '') // Remove court name
-        .replace(/Unknown.*$/i, '') // Remove "Unknown" and everything after
-        .replace(/Active.*$/i, '') // Remove "Active" and everything after
-        .replace(/Family Law.*$/i, '') // Remove "Family Law" and everything after
-        .replace(/2024-03-01.*$/i, '') // Remove dates
-        .replace(/2024-03-25.*$/i, '') // Remove dates
-        .replace(/9:00 AM.*$/i, '') // Remove times
-        .replace(/Status Conference.*$/i, '') // Remove hearing types
-        .replace(/[:\-\s]+$/, '') // Remove trailing colons, dashes, and spaces
-        .trim();
-      
-      console.log('Cleaned search query:', cleanSearchQuery);
-      
-      // Find matching names
-      const matchingNames = commonNames.filter(name => 
-        name.toLowerCase().includes(cleanSearchQuery.toLowerCase()) || 
-        cleanSearchQuery.toLowerCase().includes(name.toLowerCase())
-      );
-      
-      if (matchingNames.length > 0) {
-        matchingNames.forEach((name, index) => {
-          cases.push({
-            caseNumber: `22FL${String(index + 1).padStart(6, '0')}C`,
-            caseTitle: `${name} v. ${name} - Family Law Case`,
-            caseType: 'Family Law',
-            status: 'Active',
-            dateFiled: '2022-03-15',
-            lastActivity: '2025-01-22',
-            department: 'San Diego Superior Court - Family Law Division',
-            judge: 'Hon. Sarah M. Johnson',
-            parties: [`${name} (Petitioner)`, `${name} (Respondent)`],
-            upcomingEvents: [],
-            registerOfActions: [
-              {
-                date: '2022-03-15',
-                action: 'Petition for Dissolution filed',
-                party: 'Petitioner',
-                description: 'Initial petition for dissolution of marriage filed'
-              }
-            ],
-            note: 'Comprehensive case data available with Premium subscription.',
-            upgradeOptions: {
-              premium: true,
-              features: [
-                'Complete case history',
-                'Document access',
-                'Real-time updates',
-                'Hearing notifications',
-                'Judge assignments',
-                'Party information'
-              ],
-              pricing: '$29.99/month'
-            }
-          });
-        });
-      } else {
-        // No matching names found - return empty array to indicate no matches
-        console.log('No matching names found for search query:', cleanSearchQuery);
-        return []; // Return empty array instead of creating a fake case
-      }
-    }
-    
-    console.log('✅ Generated comprehensive case data:', cases.length, 'cases');
-    return cases;
-  }
 
   /**
    * Extract real case data from San Diego County HTML
@@ -1701,24 +1184,12 @@ class CountyDataService {
           
           cases.push(caseData);
         }
-      } else {
-        // If no case numbers found, create a basic entry with the search term
-        const caseData: CountyCaseData = {
-          caseNumber: searchTerm,
-          caseTitle: `Case ${searchTerm} - San Diego Superior Court`,
-          caseType: 'Family Law',
-          status: 'Active',
-          dateFiled: new Date().toISOString().split('T')[0],
-          lastActivity: new Date().toISOString().split('T')[0],
-          department: 'San Diego Superior Court',
-          judge: 'Unknown',
-          parties: [searchTerm],
-          upcomingEvents: [],
-          registerOfActions: [],
-          note: 'Case data requires direct database access. Web interface only provides search forms.'
-        };
-        
-        cases.push(caseData);
+      }
+      
+      // If no case numbers found, return empty array - no real data
+      if (cases.length === 0) {
+        console.log('No case numbers found in ROASearch HTML - returning empty results');
+        return [];
       }
       
       return cases;
@@ -1929,7 +1400,7 @@ class CountyDataService {
       department: item.department || item.dept,
       judge: item.judge || item.assigned_judge,
       parties: item.parties || item.case_parties || [],
-      upcomingEvents: this.parseEvents(item.upcomingEvents || item.upcoming_events || []),
+      upcomingEvents: this.parseCalendarEvents(item.upcomingEvents || item.upcoming_events || []),
       registerOfActions: this.parseRegisterOfActions(item.registerOfActions || item.register_of_actions || [])
     }));
   }
