@@ -1417,7 +1417,8 @@ function SearchPageContent() {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div role="main"
+      <div 
+        role="main"
         className="min-h-screen animated-aura"
         style={{
           background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
