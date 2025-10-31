@@ -1,5 +1,4 @@
 'use client'
-/** @jsxImportSource react */
 
 import React, { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
