@@ -493,11 +493,10 @@ function SearchPageContent() {
     }
   }
 
-  // Don't render anything if not logged in
-  if (!user) return null
-
-  return (
-    <div role="main"
+  // Render nothing if user not logged in (redirect will happen via useEffect)
+  return user ? (
+    <div 
+      role="main"
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
@@ -1408,7 +1407,7 @@ function SearchPageContent() {
         )}
       </div>
     </div>
-  )
+  ) : null
 }
 
 export default function SearchPage() {
