@@ -498,7 +498,7 @@ function SearchPageContent() {
     return null
   }
 
-  const content = (
+  const RenderContent = () => (
     <div 
       role="main"
       className="min-h-screen animated-aura pb-20 lg:pb-10"
@@ -1413,7 +1413,7 @@ function SearchPageContent() {
     </div>
   )
 
-  return content
+  return <RenderContent />
 }
 
 export default function SearchPage() {
