@@ -58,6 +58,57 @@ class CountyDataService {
   private readonly ODYROA_LIMIT = 30; // requests per minute
   private readonly COURT_INDEX_LIMIT = 30; // requests per minute
   private readonly TIME_WINDOW = 60000; // 60 seconds in milliseconds
+  private cookieJar: Map<string, Record<string, string>> = new Map();
+
+  private getDomainKey(url: string): string {
+    try {
+      const u = new URL(url);
+      return `${u.protocol}//${u.host}`;
+    } catch {
+      return url;
+    }
+  }
+
+  private buildCookieHeader(cookies: Record<string, string> | undefined): string | undefined {
+    if (!cookies) return undefined;
+    const parts = Object.entries(cookies).map(([k, v]) => `${k}=${v}`);
+    return parts.length ? parts.join('; ') : undefined;
+    }
+
+  private storeSetCookie(domainKey: string, setCookieHeaders: string[] | string | null): void {
+    if (!setCookieHeaders) return;
+    const jar = this.cookieJar.get(domainKey) || {};
+    const headersArray = Array.isArray(setCookieHeaders) ? setCookieHeaders : [setCookieHeaders];
+    for (const sc of headersArray) {
+      const pair = sc.split(';')[0];
+      const eq = pair.indexOf('=');
+      if (eq > 0) {
+        const name = pair.substring(0, eq).trim();
+        const value = pair.substring(eq + 1).trim();
+        if (name && value) jar[name] = value;
+      }
+    }
+    this.cookieJar.set(domainKey, jar);
+  }
+
+  private async fetchWithSession(url: string, init: any = {}): Promise<Response> {
+    const domainKey = this.getDomainKey(url);
+    const cookies = this.cookieJar.get(domainKey);
+    const headers = new Headers(init.headers || {});
+    const cookieHeader = this.buildCookieHeader(cookies);
+    if (cookieHeader && !headers.has('Cookie')) headers.set('Cookie', cookieHeader);
+    // Sensible defaults to mimic a browser
+    if (!headers.has('User-Agent')) headers.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36');
+    if (!headers.has('Accept')) headers.set('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
+    if (!headers.has('Accept-Language')) headers.set('Accept-Language', 'en-US,en;q=0.9');
+    if (!headers.has('Connection')) headers.set('Connection', 'keep-alive');
+
+    const resp = await fetch(url, { ...init, headers, redirect: 'follow' as any });
+    // Persist cookies
+    const setCookie = (resp.headers as any).raw ? (resp.headers as any).raw()['set-cookie'] : resp.headers.get('set-cookie');
+    this.storeSetCookie(domainKey, setCookie || null);
+    return resp;
+  }
 
   /**
    * Check if we can make a request without exceeding rate limits for specific platform
@@ -245,14 +296,9 @@ class CountyDataService {
       
       console.log('Search URL:', searchUrl, 'Method:', searchMethod);
       
-      const searchResponse = await fetch(searchUrl, {
+      const searchResponse = await this.fetchWithSession(searchUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
+          Referer: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
         }
       });
 
@@ -324,16 +370,11 @@ class CountyDataService {
         try {
           console.log('Trying ROASearch endpoint:', roaUrl);
           
-          const response = await fetch(roaUrl, {
+          // Warm session
+          await this.fetchWithSession(this.roaBaseUrl + '/', { headers: { Referer: this.roaBaseUrl + '/' } });
+          const response = await this.fetchWithSession(roaUrl, {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.5',
-              'Accept-Encoding': 'gzip, deflate, br',
-              'Connection': 'keep-alive',
-              'Upgrade-Insecure-Requests': '1',
-              'X-Forwarded-For': '3.224.164.255',
-              'X-Real-IP': '3.224.164.255',
+              Referer: this.roaBaseUrl + '/',
             }
           });
 
@@ -382,16 +423,10 @@ class CountyDataService {
         try {
           console.log('Trying ODYROA endpoint:', odyroaUrl);
           
-          const response = await fetch(odyroaUrl, {
+          await this.fetchWithSession(this.odyroaBaseUrl + '/', { headers: { Referer: this.odyroaBaseUrl + '/' } });
+          const response = await this.fetchWithSession(odyroaUrl, {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.5',
-              'Accept-Encoding': 'gzip, deflate, br',
-              'Connection': 'keep-alive',
-              'Upgrade-Insecure-Requests': '1',
-              'X-Forwarded-For': '3.224.164.255',
-              'X-Real-IP': '3.224.164.255',
+              Referer: this.odyroaBaseUrl + '/',
             }
           });
 
@@ -440,16 +475,10 @@ class CountyDataService {
         try {
           console.log('Trying CourtIndex endpoint:', courtIndexUrl);
           
-          const response = await fetch(courtIndexUrl, {
+          await this.fetchWithSession(this.courtIndexBaseUrl + '/CISPublic/enter', { headers: { Referer: this.courtIndexBaseUrl + '/CISPublic/enter' } });
+          const response = await this.fetchWithSession(courtIndexUrl, {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.5',
-              'Accept-Encoding': 'gzip, deflate, br',
-              'Connection': 'keep-alive',
-              'Upgrade-Insecure-Requests': '1',
-              'X-Forwarded-For': '3.224.164.255',
-              'X-Real-IP': '3.224.164.255',
+              Referer: this.courtIndexBaseUrl + '/CISPublic/enter',
             }
           });
 
