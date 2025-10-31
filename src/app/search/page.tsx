@@ -494,7 +494,11 @@ function SearchPageContent() {
   }
 
   // Render nothing if user not logged in (redirect will happen via useEffect)
-  return user ? (
+  if (!user) {
+    return null
+  }
+
+  const content = (
     <div 
       role="main"
       className="min-h-screen animated-aura pb-20 lg:pb-10"
@@ -1407,7 +1411,9 @@ function SearchPageContent() {
         )}
       </div>
     </div>
-  ) : null
+  )
+
+  return content
 }
 
 export default function SearchPage() {
