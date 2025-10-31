@@ -55,6 +55,11 @@ const nextConfig = {
     optimizeCss: true,
     optimizePackageImports: ['@/components', '@/hooks'],
   },
+  // SWC configuration
+  swcMinify: true,
+  compiler: {
+    reactRemoveProperties: false,
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
