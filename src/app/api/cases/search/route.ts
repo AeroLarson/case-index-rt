@@ -84,118 +84,20 @@ export async function POST(request: NextRequest) {
 
     } catch (countyError) {
       console.error('County data search failed:', countyError)
-      
-      // Fallback to test data for development
-      const searchQuery = query.trim().toLowerCase()
-      
-      // Check if search matches our test case criteria
-      const matchesCaseNumber = searchQuery === 'fl-2024-001234' || searchQuery === 'fl2024001234'
-      const matchesPlaintiff = searchQuery.includes('aero') && searchQuery.includes('larson')
-      const matchesDefendant = searchQuery.includes('test') && searchQuery.includes('defendant')
-      const matchesCaseTitle = searchQuery.includes('larson') && searchQuery.includes('test')
-      
-      // John Doe case matches
-      const matchesJohnDoe = searchQuery.includes('john') && searchQuery.includes('doe')
-      const matchesJohnDoeCaseNumber = searchQuery === 'fl-2024-005678' || searchQuery === 'fl2024005678'
-      
-      if (matchesCaseNumber || matchesPlaintiff || matchesDefendant || matchesCaseTitle || matchesJohnDoe || matchesJohnDoeCaseNumber) {
-        // Determine which case to return based on search
-        let mockCase
-        
-        if (matchesJohnDoe || matchesJohnDoeCaseNumber) {
-          // John Doe case
-          mockCase = {
-            id: 'case_john_doe_criminal',
-            caseNumber: 'FL-2024-005678',
-            title: 'People v. John Doe - Criminal Case',
-            court: 'San Diego Superior Court - Central (Department 703)',
-            judge: 'Hon. Michael Rodriguez',
-            status: 'Active - Pre-Trial Proceedings',
-            lastActivity: 'January 15, 2025',
-            parties: {
-              plaintiff: 'People of the State of California (Prosecution)',
-              defendant: 'John Doe (Defendant)'
-            },
-            documents: 15,
-            hearings: 4,
-            isDetailed: true,
-            caseType: 'Criminal',
-            department: 'Department 703',
-            courtLocation: 'San Diego Superior Court - Central',
-            judicialOfficer: 'Hon. Michael Rodriguez',
-            dateFiled: '2025-01-10',
-            countyData: {
-              court: 'San Diego Superior Court',
-              department: 'Department 703',
-              judicialOfficer: 'Hon. Michael Rodriguez',
-              caseType: 'Criminal',
-              status: 'Active',
-              lastUpdated: new Date().toISOString()
-            }
-          }
-        } else {
-          // Aero Larson case
-          mockCase = {
-            id: 'case_aero_larson_test',
-            caseNumber: 'FL-2024-001234',
-            title: 'Larson v. Test Defendant - Dissolution with Minor Children',
-            court: 'San Diego Superior Court - Central (Department 602)',
-            judge: 'Hon. Rebecca Kanter',
-            status: 'Active - Post-Judgment Proceedings',
-            lastActivity: 'January 20, 2025',
-            parties: {
-              plaintiff: 'Aero Larson (Petitioner)',
-              defendant: 'Test Defendant (Respondent)'
-            },
-            documents: 23,
-            hearings: 7,
-            isDetailed: true,
-            caseType: 'Family Law',
-            department: 'Department 602',
-            courtLocation: 'San Diego Superior Court - Central',
-            judicialOfficer: 'Hon. Rebecca Kanter',
-            dateFiled: '2025-01-05',
-            countyData: {
-              court: 'San Diego Superior Court',
-              department: 'Department 602',
-              judicialOfficer: 'Hon. Rebecca Kanter',
-              caseType: 'Family Law',
-              status: 'Active',
-              lastUpdated: new Date().toISOString()
-            }
-          }
+      // Return empty results with explicit source to avoid any fake data
+      return NextResponse.json({
+        success: true,
+        cases: [],
+        total: 0,
+        source: 'san_diego_county',
+        countyError: countyError instanceof Error ? countyError.message : 'Unknown error'
+      }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
-        
-        return NextResponse.json({
-          success: true,
-          cases: [mockCase],
-          total: 1,
-          source: 'test_data_fallback',
-          countyError: countyError instanceof Error ? countyError.message : 'Unknown error'
-        }, {
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
-      } else {
-        // Return empty results for non-matching searches
-        return NextResponse.json({
-          success: true,
-          cases: [],
-          total: 0,
-          message: 'No cases found matching your search criteria',
-          source: 'test_data_fallback',
-          countyError: countyError instanceof Error ? countyError.message : 'Unknown error'
-        }, {
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
-      }
+      })
     }
 
   } catch (error) {

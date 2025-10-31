@@ -4,7 +4,7 @@
  * Compliant with rate limiting: 450 requests per 10 seconds
  */
 
-import { realCaseScraper, RealCaseData } from './realCaseScraper'
+// Real scraping via approved county endpoints only; no headless browser here
 
 interface CountyCaseData {
   caseNumber: string;
@@ -134,16 +134,9 @@ class CountyDataService {
         console.log('❌ Real data retrieval failed (systems may be down for maintenance):', error.message);
       }
       
-      // Fallback to enhanced database if real data fails
-      console.log('🔍 Falling back to enhanced database...');
-      const comprehensiveResults = this.getEnhancedComprehensiveCaseData(searchQuery, searchType);
-      
-      if (comprehensiveResults.length === 0) {
-        console.log('No matches found for search query:', searchQuery);
-        return [];
-      }
-      
-      return comprehensiveResults;
+      // No fallback – return empty to reflect true county result
+      console.log('No real data found; returning empty results');
+      return [];
       
     } catch (error) {
       console.error('Comprehensive search failed:', error);
