@@ -1,4 +1,5 @@
 'use client'
+/** @jsxImportSource react */
 
 import React, { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -493,12 +494,12 @@ function SearchPageContent() {
     }
   }
 
-  // Render nothing if user not logged in (redirect will happen via useEffect)
+  // Render nothing if user not logged in (redirect will happen via useEffect)  
   if (!user) {
     return null
   }
-
-  const RenderContent = () => (
+  
+  return (
     <div 
       role="main"
       className="min-h-screen animated-aura pb-20 lg:pb-10"
@@ -1412,8 +1413,6 @@ function SearchPageContent() {
       </div>
     </div>
   )
-
-  return <RenderContent />
 }
 
 export default function SearchPage() {
