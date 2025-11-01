@@ -408,41 +408,54 @@ class CountyDataService {
             }
           }
         } else {
-          // For name search, try to split into first/last name
+          // For name search, split into first/last name for CourtIndex form
           const nameParts = searchQuery.trim().split(/\s+/);
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || firstName;
+          const firstName = nameParts.slice(-1)[0] || ''; // Last part is likely first name
+          const lastName = nameParts.slice(0, -1).join(' ') || (nameParts[0] || ''); // Everything else is last name
           
-          // Try first name field
-          const firstNameInput = await page.$('input[name*="first" i], input[name*="First" i], input[id*="first" i]').catch(() => null);
-          if (firstNameInput) {
-            await firstNameInput.type(firstName, { delay: 50 });
-          }
+          console.log('🔍 Filling form with:', { firstName, lastName, fullQuery: searchQuery });
           
-          // Try last name field
-          const lastNameInput = await page.$('input[name*="last" i], input[name*="Last" i], input[id*="last" i]').catch(() => null);
+          // Wait for form to be ready
+          await page.waitForSelector('input[type="text"], input[name*="name" i], textbox', { timeout: 10000 }).catch(() => {});
+          
+          // Fill Last Name or Business Name field (primary field in CourtIndex)
+          const lastNameInput = await page.$('input[name*="last" i], input[name*="Last" i], textbox').catch(() => null);
           if (lastNameInput) {
+            await lastNameInput.click({ clickCount: 3 }); // Select all existing text
             await lastNameInput.type(lastName, { delay: 50 });
+            console.log('✅ Filled last name:', lastName);
           }
           
-          // If no separate fields, try a single name field
-          if (!firstNameInput && !lastNameInput) {
-            const nameInput = await page.$('input[name*="name" i], input[id*="name" i], input[type="text"]').catch(() => null);
-            if (nameInput) {
-              await nameInput.type(searchQuery, { delay: 50 });
-            }
+          // Fill First Name field if it exists
+          const firstNameInput = await page.$('input[name*="first" i], input[name*="First" i]').catch(() => null);
+          if (firstNameInput && firstName) {
+            await firstNameInput.click({ clickCount: 3 });
+            await firstNameInput.type(firstName, { delay: 50 });
+            console.log('✅ Filled first name:', firstName);
           }
           
           await page.waitForTimeout(500);
           
-          // Find and click submit
-          const submitBtn = await page.$('input[type="submit"], button[type="submit"], input[value*="Search" i]').catch(() => null);
-          if (submitBtn) {
+          // Find and click Submit button (CourtIndex uses button with text "Submit")
+          const submitBtn = await page.$('button:has-text("Submit"), input[value="Submit"], input[type="submit"][value*="Submit" i]').catch(() => null);
+          if (!submitBtn) {
+            // Try alternative selectors
+            const submitBtn2 = await page.$('input[type="submit"], button[type="submit"]').catch(() => null);
+            if (submitBtn2) {
+              console.log('✅ Found submit button via alternative selector');
+              await Promise.all([
+                page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+                submitBtn2.click()
+              ]);
+              await page.waitForTimeout(4000); // Wait longer for results to load
+            }
+          } else {
+            console.log('✅ Found submit button, clicking...');
             await Promise.all([
               page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
               submitBtn.click()
             ]);
-            await page.waitForTimeout(3000);
+            await page.waitForTimeout(4000); // Wait longer for results to load
           }
         }
         
