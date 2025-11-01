@@ -15,12 +15,7 @@ export default function AnalyticsPage() {
   const { user, userProfile, isLoading } = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/login')
-    }
-  }, [isLoading, user, router])
-
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   // Calculate real stats from user profile - MUST be called before any early returns
   const stats = useMemo(() => {
     if (!userProfile) {
@@ -191,8 +186,15 @@ export default function AnalyticsPage() {
     return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5)
   }, [userProfile])
 
+  // Navigation effect - MUST be after all useMemo hooks
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login')
+    }
+  }, [isLoading, user, router])
+
   // Don't render anything during prerendering or if no user - AFTER all hooks
-  if (!user || !userProfile) {
+  if (!user || !userProfile || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
