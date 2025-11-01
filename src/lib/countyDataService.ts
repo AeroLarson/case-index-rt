@@ -1235,45 +1235,89 @@ class CountyDataService {
       
       // Check if we have a results table (ROASearch format)
       // ROASearch returns tables with headers: Case Number, Case Title, Case Type, Department, Court Location, Date Filed
+      // Also check for case number format directly in HTML (for case number searches)
       const hasResultsTable = tableRows.some(row => {
         const rowText = row.join(' ').toLowerCase();
-        return rowText.includes('case number') && 
-               (rowText.includes('case title') || rowText.includes(searchTerm.toLowerCase()));
+        return (rowText.includes('case number') && rowText.includes('case title')) || 
+               uniqueCaseNumbers.length > 0 ||
+               html.match(/\d{2}[A-Z]{2}\d{6}[A-Z]?/) !== null;
       });
       
-      if (hasResultsTable) {
-        console.log('✅ Found ROASearch results table format!');
-        // Skip header row and parse data rows
-        for (const row of tableRows) {
-          const rowText = row.join(' ').toLowerCase();
-          // Skip header rows
+      if (hasResultsTable && tableRows.length > 1) {
+        console.log('✅ Found ROASearch results table format with', tableRows.length, 'rows');
+        
+        // Find header row index
+        let headerRowIndex = -1;
+        for (let i = 0; i < tableRows.length; i++) {
+          const rowText = tableRows[i].join(' ').toLowerCase();
           if (rowText.includes('case number') && rowText.includes('case title') && rowText.includes('case type')) {
-            continue;
+            headerRowIndex = i;
+            break;
           }
+        }
+        
+        // Parse data rows (skip header)
+        for (let i = 0; i < tableRows.length; i++) {
+          // Skip header row
+          if (i === headerRowIndex) continue;
+          
+          const row = tableRows[i];
+          const rowText = row.join(' ').toLowerCase();
+          
+          // Skip empty rows or rows that are clearly headers
+          if (row.length === 0 || row.every(c => c.trim().length === 0)) continue;
+          if (rowText.includes('case number') && rowText.includes('case title')) continue;
           
           // Check if this row contains a case number
           let caseNumberInRow = '';
           for (const cell of row) {
-            const caseMatch = cell.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
+            const caseMatch = cell.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{4,8})/i);
             if (caseMatch) {
               caseNumberInRow = caseMatch[1].toUpperCase();
               break;
             }
           }
           
-          if (caseNumberInRow || rowText.includes(searchTerm.toLowerCase())) {
+          // Also check if the row contains our search term (for name searches)
+          const matchesSearchTerm = searchTerm.toLowerCase().split(/\s+/).some(term => 
+            rowText.includes(term.toLowerCase())
+          );
+          
+          // If row has case number OR matches search term, it's a valid data row
+          if (caseNumberInRow || (matchesSearchTerm && row.length >= 3)) {
+            // Extract case title - usually the second cell or one with " vs " or "[IMAGED]"
+            const caseTitleCell = row.find(c => 
+              c.includes(' vs ') || 
+              c.includes(' v. ') || 
+              c.includes('[IMAGED]') ||
+              (c.length > 20 && !/^\d+$/.test(c.trim()) && !c.match(/^\d{2}[A-Z]{2}\d{6}/i))
+            ) || row[1] || row.find(c => c.length > 10 && c.length < 200) || `Case ${caseNumberInRow || 'Unknown'}`;
+            
+            // Extract case type - look for keywords
+            const caseTypeCell = row.find(c => 
+              /dissolution|family|criminal|civil|probate|domestic|small claims|traffic|juvenile/i.test(c)
+            ) || this.determineCaseType(caseNumberInRow);
+            
+            // Extract department - usually a 3-digit number
+            const departmentCell = row.find(c => /^\d{3}$/.test(c.trim())) || '';
+            
+            // Extract date filed
+            const dateCell = row.find(c => /\d{1,2}\/\d{1,2}\/\d{4}/.test(c)) || '';
+            
+            // Extract court location
+            const locationCell = row.find(c => 
+              /central|north|south|east|west|chula vista|el cajon|san diego/i.test(c)
+            ) || 'Central';
+            
             // This is a data row - extract case information
             const caseData: CountyCaseData = {
               caseNumber: caseNumberInRow || `FOUND-${Date.now()}`,
-              caseTitle: row.find(c => c.includes(' vs ') || c.includes(' v. ') || c.includes('[IMAGED]')) || 
-                        row.find((c, i) => i > 0 && c.length > 10) || 
-                        `Case involving ${searchTerm}`,
-              caseType: row.find(c => /dissolution|family|criminal|civil|probate|domestic/i.test(c)) || 
-                       this.determineCaseType(caseNumberInRow),
+              caseTitle: caseTitleCell.toString().replace(/\[IMAGED\]/gi, '').trim(),
+              caseType: caseTypeCell.toString(),
               status: 'Active',
-              dateFiled: this.normalizeDate(row.find(c => /\d{1,2}\/\d{1,2}\/\d{4}/.test(c)) || ''),
+              dateFiled: this.normalizeDate(dateCell.toString()),
               lastActivity: new Date().toISOString().split('T')[0],
-              department: row.find(c => /^\d{3}$/.test(c.trim())) || 'San Diego Superior Court',
+              department: departmentCell || 'San Diego Superior Court',
               judge: 'Unknown',
               parties: this.extractPartiesFromRow(row, searchTerm),
               upcomingEvents: [],
@@ -1289,15 +1333,50 @@ class CountyDataService {
                 if (match) {
                   caseData.caseNumber = match[2] + match[1] + match[3];
                 }
+              } else if (/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/.test(normalized)) {
+                caseData.caseNumber = normalized;
               } else {
                 caseData.caseNumber = normalized;
               }
             }
             
-            if (!cases.find(c => c.caseNumber === caseData.caseNumber)) {
-              cases.push(caseData);
-              console.log('✅ Extracted case from ROASearch table:', caseData.caseNumber, caseData.caseTitle);
+            // Only add if we have a real case number or valid case title
+            if (caseNumberInRow || (caseData.caseTitle && !caseData.caseTitle.includes('FOUND-'))) {
+              if (!cases.find(c => c.caseNumber === caseData.caseNumber)) {
+                cases.push(caseData);
+                console.log('✅ Extracted case from ROASearch table:', caseData.caseNumber, caseData.caseTitle);
+              }
             }
+          }
+        }
+      }
+      
+      // If we found case numbers in HTML but didn't extract them from tables, try to create entries
+      if (uniqueCaseNumbers.length > 0 && cases.length === 0) {
+        console.log('🔍 Found case numbers in HTML but not in tables, creating entries...');
+        for (const caseNum of uniqueCaseNumbers.slice(0, 10)) { // Limit to first 10
+          // Look for context around this case number in the HTML
+          const caseNumPattern = new RegExp(caseNum.replace(/[-\s]/g, '[\\s-]*'), 'i');
+          const contextMatch = html.match(new RegExp(`.{0,200}${caseNumPattern.source}.{0,200}`, 'i'));
+          
+          if (contextMatch) {
+            const context = contextMatch[0];
+            const parties = this.extractParties(context, searchTerm);
+            const caseTitle = this.extractCaseTitle(context, searchTerm);
+            
+            cases.push({
+              caseNumber: caseNum,
+              caseTitle: caseTitle,
+              caseType: this.determineCaseType(caseNum),
+              status: 'Active',
+              dateFiled: new Date().toISOString().split('T')[0],
+              lastActivity: new Date().toISOString().split('T')[0],
+              department: 'San Diego Superior Court',
+              judge: 'Unknown',
+              parties: parties.length > 0 ? parties : [searchTerm],
+              upcomingEvents: [],
+              registerOfActions: []
+            });
           }
         }
       }
