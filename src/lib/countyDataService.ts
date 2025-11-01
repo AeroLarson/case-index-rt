@@ -263,65 +263,115 @@ class CountyDataService {
   }
 
   /**
-   * Search using public case search system with working GET method
+   * Search using public case search system - tries both GET and POST methods
    */
   private async searchPublicCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
     try {
-      console.log('🔍 Searching San Diego County with working GET method for:', searchQuery);
+      console.log('🔍 Searching San Diego County for:', searchQuery, 'Type:', searchType);
       
-      // Use the working approach: try party name search first, then case number
-      let searchUrl: string;
-      let searchMethod = 'partyName';
+      const searchBaseUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
       
-      if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
-        // For case numbers, try party name search first (it works better)
-        // Extract potential party name from case number or use the query as-is
-        if (searchQuery.includes('Larson') || searchQuery.includes('Tonya')) {
-          searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?partyName=${encodeURIComponent(searchQuery)}`;
-          searchMethod = 'partyName';
+      // First, try GET method with query params
+      try {
+        let searchUrl: string;
+        
+        if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
+          searchUrl = `${searchBaseUrl}?caseNumber=${encodeURIComponent(searchQuery)}`;
+        } else if (searchType === 'attorney') {
+          searchUrl = `${searchBaseUrl}?attorneyName=${encodeURIComponent(searchQuery)}`;
         } else {
-          // Try case number search as fallback
-          searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?caseNumber=${encodeURIComponent(searchQuery)}`;
-          searchMethod = 'caseNumber';
+          searchUrl = `${searchBaseUrl}?partyName=${encodeURIComponent(searchQuery)}`;
         }
-      } else if (searchType === 'attorney') {
-        // Attorney search
-        searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?attorneyName=${encodeURIComponent(searchQuery)}`;
-        searchMethod = 'attorneyName';
-      } else {
-        // Party name search (this is the most reliable method)
-        searchUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?partyName=${encodeURIComponent(searchQuery)}`;
-        searchMethod = 'partyName';
-      }
-      
-      console.log('Search URL:', searchUrl, 'Method:', searchMethod);
-      
-      const searchResponse = await this.fetchWithSession(searchUrl, {
-        headers: {
-          Referer: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
+        
+        console.log('📡 Trying GET request:', searchUrl);
+        
+        const searchResponse = await this.fetchWithSession(searchUrl, {
+          method: 'GET',
+          headers: {
+            Referer: searchBaseUrl,
+          }
+        });
+
+        if (searchResponse.ok) {
+          const searchHtml = await searchResponse.text();
+          console.log('✅ GET response received, HTML length:', searchHtml.length);
+          
+          // Parse the HTML
+          const realData = this.parseCaseSearchHTML(searchHtml, searchQuery);
+          if (realData.length > 0) {
+            console.log('✅ Successfully parsed real data from GET request!');
+            return realData;
+          }
+          
+          // If no data but response looks good, save HTML for debugging
+          if (searchHtml.length > 50000 && !searchHtml.includes('Access Denied')) {
+            console.log('⚠️ GET returned HTML but no parseable case data. HTML preview:', searchHtml.substring(0, 1000));
+          }
         }
-      });
-
-      if (!searchResponse.ok) {
-        throw new Error(`Search error: ${searchResponse.status}`);
-      }
-
-      const searchHtml = await searchResponse.text();
-      console.log('Search results HTML length:', searchHtml.length);
-      console.log('🔍 Parsing San Diego County HTML for real case data...');
-      
-      // Attempt to parse real case data from the HTML
-      const realData = this.parseCaseSearchHTML(searchHtml, searchQuery);
-      if (realData.length > 0) {
-        console.log('✅ Successfully parsed real data from main San Diego County site!');
-        return realData;
+      } catch (getError: any) {
+        console.log('⚠️ GET request failed:', getError.message);
       }
       
-      console.log('❌ Main San Diego County site returned no parsable real data.');
+      // Try POST method with form data
+      try {
+        console.log('📡 Trying POST request with form data...');
+        
+        // First get the form page to extract any CSRF tokens or form fields
+        const formPageResponse = await this.fetchWithSession(searchBaseUrl, {
+          method: 'GET',
+          headers: {
+            Referer: `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/`,
+          }
+        });
+        
+        const formPageHtml = await formPageResponse.text();
+        
+        // Prepare form data
+        const formData = new URLSearchParams();
+        
+        if (searchType === 'caseNumber' || searchQuery.match(/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/)) {
+          formData.append('caseNumber', searchQuery);
+        } else if (searchType === 'attorney') {
+          formData.append('attorneyName', searchQuery);
+        } else {
+          formData.append('partyName', searchQuery);
+        }
+        
+        // Try to extract CSRF token or other required fields from the form
+        const csrfMatch = formPageHtml.match(/name="([^"]*csrf[^"]*)"[^>]*value="([^"]+)"/i);
+        if (csrfMatch) {
+          formData.append(csrfMatch[1], csrfMatch[2]);
+        }
+        
+        const postResponse = await this.fetchWithSession(searchBaseUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Referer: searchBaseUrl,
+          },
+          body: formData.toString()
+        });
+
+        if (postResponse.ok) {
+          const searchHtml = await postResponse.text();
+          console.log('✅ POST response received, HTML length:', searchHtml.length);
+          
+          // Parse the HTML
+          const realData = this.parseCaseSearchHTML(searchHtml, searchQuery);
+          if (realData.length > 0) {
+            console.log('✅ Successfully parsed real data from POST request!');
+            return realData;
+          }
+        }
+      } catch (postError: any) {
+        console.log('⚠️ POST request failed:', postError.message);
+      }
+      
+      console.log('❌ Both GET and POST methods failed to return parseable case data.');
       return [];
       
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('❌ Search error:', error);
       throw new Error('Unable to search county records');
     }
   }
@@ -648,59 +698,88 @@ class CountyDataService {
         }
       }
       
-      // If no case numbers found but search term appears in HTML, try to extract party info
-      if (cases.length === 0 && html.toLowerCase().includes(searchTerm.toLowerCase())) {
-        console.log('🔍 No case numbers found, but search term appears in HTML - attempting party extraction...');
+      // If no case numbers found, try to extract any case information from tables or structured data
+      if (cases.length === 0) {
+        console.log('🔍 No case numbers found via regex, trying DOM-based extraction...');
         
-        // Try to find the search term in context with case-related keywords
-        const searchTermRegex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<]{0,200})`, 'gi');
-        const contexts = html.match(searchTermRegex);
-        
-        if (contexts && contexts.length > 0) {
-          console.log('✅ Found search term in HTML contexts:', contexts.length);
-          
-          // Look for party names near the search term
-          const partyPattern = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<\n]{0,100}(?:v\\.?|vs\\.?|vs)[^<\n]{0,100})`, 'gi');
-          const partyMatches = html.match(partyPattern);
-          
-          if (partyMatches && partyMatches.length > 0) {
-            console.log('✅ Found party information:', partyMatches);
+        // Try to find case information in tables
+        const tables = document.querySelectorAll('table');
+        for (const table of Array.from(tables)) {
+          const rows = table.querySelectorAll('tr');
+          for (const row of Array.from(rows)) {
+            const cells = Array.from(row.querySelectorAll('td, th')).map(cell => cell.textContent?.trim() || '');
+            const rowText = cells.join(' | ');
             
-            // Try to extract case number from nearby text
-            for (const match of partyMatches) {
-              const nearbyText = match + html.substring(html.indexOf(match) + match.length, html.indexOf(match) + match.length + 500);
-              const nearbyCaseNumbers = nearbyText.match(/([A-Z]{2}[-]?\d{4}[-]?\d{4,8}|\d{2}[A-Z]{2}\d{6}[A-Z]?)/gi);
-              
-              if (nearbyCaseNumbers && nearbyCaseNumbers.length > 0) {
-                const caseNumber = nearbyCaseNumbers[0].toUpperCase();
-                const caseData = this.extractCaseDataFromDOM(document, caseNumber, searchTerm);
-                if (caseData) {
-                  // Enhance with party information from the match
-                  const parties = match.split(/(?:v\.?|vs\.?|vs)/i).map(p => p.trim()).filter(p => p);
-                  if (parties.length >= 2) {
-                    caseData.parties = parties;
-                    caseData.caseTitle = `${parties[0]} v. ${parties[1]}`;
+            // Look for case number patterns in table cells
+            const rowCaseNumbers = rowText.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/gi);
+            if (rowCaseNumbers && rowCaseNumbers.length > 0) {
+              for (const cn of rowCaseNumbers) {
+                const caseData = this.extractCaseDataFromDOM(document, cn.toUpperCase(), searchTerm);
+                if (caseData && !cases.find(c => c.caseNumber === caseData.caseNumber)) {
+                  // Try to extract parties from the same row
+                  if (cells.length > 2) {
+                    const potentialParties = cells.filter(c => c.length > 2 && c.length < 100 && !c.match(/^\d/));
+                    if (potentialParties.length >= 2) {
+                      caseData.parties = potentialParties.slice(0, 2);
+                      caseData.caseTitle = `${potentialParties[0]} v. ${potentialParties[1]}`;
+                    }
                   }
                   cases.push(caseData);
                 }
-              } else {
-                // Create case entry with party information even without case number
-                const parties = match.split(/(?:v\.?|vs\.?|vs)/i).map(p => p.trim()).filter(p => p);
-                if (parties.length >= 2 && parties.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()))) {
-                  cases.push({
-                    caseNumber: `FOUND-${Date.now()}`,
-                    caseTitle: `${parties[0]} v. ${parties[1]}`,
-                    caseType: 'Unknown',
-                    status: 'Active',
-                    dateFiled: new Date().toISOString().split('T')[0],
-                    lastActivity: new Date().toISOString().split('T')[0],
-                    department: 'San Diego Superior Court',
-                    judge: 'Unknown',
-                    parties: parties,
-                    upcomingEvents: [],
-                    registerOfActions: [],
-                    note: 'Case found but case number could not be extracted. Data from San Diego County search.'
-                  });
+              }
+            } else if (rowText.toLowerCase().includes(searchTerm.toLowerCase()) && cells.length > 3) {
+              // Found search term in a table row - might be case data
+              console.log('🔍 Found search term in table row:', rowText.substring(0, 200));
+              
+              // Try to find a case number in nearby rows
+              const nearbyRows = Array.from(table.querySelectorAll('tr'));
+              const currentIndex = nearbyRows.indexOf(row);
+              for (let i = Math.max(0, currentIndex - 2); i < Math.min(nearbyRows.length, currentIndex + 3); i++) {
+                const nearbyText = Array.from(nearbyRows[i].querySelectorAll('td, th')).map(c => c.textContent?.trim() || '').join(' ');
+                const nearbyCaseNumber = nearbyText.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
+                if (nearbyCaseNumber) {
+                  const caseData = this.extractCaseDataFromDOM(document, nearbyCaseNumber[0].toUpperCase(), searchTerm);
+                  if (caseData && !cases.find(c => c.caseNumber === caseData.caseNumber)) {
+                    const potentialParties = cells.filter(c => c.length > 2 && c.length < 100 && !c.match(/^\d/));
+                    if (potentialParties.length >= 1) {
+                      caseData.parties = potentialParties.slice(0, 2);
+                      if (potentialParties.length >= 2) {
+                        caseData.caseTitle = `${potentialParties[0]} v. ${potentialParties[1]}`;
+                      }
+                    }
+                    cases.push(caseData);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        // If still no cases, try searching for the search term in HTML with case-related context
+        if (cases.length === 0 && html.toLowerCase().includes(searchTerm.toLowerCase())) {
+          console.log('🔍 Search term found in HTML - attempting deep extraction...');
+          
+          // Look for the search term near case-related keywords
+          const searchTermRegex = new RegExp(`(?:case|Case|matter|Matter)[^<]{0,300}${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<]{0,300}`, 'gi');
+          const contexts = html.match(searchTermRegex);
+          
+          if (contexts && contexts.length > 0) {
+            console.log('✅ Found search term near case keywords:', contexts.length, 'matches');
+            
+            for (const context of contexts.slice(0, 10)) {
+              // Try to extract case number from context
+              const contextCaseNumber = context.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
+              if (contextCaseNumber) {
+                const caseData = this.extractCaseDataFromDOM(document, contextCaseNumber[0].toUpperCase(), searchTerm);
+                if (caseData && !cases.find(c => c.caseNumber === caseData.caseNumber)) {
+                  // Extract party names from context
+                  const partyMatch = context.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s+(?:v\.?|vs\.?|vs)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i);
+                  if (partyMatch) {
+                    caseData.parties = [partyMatch[1].trim(), partyMatch[2].trim()];
+                    caseData.caseTitle = `${partyMatch[1].trim()} v. ${partyMatch[2].trim()}`;
+                  }
+                  cases.push(caseData);
                 }
               }
             }
