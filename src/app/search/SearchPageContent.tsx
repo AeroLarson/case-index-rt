@@ -294,10 +294,10 @@ export default function SearchPageContent() {
         </div>
       </form>
 
-      {error && <div className="text-red-400 text-sm mb-3">{error}</div>}
+      {error && <div className="text-red-400 text-sm mb-3 p-3 bg-red-500/10 rounded-lg border border-red-500/20">{error}</div>}
 
-      {!loading && results.length === 0 && query && (
-        <div className="text-gray-300">No matches found</div>
+      {!loading && results.length === 0 && (caseNumber || firstName || lastName || defendantFirstName || defendantLastName) && (
+        <div className="text-gray-300 p-4 bg-white/5 rounded-lg border border-white/10">No matches found</div>
       )}
 
       <div className="space-y-3">
