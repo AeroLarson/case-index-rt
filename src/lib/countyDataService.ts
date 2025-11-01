@@ -207,9 +207,10 @@ class CountyDataService {
     try {
       console.log('🔍 Getting REAL data from whitelisted San Diego County systems...');
       
-      // Try ROASearch first (whitelisted)
+      // Try ROASearch first (whitelisted) - PRIORITY since user specifically requested this
       try {
         await this.respectRateLimit('roasearch');
+        console.log('🎯 PRIORITY: Searching ROASearch for:', searchQuery);
         const roaResults = await this.searchROACases(searchQuery, searchType);
         if (roaResults && roaResults.length > 0) {
           console.log('✅ Got REAL data from ROASearch!');
@@ -667,13 +668,119 @@ class CountyDataService {
   }
 
   /**
+   * Search ROASearch using Puppeteer to submit the form
+   */
+  private async searchROAWithPuppeteer(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
+    try {
+      console.log('🤖 Using Puppeteer to search ROASearch...');
+      
+      const puppeteer = await import('puppeteer-core').catch(() => null);
+      const chromium = await import('@sparticuz/chromium').catch(() => null);
+      
+      if (!puppeteer || !chromium) {
+        console.log('⚠️ Puppeteer/Chromium not available');
+        return [];
+      }
+      
+      chromium.setGraphicsMode(false);
+      
+      const browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+      
+      try {
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36');
+        
+        // Navigate to ROASearch Party Search page
+        const roaSearchUrl = `${this.roaBaseUrl}/Parties`;
+        console.log('📡 Navigating to ROASearch:', roaSearchUrl);
+        await page.goto(roaSearchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+        await page.waitForTimeout(2000);
+        
+        // Parse name into first and last
+        const nameParts = searchQuery.trim().split(/\s+/);
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || (nameParts[0] || '');
+        
+        console.log('🔍 Filling ROASearch form with:', { firstName, lastName, fullQuery: searchQuery });
+        
+        // Wait for form fields to be available
+        await page.waitForSelector('textbox', { timeout: 10000 }).catch(() => {});
+        
+        // Find and fill First Name field (first textbox in Party Name section)
+        const firstNameInput = await page.$$('textbox').then(inputs => inputs[0]).catch(() => null);
+        if (firstNameInput) {
+          await firstNameInput.click({ clickCount: 3 });
+          await firstNameInput.type(firstName, { delay: 50 });
+          console.log('✅ Filled first name:', firstName);
+        }
+        
+        // Fill Last Name field (third textbox in Party Name section - after Middle)
+        const textboxes = await page.$$('textbox').catch(() => []);
+        if (textboxes.length >= 3) {
+          const lastNameInput = textboxes[2]; // Third textbox is Last Name
+          await lastNameInput.click({ clickCount: 3 });
+          await lastNameInput.type(lastName, { delay: 50 });
+          console.log('✅ Filled last name:', lastName);
+        }
+        
+        await page.waitForTimeout(500);
+        
+        // Find and click Search button
+        const searchBtn = await page.$('button:has-text("Search"), button[type="button"]').catch(() => null);
+        if (searchBtn) {
+          console.log('✅ Found Search button, clicking...');
+          await Promise.all([
+            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+            searchBtn.click()
+          ]);
+          await page.waitForTimeout(4000); // Wait for results to load
+        }
+        
+        // Get the rendered HTML after search
+        const html = await page.content();
+        console.log('✅ Got rendered HTML from ROASearch, length:', html.length);
+        
+        // Parse the results
+        const results = this.parseCaseSearchHTML(html, searchQuery);
+        
+        await browser.close();
+        
+        return results;
+      } catch (error) {
+        await browser.close();
+        throw error;
+      }
+    } catch (error: any) {
+      console.log('⚠️ ROASearch Puppeteer search failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
    * Search using ROASearch system (15 requests/minute limit)
    */
   private async searchROACases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
     try {
       console.log('🔍 Searching ROASearch for:', searchQuery);
       
-      // Try multiple ROASearch endpoints
+      // First, try Puppeteer form submission (primary method for ROASearch)
+      try {
+        console.log('🤖 Trying ROASearch with Puppeteer form submission...');
+        const puppeteerResults = await this.searchROAWithPuppeteer(searchQuery, searchType);
+        if (puppeteerResults && puppeteerResults.length > 0) {
+          console.log('✅ Got REAL data from ROASearch via Puppeteer!');
+          return puppeteerResults;
+        }
+      } catch (puppeteerError: any) {
+        console.log('⚠️ ROASearch Puppeteer failed, trying direct endpoints:', puppeteerError.message);
+      }
+      
+      // Fallback: Try direct endpoints (though these usually return forms)
       const roaEndpoints = [
         `${this.roaBaseUrl}/Parties?search=${encodeURIComponent(searchQuery)}`,
         `${this.roaBaseUrl}/search?search=${encodeURIComponent(searchQuery)}`,
