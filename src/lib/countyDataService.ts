@@ -293,20 +293,49 @@ class CountyDataService {
         });
 
         if (searchResponse.ok) {
-          const searchHtml = await searchResponse.text();
-          console.log('✅ GET response received, HTML length:', searchHtml.length);
+          const contentType = searchResponse.headers.get('content-type') || '';
+          let responseText = await searchResponse.text();
+          console.log('✅ GET response received, Content-Type:', contentType);
+          console.log('✅ Response length:', responseText.length);
           
-          // Parse the HTML
-          const realData = this.parseCaseSearchHTML(searchHtml, searchQuery);
+          // Check if response is JSON
+          if (contentType.includes('application/json') || responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
+            console.log('📄 Response appears to be JSON, attempting to parse...');
+            try {
+              const jsonData = JSON.parse(responseText);
+              console.log('✅ Parsed JSON:', JSON.stringify(jsonData).substring(0, 500));
+              
+              // Try to extract case data from JSON structure
+              if (jsonData.cases && Array.isArray(jsonData.cases)) {
+                return jsonData.cases.map((c: any) => this.convertJsonToCaseData(c, searchQuery));
+              } else if (Array.isArray(jsonData)) {
+                return jsonData.map((c: any) => this.convertJsonToCaseData(c, searchQuery));
+              } else if (jsonData.caseNumber || jsonData.case) {
+                return [this.convertJsonToCaseData(jsonData, searchQuery)];
+              }
+            } catch (jsonError: any) {
+              console.log('⚠️ Failed to parse as JSON:', jsonError.message);
+            }
+          }
+          
+          // Parse as HTML
+          const realData = this.parseCaseSearchHTML(responseText, searchQuery);
           if (realData.length > 0) {
             console.log('✅ Successfully parsed real data from GET request!');
             return realData;
           }
           
-          // If no data but response looks good, save HTML for debugging
-          if (searchHtml.length > 50000 && !searchHtml.includes('Access Denied')) {
-            console.log('⚠️ GET returned HTML but no parseable case data. HTML preview:', searchHtml.substring(0, 1000));
+          // Log response for debugging if it looks like actual content
+          if (responseText.length > 1000 && !responseText.includes('Access Denied') && !responseText.includes('403')) {
+            console.log('⚠️ GET returned content but no parseable case data.');
+            console.log('📄 Response preview (first 2000 chars):', responseText.substring(0, 2000));
+          } else if (responseText.includes('403') || responseText.includes('Forbidden')) {
+            console.log('⚠️ GET request returned 403 Forbidden - may need IP whitelisting verification');
           }
+        } else {
+          console.log('⚠️ GET request returned status:', searchResponse.status, searchResponse.statusText);
+          const errorText = await searchResponse.text().catch(() => '');
+          console.log('📄 Error response:', errorText.substring(0, 500));
         }
       } catch (getError: any) {
         console.log('⚠️ GET request failed:', getError.message);
@@ -353,15 +382,45 @@ class CountyDataService {
         });
 
         if (postResponse.ok) {
-          const searchHtml = await postResponse.text();
-          console.log('✅ POST response received, HTML length:', searchHtml.length);
+          const contentType = postResponse.headers.get('content-type') || '';
+          let responseText = await postResponse.text();
+          console.log('✅ POST response received, Content-Type:', contentType);
+          console.log('✅ Response length:', responseText.length);
           
-          // Parse the HTML
-          const realData = this.parseCaseSearchHTML(searchHtml, searchQuery);
+          // Check if response is JSON
+          if (contentType.includes('application/json') || responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
+            console.log('📄 POST response appears to be JSON, attempting to parse...');
+            try {
+              const jsonData = JSON.parse(responseText);
+              console.log('✅ Parsed JSON:', JSON.stringify(jsonData).substring(0, 500));
+              
+              // Try to extract case data from JSON structure
+              if (jsonData.cases && Array.isArray(jsonData.cases)) {
+                return jsonData.cases.map((c: any) => this.convertJsonToCaseData(c, searchQuery));
+              } else if (Array.isArray(jsonData)) {
+                return jsonData.map((c: any) => this.convertJsonToCaseData(c, searchQuery));
+              } else if (jsonData.caseNumber || jsonData.case) {
+                return [this.convertJsonToCaseData(jsonData, searchQuery)];
+              }
+            } catch (jsonError: any) {
+              console.log('⚠️ Failed to parse POST response as JSON:', jsonError.message);
+            }
+          }
+          
+          // Parse as HTML
+          const realData = this.parseCaseSearchHTML(responseText, searchQuery);
           if (realData.length > 0) {
             console.log('✅ Successfully parsed real data from POST request!');
             return realData;
           }
+          
+          // Log response for debugging
+          if (responseText.length > 1000 && !responseText.includes('Access Denied') && !responseText.includes('403')) {
+            console.log('⚠️ POST returned content but no parseable case data.');
+            console.log('📄 Response preview (first 2000 chars):', responseText.substring(0, 2000));
+          }
+        } else {
+          console.log('⚠️ POST request returned status:', postResponse.status, postResponse.statusText);
         }
       } catch (postError: any) {
         console.log('⚠️ POST request failed:', postError.message);
@@ -1111,6 +1170,28 @@ class CountyDataService {
     }
     
     return [...new Set(parties)]; // Remove duplicates
+  }
+
+  /**
+   * Convert JSON case data to our format
+   */
+  private convertJsonToCaseData(json: any, searchQuery: string): CountyCaseData {
+    return {
+      caseNumber: json.caseNumber || json.case_number || json.case || `JSON-${Date.now()}`,
+      caseTitle: json.caseTitle || json.case_title || json.title || json.name || `Case involving ${searchQuery}`,
+      caseType: json.caseType || json.case_type || json.type || this.determineCaseType(json.caseNumber || ''),
+      status: json.status || json.case_status || json.caseStatus || 'Active',
+      dateFiled: json.dateFiled || json.date_filed || json.filedDate || new Date().toISOString().split('T')[0],
+      lastActivity: json.lastActivity || json.last_activity || json.updatedAt || new Date().toISOString().split('T')[0],
+      department: json.department || json.dept || json.courtLocation || 'San Diego Superior Court',
+      judge: json.judge || json.judicialOfficer || json.judicial_officer || 'Unknown',
+      parties: json.parties ? (Array.isArray(json.parties) ? json.parties : [json.parties]) : 
+               json.petitioner && json.respondent ? [json.petitioner, json.respondent] :
+               json.plaintiff && json.defendant ? [json.plaintiff, json.defendant] :
+               [searchQuery],
+      upcomingEvents: json.upcomingEvents || json.upcoming_events || json.events || [],
+      registerOfActions: json.registerOfActions || json.register_of_actions || json.actions || []
+    };
   }
 
   /**
