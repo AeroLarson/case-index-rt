@@ -365,7 +365,14 @@ class CountyDataService {
         return [];
       }
       
-      chromium.setGraphicsMode(false);
+      // Configure Chromium for serverless (setGraphicsMode may not exist in all versions)
+      try {
+        if (typeof chromium.setGraphicsMode === 'function') {
+          chromium.setGraphicsMode(false);
+        }
+      } catch (e) {
+        // Ignore if setGraphicsMode doesn't exist
+      }
       
       const browser = await puppeteer.launch({
         args: chromium.args,
@@ -682,7 +689,14 @@ class CountyDataService {
         return [];
       }
       
-      chromium.setGraphicsMode(false);
+      // Configure Chromium for serverless (setGraphicsMode may not exist in all versions)
+      try {
+        if (typeof chromium.setGraphicsMode === 'function') {
+          chromium.setGraphicsMode(false);
+        }
+      } catch (e) {
+        // Ignore if setGraphicsMode doesn't exist
+      }
       
       const browser = await puppeteer.launch({
         args: chromium.args,
