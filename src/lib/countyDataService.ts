@@ -681,11 +681,11 @@ class CountyDataService {
   }
 
   /**
-   * Search ROASearch using Puppeteer to submit the form
+   * Search ROASearch using Puppeteer to submit the form - handles both case number and party name searches
    */
   private async searchROAWithPuppeteer(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
     try {
-      console.log('🤖 Using Puppeteer to search ROASearch...');
+      console.log('🤖 Using Puppeteer to search ROASearch for:', searchQuery, 'type:', searchType);
       
       const puppeteer = await import('puppeteer-core').catch(() => null);
       const chromium = await import('@sparticuz/chromium').catch(() => null);
@@ -715,63 +715,100 @@ class CountyDataService {
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36');
         
-        // Navigate to ROASearch Party Search page
-        const roaSearchUrl = `${this.roaBaseUrl}/Parties`;
+        // Determine which search page to use based on search type
+        let roaSearchUrl: string;
+        if (searchType === 'caseNumber') {
+          roaSearchUrl = `${this.roaBaseUrl}/Cases`; // Case number search page
+        } else {
+          roaSearchUrl = `${this.roaBaseUrl}/Parties`; // Party name search page
+        }
+        
         console.log('📡 Navigating to ROASearch:', roaSearchUrl);
         await page.goto(roaSearchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
         await page.waitForTimeout(2000);
         
-        // Parse name into first and last
-        const nameParts = searchQuery.trim().split(/\s+/);
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || (nameParts[0] || '');
-        
-        console.log('🔍 Filling ROASearch form with:', { firstName, lastName, fullQuery: searchQuery });
-        
-        // Wait for form fields to be available - try multiple selectors
-        await page.waitForSelector('input[type="text"], textbox, input[name*="First"], input[name*="Last"]', { timeout: 15000 }).catch(() => {});
+        // Wait for form fields to be available
+        await page.waitForSelector('input[type="text"], textbox, input[name*="Case"], input[name*="First"], input[name*="Last"]', { timeout: 15000 }).catch(() => {});
         await page.waitForTimeout(1000);
         
-        // Try to find inputs by looking for textboxes or input fields
-        // ROASearch uses textbox role for accessibility, but we can also find by input type
-        let firstNameInput = null;
-        let lastNameInput = null;
-        
-        // Method 1: Try finding by textbox role (accessibility)
-        const textboxes = await page.$$('textbox').catch(() => []);
-        if (textboxes.length >= 3) {
-          firstNameInput = textboxes[0]; // First textbox is First Name
-          lastNameInput = textboxes[2];  // Third textbox is Last Name (after Middle)
-        }
-        
-        // Method 2: Try finding by input type if textboxes didn't work
-        if (!firstNameInput || !lastNameInput) {
-          const allInputs = await page.$$('input[type="text"]').catch(() => []);
-          if (allInputs.length >= 3) {
-            firstNameInput = allInputs[0];
-            lastNameInput = allInputs[2];
+        if (searchType === 'caseNumber') {
+          // CASE NUMBER SEARCH
+          console.log('🔍 Searching by case number:', searchQuery);
+          
+          // Find case number input - try multiple selectors
+          let caseInput = await page.$('input[name*="case" i], input[id*="case" i], textbox').catch(() => null);
+          if (!caseInput) {
+            const textboxes = await page.$$('textbox').catch(() => []);
+            if (textboxes.length > 0) {
+              caseInput = textboxes[0]; // First textbox for case number search
+            }
           }
-        }
-        
-        // Fill First Name
-        if (firstNameInput) {
-          try {
-            await firstNameInput.click({ clickCount: 3 });
-            await firstNameInput.type(firstName, { delay: 50 });
-            console.log('✅ Filled first name:', firstName);
-          } catch (e) {
-            console.log('⚠️ Error filling first name:', e);
+          if (!caseInput) {
+            const inputs = await page.$$('input[type="text"]').catch(() => []);
+            if (inputs.length > 0) {
+              caseInput = inputs[0];
+            }
           }
-        }
-        
-        // Fill Last Name
-        if (lastNameInput) {
-          try {
-            await lastNameInput.click({ clickCount: 3 });
-            await lastNameInput.type(lastName, { delay: 50 });
-            console.log('✅ Filled last name:', lastName);
-          } catch (e) {
-            console.log('⚠️ Error filling last name:', e);
+          
+          if (caseInput) {
+            try {
+              await caseInput.click({ clickCount: 3 });
+              await caseInput.type(searchQuery, { delay: 50 });
+              console.log('✅ Filled case number:', searchQuery);
+            } catch (e) {
+              console.log('⚠️ Error filling case number:', e);
+            }
+          } else {
+            console.log('⚠️ Could not find case number input');
+          }
+        } else {
+          // PARTY NAME SEARCH (Plaintiff/Petitioner or Defendant)
+          const nameParts = searchQuery.trim().split(/\s+/);
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || (nameParts[0] || '');
+          
+          console.log('🔍 Filling ROASearch form with:', { firstName, lastName, fullQuery: searchQuery });
+          
+          // Try to find inputs by looking for textboxes or input fields
+          let firstNameInput = null;
+          let lastNameInput = null;
+          
+          // Method 1: Try finding by textbox role (accessibility)
+          const textboxes = await page.$$('textbox').catch(() => []);
+          if (textboxes.length >= 3) {
+            firstNameInput = textboxes[0]; // First textbox is First Name
+            lastNameInput = textboxes[2];  // Third textbox is Last Name (after Middle)
+          }
+          
+          // Method 2: Try finding by input type if textboxes didn't work
+          if (!firstNameInput || !lastNameInput) {
+            const allInputs = await page.$$('input[type="text"]').catch(() => []);
+            if (allInputs.length >= 3) {
+              firstNameInput = allInputs[0];
+              lastNameInput = allInputs[2];
+            }
+          }
+          
+          // Fill First Name
+          if (firstNameInput) {
+            try {
+              await firstNameInput.click({ clickCount: 3 });
+              await firstNameInput.type(firstName, { delay: 50 });
+              console.log('✅ Filled first name:', firstName);
+            } catch (e) {
+              console.log('⚠️ Error filling first name:', e);
+            }
+          }
+          
+          // Fill Last Name
+          if (lastNameInput) {
+            try {
+              await lastNameInput.click({ clickCount: 3 });
+              await lastNameInput.type(lastName, { delay: 50 });
+              console.log('✅ Filled last name:', lastName);
+            } catch (e) {
+              console.log('⚠️ Error filling last name:', e);
+            }
           }
         }
         
@@ -806,6 +843,14 @@ class CountyDataService {
         // Get the rendered HTML after search
         const html = await page.content();
         console.log('✅ Got rendered HTML from ROASearch, length:', html.length);
+        console.log('✅ URL after search:', page.url());
+        
+        // Check if we got results or are still on the form page
+        if (html.includes('Case Number') && html.includes('Case Title') && html.length > 10000) {
+          console.log('✅ Detected results table page');
+        } else if (html.length < 10000 && html.includes('search')) {
+          console.log('⚠️ Still on search form page, might not have navigated');
+        }
         
         // Parse the results
         const results = this.parseCaseSearchHTML(html, searchQuery);
