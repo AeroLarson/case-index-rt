@@ -2,9 +2,10 @@
  * San Diego County Court Data Service
  * Handles real-time data mining from San Diego Superior Court
  * Compliant with rate limiting: 450 requests per 10 seconds
+ * Updated: Uses Puppeteer for JavaScript-rendered content
  */
 
-// Real scraping via approved county endpoints only; no headless browser here
+// Real scraping via approved county endpoints with Puppeteer fallback for JS-rendered pages
 
 interface CountyCaseData {
   caseNumber: string;
