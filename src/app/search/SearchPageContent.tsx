@@ -313,8 +313,6 @@ export default function SearchPageContent() {
         </div>
       </form>
 
-      {error && <div className="text-red-400 text-sm mb-3 p-3 bg-red-500/10 rounded-lg border border-red-500/20">{error}</div>}
-
         {error && (
           <div className="apple-card p-4 mb-6 bg-red-500/10 border-red-500/20">
             <div className="flex items-center gap-3">
