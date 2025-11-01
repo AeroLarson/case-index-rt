@@ -288,8 +288,14 @@ class CountyDataService {
         return [];
       }
       
-      // Configure Chromium for Vercel serverless
-      chromium.setGraphicsMode(false);
+      // Configure Chromium for Vercel serverless - setGraphicsMode is optional
+      if (chromium && typeof (chromium as any).setGraphicsMode === 'function') {
+        try {
+          (chromium as any).setGraphicsMode(false);
+        } catch (e) {
+          // Ignore if setGraphicsMode fails
+        }
+      }
       
       const browser = await puppeteer.launch({
         args: chromium.args,
@@ -365,13 +371,13 @@ class CountyDataService {
         return [];
       }
       
-      // Configure Chromium for serverless (setGraphicsMode may not exist in all versions)
-      try {
-        if (typeof chromium.setGraphicsMode === 'function') {
-          chromium.setGraphicsMode(false);
+      // Configure Chromium for serverless - setGraphicsMode is optional
+      if (chromium && typeof (chromium as any).setGraphicsMode === 'function') {
+        try {
+          (chromium as any).setGraphicsMode(false);
+        } catch (e) {
+          // Ignore if setGraphicsMode fails
         }
-      } catch (e) {
-        // Ignore if setGraphicsMode doesn't exist
       }
       
       const browser = await puppeteer.launch({
@@ -689,13 +695,13 @@ class CountyDataService {
         return [];
       }
       
-      // Configure Chromium for serverless (setGraphicsMode may not exist in all versions)
-      try {
-        if (typeof chromium.setGraphicsMode === 'function') {
-          chromium.setGraphicsMode(false);
+      // Configure Chromium for serverless - setGraphicsMode is optional
+      if (chromium && typeof (chromium as any).setGraphicsMode === 'function') {
+        try {
+          (chromium as any).setGraphicsMode(false);
+        } catch (e) {
+          // Ignore if setGraphicsMode fails
         }
-      } catch (e) {
-        // Ignore if setGraphicsMode doesn't exist
       }
       
       const browser = await puppeteer.launch({
@@ -722,37 +728,79 @@ class CountyDataService {
         
         console.log('🔍 Filling ROASearch form with:', { firstName, lastName, fullQuery: searchQuery });
         
-        // Wait for form fields to be available
-        await page.waitForSelector('textbox', { timeout: 10000 }).catch(() => {});
+        // Wait for form fields to be available - try multiple selectors
+        await page.waitForSelector('input[type="text"], textbox, input[name*="First"], input[name*="Last"]', { timeout: 15000 }).catch(() => {});
+        await page.waitForTimeout(1000);
         
-        // Find and fill First Name field (first textbox in Party Name section)
-        const firstNameInput = await page.$$('textbox').then(inputs => inputs[0]).catch(() => null);
-        if (firstNameInput) {
-          await firstNameInput.click({ clickCount: 3 });
-          await firstNameInput.type(firstName, { delay: 50 });
-          console.log('✅ Filled first name:', firstName);
-        }
+        // Try to find inputs by looking for textboxes or input fields
+        // ROASearch uses textbox role for accessibility, but we can also find by input type
+        let firstNameInput = null;
+        let lastNameInput = null;
         
-        // Fill Last Name field (third textbox in Party Name section - after Middle)
+        // Method 1: Try finding by textbox role (accessibility)
         const textboxes = await page.$$('textbox').catch(() => []);
         if (textboxes.length >= 3) {
-          const lastNameInput = textboxes[2]; // Third textbox is Last Name
-          await lastNameInput.click({ clickCount: 3 });
-          await lastNameInput.type(lastName, { delay: 50 });
-          console.log('✅ Filled last name:', lastName);
+          firstNameInput = textboxes[0]; // First textbox is First Name
+          lastNameInput = textboxes[2];  // Third textbox is Last Name (after Middle)
+        }
+        
+        // Method 2: Try finding by input type if textboxes didn't work
+        if (!firstNameInput || !lastNameInput) {
+          const allInputs = await page.$$('input[type="text"]').catch(() => []);
+          if (allInputs.length >= 3) {
+            firstNameInput = allInputs[0];
+            lastNameInput = allInputs[2];
+          }
+        }
+        
+        // Fill First Name
+        if (firstNameInput) {
+          try {
+            await firstNameInput.click({ clickCount: 3 });
+            await firstNameInput.type(firstName, { delay: 50 });
+            console.log('✅ Filled first name:', firstName);
+          } catch (e) {
+            console.log('⚠️ Error filling first name:', e);
+          }
+        }
+        
+        // Fill Last Name
+        if (lastNameInput) {
+          try {
+            await lastNameInput.click({ clickCount: 3 });
+            await lastNameInput.type(lastName, { delay: 50 });
+            console.log('✅ Filled last name:', lastName);
+          } catch (e) {
+            console.log('⚠️ Error filling last name:', e);
+          }
         }
         
         await page.waitForTimeout(500);
         
-        // Find and click Search button
-        const searchBtn = await page.$('button:has-text("Search"), button[type="button"]').catch(() => null);
+        // Find and click Search button - try multiple selectors
+        let searchBtn = await page.$('button:has-text("Search")').catch(() => null);
+        if (!searchBtn) {
+          searchBtn = await page.$('button[type="button"]').catch(() => null);
+        }
+        if (!searchBtn) {
+          searchBtn = await page.$('button').catch(() => null);
+        }
+        
         if (searchBtn) {
           console.log('✅ Found Search button, clicking...');
-          await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
-            searchBtn.click()
-          ]);
-          await page.waitForTimeout(4000); // Wait for results to load
+          try {
+            await Promise.all([
+              page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+              searchBtn.click()
+            ]);
+            await page.waitForTimeout(5000); // Wait longer for results table to load
+            console.log('✅ Search submitted, waiting for results...');
+          } catch (navError) {
+            console.log('⚠️ Navigation error (might still have results):', navError);
+            await page.waitForTimeout(5000);
+          }
+        } else {
+          console.log('⚠️ Could not find Search button');
         }
         
         // Get the rendered HTML after search
