@@ -49,7 +49,7 @@ const nextConfig = {
     ]
   },
   // External packages for server components
-  serverExternalPackages: [],
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
   // Experimental optimizations
   experimental: {
     optimizeCss: true,

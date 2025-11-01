@@ -12,6 +12,7 @@
     "generate-secret": "node scripts/generate-secret.js"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^141.0.0",
     "@stripe/stripe-js": "^8.0.0",
     "@types/bcrypt": "^6.0.0",
     "@types/jsdom": "^27.0.0",
@@ -30,6 +31,7 @@
     "nodemailer": "^6.10.1",
     "openai": "^6.3.0",
     "puppeteer": "^24.26.1",
+    "puppeteer-core": "^24.27.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^18",

@@ -231,13 +231,21 @@ class CountyDataService {
         console.log('ODYROA failed:', error.message);
       }
       
-      // Try CourtIndex (whitelisted)
+      // Try CourtIndex (whitelisted) - use Puppeteer for form submission
       try {
         await this.respectRateLimit('courtindex');
-        const courtIndexResults = await this.searchCourtIndexCases(searchQuery, searchType);
+        console.log('🤖 Trying CourtIndex with Puppeteer form submission...');
+        const courtIndexResults = await this.searchCourtIndexWithPuppeteer(searchQuery, searchType);
         if (courtIndexResults && courtIndexResults.length > 0) {
-          console.log('✅ Got REAL data from CourtIndex!');
+          console.log('✅ Got REAL data from CourtIndex via Puppeteer!');
           return courtIndexResults;
+        }
+        
+        // Fallback to direct endpoint attempts
+        const courtIndexDirectResults = await this.searchCourtIndexCases(searchQuery, searchType);
+        if (courtIndexDirectResults && courtIndexDirectResults.length > 0) {
+          console.log('✅ Got REAL data from CourtIndex!');
+          return courtIndexDirectResults;
         }
       } catch (error) {
         console.log('CourtIndex failed:', error.message);
@@ -264,28 +272,29 @@ class CountyDataService {
   }
 
   /**
-   * Search using Puppeteer to handle JavaScript-rendered content
+   * Search using Puppeteer to handle JavaScript-rendered content (Vercel-compatible)
    */
   private async searchWithPuppeteer(searchQuery: string, searchType: string, searchUrl: string): Promise<CountyCaseData[]> {
     try {
       console.log('🤖 Using Puppeteer to search:', searchUrl);
       
-      // Dynamically import puppeteer only when needed
-      const puppeteer = await import('puppeteer').catch(() => null);
-      if (!puppeteer) {
-        console.log('⚠️ Puppeteer not available, skipping browser-based search');
+      // Use serverless-compatible Puppeteer for Vercel
+      const puppeteer = await import('puppeteer-core').catch(() => null);
+      const chromium = await import('@sparticuz/chromium').catch(() => null);
+      
+      if (!puppeteer || !chromium) {
+        console.log('⚠️ Puppeteer/Chromium not available, skipping browser-based search');
         return [];
       }
       
+      // Configure Chromium for Vercel serverless
+      chromium.setGraphicsMode(false);
+      
       const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu'
-        ]
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
       });
       
       try {
@@ -336,6 +345,123 @@ class CountyDataService {
       }
     } catch (error: any) {
       console.log('⚠️ Puppeteer search failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Search CourtIndex using the actual search pages
+   */
+  private async searchCourtIndexWithPuppeteer(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
+    try {
+      console.log('🤖 Using Puppeteer to search CourtIndex...');
+      
+      const puppeteer = await import('puppeteer-core').catch(() => null);
+      const chromium = await import('@sparticuz/chromium').catch(() => null);
+      
+      if (!puppeteer || !chromium) {
+        console.log('⚠️ Puppeteer/Chromium not available');
+        return [];
+      }
+      
+      chromium.setGraphicsMode(false);
+      
+      const browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+      
+      try {
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36');
+        
+        // Navigate to the actual search page based on search type
+        let searchPageUrl: string;
+        if (searchType === 'caseNumber') {
+          searchPageUrl = `${this.courtIndexBaseUrl}/CISPublic/casesearch`;
+        } else {
+          searchPageUrl = `${this.courtIndexBaseUrl}/CISPublic/namesearch`;
+        }
+        
+        console.log('📡 Navigating to:', searchPageUrl);
+        await page.goto(searchPageUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+        await page.waitForTimeout(2000);
+        
+        // Find and fill the search form
+        if (searchType === 'caseNumber') {
+          // Look for case number input
+          const caseInput = await page.$('input[name*="case" i], input[id*="case" i]').catch(() => null);
+          if (caseInput) {
+            await caseInput.type(searchQuery, { delay: 50 });
+            await page.waitForTimeout(500);
+            
+            // Find and click submit button
+            const submitBtn = await page.$('input[type="submit"], button[type="submit"], input[value*="Search" i]').catch(() => null);
+            if (submitBtn) {
+              await Promise.all([
+                page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+                submitBtn.click()
+              ]);
+              await page.waitForTimeout(3000);
+            }
+          }
+        } else {
+          // For name search, try to split into first/last name
+          const nameParts = searchQuery.trim().split(/\s+/);
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || firstName;
+          
+          // Try first name field
+          const firstNameInput = await page.$('input[name*="first" i], input[name*="First" i], input[id*="first" i]').catch(() => null);
+          if (firstNameInput) {
+            await firstNameInput.type(firstName, { delay: 50 });
+          }
+          
+          // Try last name field
+          const lastNameInput = await page.$('input[name*="last" i], input[name*="Last" i], input[id*="last" i]').catch(() => null);
+          if (lastNameInput) {
+            await lastNameInput.type(lastName, { delay: 50 });
+          }
+          
+          // If no separate fields, try a single name field
+          if (!firstNameInput && !lastNameInput) {
+            const nameInput = await page.$('input[name*="name" i], input[id*="name" i], input[type="text"]').catch(() => null);
+            if (nameInput) {
+              await nameInput.type(searchQuery, { delay: 50 });
+            }
+          }
+          
+          await page.waitForTimeout(500);
+          
+          // Find and click submit
+          const submitBtn = await page.$('input[type="submit"], button[type="submit"], input[value*="Search" i]').catch(() => null);
+          if (submitBtn) {
+            await Promise.all([
+              page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+              submitBtn.click()
+            ]);
+            await page.waitForTimeout(3000);
+          }
+        }
+        
+        // Get the rendered HTML after search
+        const html = await page.content();
+        console.log('✅ Got rendered HTML from CourtIndex, length:', html.length);
+        
+        // Parse the results
+        const results = this.parseCaseSearchHTML(html, searchQuery);
+        
+        await browser.close();
+        
+        return results;
+      } catch (error) {
+        await browser.close();
+        throw error;
+      }
+    } catch (error: any) {
+      console.log('⚠️ CourtIndex Puppeteer search failed:', error.message);
       return [];
     }
   }
