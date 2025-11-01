@@ -689,7 +689,7 @@ class CountyDataService {
   }
 
   /**
-   * Parse HTML response from San Diego County case search using DOM selectors
+   * Parse HTML response from San Diego County case search using regex (JSDOM-free)
    */
   private parseCaseSearchHTML(html: string, searchTerm: string): CountyCaseData[] {
     const cases: CountyCaseData[] = [];
@@ -708,10 +708,18 @@ class CountyDataService {
         return [];
       }
       
-      // Use JSDOM to parse HTML properly
-      const { JSDOM } = require('jsdom');
-      const dom = new JSDOM(html);
-      const document = dom.window.document;
+      // Parse HTML using regex instead of JSDOM to avoid ES module issues
+      // Extract text content from HTML by removing tags
+      const stripTags = (html: string): string => {
+        return html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
+      
+      const textContent = stripTags(html);
       
       // Look for case numbers in the HTML with multiple patterns (including more formats)
       const caseNumberPatterns = [
@@ -746,101 +754,167 @@ class CountyDataService {
       }
       
       // Remove duplicates and normalize
-      const uniqueCaseNumbers = [...new Set(allCaseNumbers.map(cn => cn.replace(/-/g, '').replace(/(\d{2})([A-Z]{2})(\d+)([A-Z]?)/, '$1$2$3$4')))];
+      const uniqueCaseNumbers = [...new Set(allCaseNumbers.map(cn => {
+        // Normalize case numbers: FL-2024-123456 -> 24FL123456
+        const normalized = cn.replace(/-/g, '');
+        if (/^[A-Z]{2}\d{8,10}$/.test(normalized)) {
+          // Format: FL2024123456 -> 24FL123456
+          const match = normalized.match(/^([A-Z]{2})(\d{2})(\d{6,8})$/);
+          if (match) {
+            return match[2] + match[1] + match[3];
+          }
+        }
+        return normalized;
+      }))];
       console.log('✅ Found case numbers:', uniqueCaseNumbers);
       
-      // For each case number found, extract detailed information using DOM selectors
-      for (const caseNumber of uniqueCaseNumbers) {
-        const caseData = this.extractCaseDataFromDOM(document, caseNumber, searchTerm);
-        if (caseData) {
-          cases.push(caseData);
+      // Extract table data using regex (no JSDOM needed)
+      const tableRows: string[][] = [];
+      const tableMatches = html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
+      for (const rowMatch of tableMatches) {
+        const rowHtml = rowMatch[1];
+        const cellMatches = rowHtml.matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi);
+        const cells: string[] = [];
+        for (const cellMatch of cellMatches) {
+          const cellText = stripTags(cellMatch[1]).trim();
+          if (cellText && cellText.length > 0 && cellText.length < 500) {
+            cells.push(cellText);
+          }
+        }
+        if (cells.length > 0) {
+          tableRows.push(cells);
         }
       }
       
-      // If no case numbers found, try to extract any case information from tables or structured data
-      if (cases.length === 0) {
-        console.log('🔍 No case numbers found via regex, trying DOM-based extraction...');
-        
-        // Try to find case information in tables
-        const tables = document.querySelectorAll('table');
-        for (const table of Array.from(tables)) {
-          const rows = table.querySelectorAll('tr');
-          for (const row of Array.from(rows)) {
-            const cells = Array.from(row.querySelectorAll('td, th')).map(cell => cell.textContent?.trim() || '');
-            const rowText = cells.join(' | ');
+      console.log(`📊 Found ${tableRows.length} table rows`);
+      
+      // For each case number found, extract detailed information
+      for (const caseNumber of uniqueCaseNumbers) {
+        // Look for this case number in table rows
+        let foundInRow = false;
+        for (const row of tableRows) {
+          const rowText = row.join(' | ');
+          if (rowText.includes(caseNumber) || rowText.replace(/[-\s]/g, '').includes(caseNumber.replace(/[-\s]/g, ''))) {
+            foundInRow = true;
+            console.log('✅ Found case number in table row:', rowText.substring(0, 200));
             
-            // Look for case number patterns in table cells
-            const rowCaseNumbers = rowText.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/gi);
-            if (rowCaseNumbers && rowCaseNumbers.length > 0) {
-              for (const cn of rowCaseNumbers) {
-                const caseData = this.extractCaseDataFromDOM(document, cn.toUpperCase(), searchTerm);
-                if (caseData && !cases.find(c => c.caseNumber === caseData.caseNumber)) {
-                  // Try to extract parties from the same row
-                  if (cells.length > 2) {
-                    const potentialParties = cells.filter(c => c.length > 2 && c.length < 100 && !c.match(/^\d/));
-                    if (potentialParties.length >= 2) {
-                      caseData.parties = potentialParties.slice(0, 2);
-                      caseData.caseTitle = `${potentialParties[0]} v. ${potentialParties[1]}`;
-                    }
-                  }
-                  cases.push(caseData);
-                }
-              }
-            } else if (rowText.toLowerCase().includes(searchTerm.toLowerCase()) && cells.length > 3) {
-              // Found search term in a table row - might be case data
-              console.log('🔍 Found search term in table row:', rowText.substring(0, 200));
-              
-              // Try to find a case number in nearby rows
-              const nearbyRows = Array.from(table.querySelectorAll('tr'));
-              const currentIndex = nearbyRows.indexOf(row);
-              for (let i = Math.max(0, currentIndex - 2); i < Math.min(nearbyRows.length, currentIndex + 3); i++) {
-                const nearbyText = Array.from(nearbyRows[i].querySelectorAll('td, th')).map(c => c.textContent?.trim() || '').join(' ');
-                const nearbyCaseNumber = nearbyText.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
-                if (nearbyCaseNumber) {
-                  const caseData = this.extractCaseDataFromDOM(document, nearbyCaseNumber[0].toUpperCase(), searchTerm);
-                  if (caseData && !cases.find(c => c.caseNumber === caseData.caseNumber)) {
-                    const potentialParties = cells.filter(c => c.length > 2 && c.length < 100 && !c.match(/^\d/));
-                    if (potentialParties.length >= 1) {
-                      caseData.parties = potentialParties.slice(0, 2);
-                      if (potentialParties.length >= 2) {
-                        caseData.caseTitle = `${potentialParties[0]} v. ${potentialParties[1]}`;
-                      }
-                    }
-                    cases.push(caseData);
-                    break;
-                  }
-                }
-              }
-            }
+            // Extract parties from the row
+            const parties = row.filter(cell => {
+              const cleanCell = cell.trim();
+              return cleanCell.length > 2 && 
+                     cleanCell.length < 100 && 
+                     !cleanCell.match(/^\d+$/) &&
+                     !cleanCell.match(/^(Case|Status|Filed|Date|Judge|Department|Type)/i) &&
+                     !cleanCell.match(/FL-\d{4}-\d{6}/i) &&
+                     !cleanCell.match(/\d{2}FL\d{6}/i);
+            });
+            
+            // Extract other info
+            const status = row.find(c => /active|closed|pending|dismissed/i.test(c)) || 'Active';
+            const dateFiled = row.find(c => /\d{1,2}\/\d{1,2}\/\d{4}/.test(c)) || new Date().toISOString().split('T')[0];
+            const caseType = row.find(c => /family|law|criminal|civil|probate/i.test(c)) || this.determineCaseType(caseNumber);
+            
+            const caseData: CountyCaseData = {
+              caseNumber,
+              caseTitle: parties.length >= 2 ? `${parties[0]} v. ${parties[1]}` : `Case ${caseNumber} - ${searchTerm}`,
+              caseType,
+              status,
+              dateFiled: this.normalizeDate(dateFiled),
+              lastActivity: new Date().toISOString().split('T')[0],
+              department: 'San Diego Superior Court',
+              judge: row.find(c => /judge|hon\.|judicial/i.test(c)) || 'Unknown',
+              parties: parties.length >= 2 ? parties : [searchTerm],
+              upcomingEvents: [],
+              registerOfActions: []
+            };
+            
+            cases.push(caseData);
+            break;
           }
         }
         
-        // If still no cases, try searching for the search term in HTML with case-related context
-        if (cases.length === 0 && html.toLowerCase().includes(searchTerm.toLowerCase())) {
-          console.log('🔍 Search term found in HTML - attempting deep extraction...');
-          
-          // Look for the search term near case-related keywords
-          const searchTermRegex = new RegExp(`(?:case|Case|matter|Matter)[^<]{0,300}${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<]{0,300}`, 'gi');
-          const contexts = html.match(searchTermRegex);
-          
-          if (contexts && contexts.length > 0) {
-            console.log('✅ Found search term near case keywords:', contexts.length, 'matches');
+        // If not found in table, create basic case entry
+        if (!foundInRow) {
+          cases.push({
+            caseNumber,
+            caseTitle: `Case ${caseNumber} - ${searchTerm}`,
+            caseType: this.determineCaseType(caseNumber),
+            status: 'Active',
+            dateFiled: new Date().toISOString().split('T')[0],
+            lastActivity: new Date().toISOString().split('T')[0],
+            department: 'San Diego Superior Court',
+            judge: 'Unknown',
+            parties: [searchTerm],
+            upcomingEvents: [],
+            registerOfActions: []
+          });
+        }
+      }
+      
+      // If no case numbers found, try to find party names in tables
+      if (cases.length === 0) {
+        console.log('🔍 No case numbers found, searching for party names in tables...');
+        
+        const searchTermLower = searchTerm.toLowerCase();
+        for (const row of tableRows) {
+          const rowText = row.join(' ').toLowerCase();
+          if (rowText.includes(searchTermLower) && row.length >= 3) {
+            console.log('✅ Found search term in table row:', row.slice(0, 5).join(' | '));
             
-            for (const context of contexts.slice(0, 10)) {
-              // Try to extract case number from context
-              const contextCaseNumber = context.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
-              if (contextCaseNumber) {
-                const caseData = this.extractCaseDataFromDOM(document, contextCaseNumber[0].toUpperCase(), searchTerm);
-                if (caseData && !cases.find(c => c.caseNumber === caseData.caseNumber)) {
-                  // Extract party names from context
-                  const partyMatch = context.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s+(?:v\.?|vs\.?|vs)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i);
-                  if (partyMatch) {
-                    caseData.parties = [partyMatch[1].trim(), partyMatch[2].trim()];
-                    caseData.caseTitle = `${partyMatch[1].trim()} v. ${partyMatch[2].trim()}`;
-                  }
-                  cases.push(caseData);
-                }
+            // Look for case number in this row or nearby rows
+            const rowIndex = tableRows.indexOf(row);
+            let foundCaseNumber = '';
+            
+            // Check current row
+            for (const cell of row) {
+              const caseNumMatch = cell.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
+              if (caseNumMatch) {
+                foundCaseNumber = caseNumMatch[1].toUpperCase();
+                break;
               }
+            }
+            
+            // Check nearby rows if no case number in current row
+            if (!foundCaseNumber) {
+              for (let i = Math.max(0, rowIndex - 2); i < Math.min(tableRows.length, rowIndex + 3); i++) {
+                for (const cell of tableRows[i]) {
+                  const caseNumMatch = cell.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
+                  if (caseNumMatch) {
+                    foundCaseNumber = caseNumMatch[1].toUpperCase();
+                    break;
+                  }
+                }
+                if (foundCaseNumber) break;
+              }
+            }
+            
+            // Extract parties
+            const parties = row.filter(cell => {
+              const cleanCell = cell.trim();
+              return cleanCell.length > 2 && 
+                     cleanCell.length < 100 && 
+                     !cleanCell.match(/^\d+$/) &&
+                     !cleanCell.match(/^(Case|Status|Filed|Date|Judge|Department|Type)/i) &&
+                     !cleanCell.match(/FL-\d{4}-\d{6}/i);
+            });
+            
+            if (foundCaseNumber || parties.length >= 1) {
+              const caseData: CountyCaseData = {
+                caseNumber: foundCaseNumber || `FOUND-${Date.now()}`,
+                caseTitle: parties.length >= 2 ? `${parties[0]} v. ${parties[1]}` : `${parties[0] || searchTerm} Case`,
+                caseType: this.determineCaseType(foundCaseNumber),
+                status: row.find(c => /active|closed|pending/i.test(c)) || 'Active',
+                dateFiled: this.normalizeDate(row.find(c => /\d{1,2}\/\d{1,2}\/\d{4}/.test(c)) || ''),
+                lastActivity: new Date().toISOString().split('T')[0],
+                department: 'San Diego Superior Court',
+                judge: row.find(c => /judge|hon\./i.test(c)) || 'Unknown',
+                parties: parties.length >= 2 ? parties : [parties[0] || searchTerm],
+                upcomingEvents: [],
+                registerOfActions: [],
+                note: foundCaseNumber ? undefined : 'Case found but case number could not be extracted from table.'
+              };
+              
+              cases.push(caseData);
             }
           }
         }
@@ -860,7 +934,30 @@ class CountyDataService {
   }
 
   /**
-   * Extract case data using DOM selectors to target exact fields
+   * Normalize date string to YYYY-MM-DD format
+   */
+  private normalizeDate(dateStr: string): string {
+    if (!dateStr || !dateStr.trim()) {
+      return new Date().toISOString().split('T')[0];
+    }
+    
+    // Try MM/DD/YYYY format
+    const mmddyyyy = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (mmddyyyy) {
+      const [, month, day, year] = mmddyyyy;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    
+    // Try YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr;
+    }
+    
+    return new Date().toISOString().split('T')[0];
+  }
+
+  /**
+   * Extract case data using DOM selectors to target exact fields (legacy method for compatibility)
    */
   private extractCaseDataFromDOM(document: any, caseNumber: string, searchTerm: string): CountyCaseData | null {
     try {
