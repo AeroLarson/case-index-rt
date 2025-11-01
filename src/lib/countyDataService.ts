@@ -263,7 +263,84 @@ class CountyDataService {
   }
 
   /**
-   * Search using public case search system - tries both GET and POST methods
+   * Search using Puppeteer to handle JavaScript-rendered content
+   */
+  private async searchWithPuppeteer(searchQuery: string, searchType: string, searchUrl: string): Promise<CountyCaseData[]> {
+    try {
+      console.log('🤖 Using Puppeteer to search:', searchUrl);
+      
+      // Dynamically import puppeteer only when needed
+      const puppeteer = await import('puppeteer').catch(() => null);
+      if (!puppeteer) {
+        console.log('⚠️ Puppeteer not available, skipping browser-based search');
+        return [];
+      }
+      
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu'
+        ]
+      });
+      
+      try {
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36');
+        
+        // Navigate to search page
+        await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+        
+        // Wait for page to load
+        await page.waitForTimeout(2000);
+        
+        // Try to find and fill search form
+        if (searchType === 'caseNumber') {
+          const caseInput = await page.$('input[name="caseNumber"], input[id*="case"], input[placeholder*="case" i]').catch(() => null);
+          if (caseInput) {
+            await caseInput.type(searchQuery);
+            const submitBtn = await page.$('button[type="submit"], input[type="submit"]').catch(() => null);
+            if (submitBtn) {
+              await submitBtn.click();
+              await page.waitForTimeout(3000);
+            }
+          }
+        } else {
+          const nameInput = await page.$('input[name*="name" i], input[name*="party" i], input[placeholder*="name" i]').catch(() => null);
+          if (nameInput) {
+            await nameInput.type(searchQuery);
+            const submitBtn = await page.$('button[type="submit"], input[type="submit"]').catch(() => null);
+            if (submitBtn) {
+              await submitBtn.click();
+              await page.waitForTimeout(3000);
+            }
+          }
+        }
+        
+        // Get the rendered HTML
+        const html = await page.content();
+        
+        // Parse the rendered HTML
+        const results = this.parseCaseSearchHTML(html, searchQuery);
+        
+        await browser.close();
+        
+        return results;
+      } catch (error) {
+        await browser.close();
+        throw error;
+      }
+    } catch (error: any) {
+      console.log('⚠️ Puppeteer search failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Search using public case search system - tries both GET and POST methods, then Puppeteer
    */
   private async searchPublicCases(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
     try {
