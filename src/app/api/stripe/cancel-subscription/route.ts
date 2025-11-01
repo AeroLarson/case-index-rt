@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-})
+// Initialize Stripe only if secret key is available
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return null
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-12-18.acacia',
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +31,17 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`Cancelling subscription for user: ${userId}, email: ${userEmail}`)
+
+    // Get Stripe instance
+    const stripe = getStripe()
+    if (!stripe) {
+      console.error('Stripe not configured - missing secret key')
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Stripe not configured',
+        message: 'Payment system is not configured. Please contact support.'
+      }, { status: 503 })
+    }
 
     // Find the customer in Stripe
     const customers = await stripe.customers.list({
