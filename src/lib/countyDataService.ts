@@ -427,6 +427,20 @@ class CountyDataService {
       }
       
       console.log('❌ Both GET and POST methods failed to return parseable case data.');
+      
+      // As a last resort, try Puppeteer for JavaScript-rendered content
+      try {
+        console.log('🤖 Trying Puppeteer-based search as fallback...');
+        const searchBaseUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`;
+        const puppeteerResults = await this.searchWithPuppeteer(searchQuery, searchType, searchBaseUrl);
+        if (puppeteerResults.length > 0) {
+          console.log('✅ Puppeteer found results!');
+          return puppeteerResults;
+        }
+      } catch (puppeteerError: any) {
+        console.log('⚠️ Puppeteer fallback failed:', puppeteerError.message);
+      }
+      
       return [];
       
     } catch (error) {
@@ -828,7 +842,10 @@ class CountyDataService {
               registerOfActions: []
             };
             
-            cases.push(caseData);
+            // Avoid duplicates
+            if (!cases.find(c => c.caseNumber === caseData.caseNumber)) {
+              cases.push(caseData);
+            }
             break;
           }
         }
@@ -957,109 +974,24 @@ class CountyDataService {
   }
 
   /**
-   * Extract case data using DOM selectors to target exact fields (legacy method for compatibility)
+   * Extract case data using DOM selectors to target exact fields (legacy method - now uses regex parsing)
    */
   private extractCaseDataFromDOM(document: any, caseNumber: string, searchTerm: string): CountyCaseData | null {
-    try {
-      // Look for case information in tables, divs, or structured content
-      const caseInfoSelectors = [
-        'table tr td',
-        'div.case-info',
-        'div.case-details',
-        'div.search-result',
-        'div.case-result',
-        'tr td',
-        'td',
-        'div'
-      ];
-      
-      let caseTitle = '';
-      let caseType = '';
-      let status = '';
-      let dateFiled = '';
-      let department = '';
-      let judge = '';
-      let parties: string[] = [];
-      
-      // Search for case information in various DOM elements
-      for (const selector of caseInfoSelectors) {
-        const elements = document.querySelectorAll(selector);
-        
-        for (const element of elements) {
-          const text = element.textContent || '';
-          
-          // Look for case title patterns
-          if (!caseTitle && (text.includes('vs') || text.includes('v.') || text.includes('Case Title'))) {
-            caseTitle = this.extractFieldFromText(text, ['Case Title', 'Title', 'vs', 'v.']);
-          }
-          
-          // Look for case type patterns
-          if (!caseType && (text.includes('Case Type') || text.includes('Family Law') || text.includes('Criminal'))) {
-            caseType = this.extractFieldFromText(text, ['Case Type', 'Type', 'Family Law', 'Criminal', 'Civil']);
-          }
-          
-          // Look for status patterns
-          if (!status && (text.includes('Case Status') || text.includes('Active') || text.includes('Closed'))) {
-            status = this.extractFieldFromText(text, ['Case Status', 'Status', 'Active', 'Closed', 'Pending']);
-          }
-          
-          // Look for date filed patterns
-          if (!dateFiled && (text.includes('Date Filed') || text.includes('Filed') || /\d{1,2}\/\d{1,2}\/\d{4}/.test(text))) {
-            dateFiled = this.extractFieldFromText(text, ['Date Filed', 'Filed', /\d{1,2}\/\d{1,2}\/\d{4}/]);
-          }
-          
-          // Look for department patterns
-          if (!department && (text.includes('Department') || text.includes('Court Location'))) {
-            department = this.extractFieldFromText(text, ['Department', 'Dept', 'Court Location']);
-          }
-          
-          // Look for judge patterns
-          if (!judge && (text.includes('Judicial Officer') || text.includes('Judge') || text.includes('Hon.'))) {
-            judge = this.extractFieldFromText(text, ['Judicial Officer', 'Judge', 'Hon.', 'Assigned']);
-          }
-          
-          // Look for parties patterns
-          if (text.includes('Petitioner') || text.includes('Respondent') || text.includes('Plaintiff') || text.includes('Defendant')) {
-            const partyInfo = this.extractFieldFromText(text, ['Petitioner', 'Respondent', 'Plaintiff', 'Defendant']);
-            if (partyInfo && !parties.includes(partyInfo)) {
-              parties.push(partyInfo);
-            }
-          }
-        }
-      }
-      
-      // If we found a case number but no other data, create a basic case entry
-      if (caseNumber && !caseTitle) {
-        caseTitle = `Case ${caseNumber} - ${searchTerm}`;
-      }
-      
-      // Set defaults if no data found
-      if (!caseTitle) caseTitle = `Case ${caseNumber}`;
-      if (!caseType) caseType = this.determineCaseType(caseNumber);
-      if (!status) status = 'Active';
-      if (!dateFiled) dateFiled = new Date().toISOString().split('T')[0];
-      if (!department) department = 'San Diego Superior Court';
-      if (!judge) judge = 'Unknown';
-      if (parties.length === 0) parties = [searchTerm];
-      
-      return {
-        caseNumber,
-        caseTitle,
-        caseType,
-        status,
-        dateFiled,
-        lastActivity: new Date().toISOString().split('T')[0],
-        department,
-        judge,
-        parties,
-        upcomingEvents: [],
-        registerOfActions: []
-      };
-      
-    } catch (error) {
-      console.error('Error extracting case data from DOM:', error);
-      return null;
-    }
+    // This method is no longer used but kept for compatibility
+    // All parsing now happens via regex in parseCaseSearchHTML
+    return {
+      caseNumber,
+      caseTitle: `Case ${caseNumber} - ${searchTerm}`,
+      caseType: this.determineCaseType(caseNumber),
+      status: 'Active',
+      dateFiled: new Date().toISOString().split('T')[0],
+      lastActivity: new Date().toISOString().split('T')[0],
+      department: 'San Diego Superior Court',
+      judge: 'Unknown',
+      parties: [searchTerm],
+      upcomingEvents: [],
+      registerOfActions: []
+    };
   }
 
   /**
