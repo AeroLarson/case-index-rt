@@ -586,16 +586,16 @@ class CountyDataService {
     const cases: CountyCaseData[] = [];
     
     try {
-      console.log('San Diego County search HTML response length:', html.length);
+      console.log('📄 San Diego County search HTML response length:', html.length);
+      console.log('📄 HTML preview (first 5000 chars):', html.substring(0, 5000));
       
-      // Check if this is just a search form (which is what San Diego County returns)
-      const isSearchForm = html.includes('search') && html.includes('form') && html.includes('input');
-      const hasActualCaseData = html.includes('Case Title') || html.includes('case results') || html.includes('case information');
-      const hasGarbledContent = html.includes('lesheet') || html.includes('bootstrap') || html.includes('drupal');
+      // Check if this is just a search form - but be more lenient
+      const isOnlySearchForm = html.includes('<form') && html.includes('search') && 
+                                !html.includes('case') && !html.includes('Case') &&
+                                !html.includes(searchTerm) && html.length < 50000;
       
-      if (isSearchForm && !hasActualCaseData || hasGarbledContent) {
-        console.log('San Diego County returned search form or garbled content - no actual case data available');
-        // Return empty array - no real data found
+      if (isOnlySearchForm) {
+        console.log('⚠️ San Diego County returned only search form - no case results');
         return [];
       }
       
@@ -604,9 +604,9 @@ class CountyDataService {
       const dom = new JSDOM(html);
       const document = dom.window.document;
       
-      // Look for case numbers in the HTML with multiple patterns
+      // Look for case numbers in the HTML with multiple patterns (including more formats)
       const caseNumberPatterns = [
-        /(\d{2}[A-Z]{2}\d{6}[A-Z]?)/g,  // Format like 22FL001581C
+        /(\d{2}[A-Z]{2}\d{6}[A-Z]?)/g,  // Format like 22FL001581C (no dash)
         /([A-Z]{2}-\d{4}-\d{6})/g,      // Standard format FL-2024-123456
         /([A-Z]{2}-\d{4}-\d{5})/g,      // 5-digit format
         /([A-Z]{2}-\d{4}-\d{7})/g,      // 7-digit format
@@ -615,29 +615,30 @@ class CountyDataService {
         /([A-Z]{2}-\d{4}-\d{3})/g,      // 3-digit format
         /([A-Z]{2}-\d{4}-\d{9})/g,      // 9-digit format
         /([A-Z]{2}-\d{4}-\d{2})/g,      // 2-digit format
-        /([A-Z]{2}-\d{4}-\d{10})/g,     // 10-digit format
-        /([A-Z]{2}-\d{4}-\d{1})/g,      // 1-digit format
+        /Case\s+Number[:\s]*([A-Z]{2}[-]?\d{4}[-]?\d{4,8})/gi,  // Case Number: FL-2024-123456
+        /Case\s+No[.:\s]*([A-Z]{2}[-]?\d{4}[-]?\d{4,8})/gi,     // Case No.: FL-2024-123456
       ];
       
       const allCaseNumbers = [];
       for (const pattern of caseNumberPatterns) {
         const matches = html.match(pattern);
         if (matches) {
-          allCaseNumbers.push(...matches);
+          // Extract just the case number part from matches
+          matches.forEach(match => {
+            // If match includes "Case Number:" etc, extract just the number
+            const numberMatch = match.match(/([A-Z]{2}[-]?\d{4}[-]?\d{4,8}|^\d{2}[A-Z]{2}\d{6}[A-Z]?$)/i);
+            if (numberMatch) {
+              allCaseNumbers.push(numberMatch[1].toUpperCase());
+            } else if (/^[A-Z]{2}[-]?\d{4}[-]?\d{4,8}$|^\d{2}[A-Z]{2}\d{6}[A-Z]?$/i.test(match)) {
+              allCaseNumbers.push(match.toUpperCase());
+            }
+          });
         }
       }
       
-      // Remove duplicates
-      const uniqueCaseNumbers = [...new Set(allCaseNumbers)];
-      console.log('Found case numbers:', uniqueCaseNumbers);
-      
-      // Check if this is a search form response with garbled content
-      if (html.includes('lesheet') || html.includes('bootstrap') || html.includes('drupal') || 
-          html.includes('application/json') || html.includes('data-drupal-selector')) {
-        console.log('Detected garbled HTML content - no real case data available');
-        // Return empty array - no real data found
-        return [];
-      }
+      // Remove duplicates and normalize
+      const uniqueCaseNumbers = [...new Set(allCaseNumbers.map(cn => cn.replace(/-/g, '').replace(/(\d{2})([A-Z]{2})(\d+)([A-Z]?)/, '$1$2$3$4')))];
+      console.log('✅ Found case numbers:', uniqueCaseNumbers);
       
       // For each case number found, extract detailed information using DOM selectors
       for (const caseNumber of uniqueCaseNumbers) {
@@ -647,41 +648,75 @@ class CountyDataService {
         }
       }
       
-      // If no case numbers found, look for other case-related content
-      if (cases.length === 0) {
-        console.log('No case numbers found, looking for other case content...');
+      // If no case numbers found but search term appears in HTML, try to extract party info
+      if (cases.length === 0 && html.toLowerCase().includes(searchTerm.toLowerCase())) {
+        console.log('🔍 No case numbers found, but search term appears in HTML - attempting party extraction...');
         
-        // Look for any text that might indicate case information
-        const caseContentRegex = /(case|Case|court|Court|hearing|Hearing|judge|Judge)/g;
-        const caseContent = html.match(caseContentRegex);
+        // Try to find the search term in context with case-related keywords
+        const searchTermRegex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<]{0,200})`, 'gi');
+        const contexts = html.match(searchTermRegex);
         
-        if (caseContent && caseContent.length > 0) {
-          console.log('Found case-related content:', caseContent.length, 'matches');
+        if (contexts && contexts.length > 0) {
+          console.log('✅ Found search term in HTML contexts:', contexts.length);
           
-          // Create a generic case entry if we found case-related content
-          const caseData: CountyCaseData = {
-            caseNumber: `SEARCH-${Date.now()}`,
-            caseTitle: `Search results for ${searchTerm}`,
-            caseType: 'Unknown',
-            status: 'Search Results Found',
-            dateFiled: new Date().toISOString().split('T')[0],
-            lastActivity: new Date().toISOString().split('T')[0],
-            department: 'San Diego Superior Court',
-            judge: 'Unknown',
-            parties: [searchTerm],
-            upcomingEvents: [],
-            registerOfActions: []
-          };
+          // Look for party names near the search term
+          const partyPattern = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<\n]{0,100}(?:v\\.?|vs\\.?|vs)[^<\n]{0,100})`, 'gi');
+          const partyMatches = html.match(partyPattern);
           
-          cases.push(caseData);
+          if (partyMatches && partyMatches.length > 0) {
+            console.log('✅ Found party information:', partyMatches);
+            
+            // Try to extract case number from nearby text
+            for (const match of partyMatches) {
+              const nearbyText = match + html.substring(html.indexOf(match) + match.length, html.indexOf(match) + match.length + 500);
+              const nearbyCaseNumbers = nearbyText.match(/([A-Z]{2}[-]?\d{4}[-]?\d{4,8}|\d{2}[A-Z]{2}\d{6}[A-Z]?)/gi);
+              
+              if (nearbyCaseNumbers && nearbyCaseNumbers.length > 0) {
+                const caseNumber = nearbyCaseNumbers[0].toUpperCase();
+                const caseData = this.extractCaseDataFromDOM(document, caseNumber, searchTerm);
+                if (caseData) {
+                  // Enhance with party information from the match
+                  const parties = match.split(/(?:v\.?|vs\.?|vs)/i).map(p => p.trim()).filter(p => p);
+                  if (parties.length >= 2) {
+                    caseData.parties = parties;
+                    caseData.caseTitle = `${parties[0]} v. ${parties[1]}`;
+                  }
+                  cases.push(caseData);
+                }
+              } else {
+                // Create case entry with party information even without case number
+                const parties = match.split(/(?:v\.?|vs\.?|vs)/i).map(p => p.trim()).filter(p => p);
+                if (parties.length >= 2 && parties.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()))) {
+                  cases.push({
+                    caseNumber: `FOUND-${Date.now()}`,
+                    caseTitle: `${parties[0]} v. ${parties[1]}`,
+                    caseType: 'Unknown',
+                    status: 'Active',
+                    dateFiled: new Date().toISOString().split('T')[0],
+                    lastActivity: new Date().toISOString().split('T')[0],
+                    department: 'San Diego Superior Court',
+                    judge: 'Unknown',
+                    parties: parties,
+                    upcomingEvents: [],
+                    registerOfActions: [],
+                    note: 'Case found but case number could not be extracted. Data from San Diego County search.'
+                  });
+                }
+              }
+            }
+          }
         }
       }
       
-      console.log('Parsed cases:', cases.length);
+      console.log('✅ Parsed cases:', cases.length);
+      if (cases.length > 0) {
+        console.log('✅ Case data:', cases.map(c => ({ caseNumber: c.caseNumber, title: c.caseTitle, parties: c.parties })));
+      }
+      
       return cases;
       
     } catch (error) {
-      console.error('Error parsing county search HTML:', error);
+      console.error('❌ Error parsing county search HTML:', error);
       return cases;
     }
   }
