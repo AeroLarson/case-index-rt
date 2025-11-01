@@ -1188,6 +1188,75 @@ class CountyDataService {
       
       console.log(`📊 Found ${tableRows.length} table rows`);
       
+      // Check if we have a results table (ROASearch format)
+      // ROASearch returns tables with headers: Case Number, Case Title, Case Type, Department, Court Location, Date Filed
+      const hasResultsTable = tableRows.some(row => {
+        const rowText = row.join(' ').toLowerCase();
+        return rowText.includes('case number') && 
+               (rowText.includes('case title') || rowText.includes(searchTerm.toLowerCase()));
+      });
+      
+      if (hasResultsTable) {
+        console.log('✅ Found ROASearch results table format!');
+        // Skip header row and parse data rows
+        for (const row of tableRows) {
+          const rowText = row.join(' ').toLowerCase();
+          // Skip header rows
+          if (rowText.includes('case number') && rowText.includes('case title') && rowText.includes('case type')) {
+            continue;
+          }
+          
+          // Check if this row contains a case number
+          let caseNumberInRow = '';
+          for (const cell of row) {
+            const caseMatch = cell.match(/(\d{2}[A-Z]{2}\d{6}[A-Z]?|[A-Z]{2}-\d{4}-\d{6})/i);
+            if (caseMatch) {
+              caseNumberInRow = caseMatch[1].toUpperCase();
+              break;
+            }
+          }
+          
+          if (caseNumberInRow || rowText.includes(searchTerm.toLowerCase())) {
+            // This is a data row - extract case information
+            const caseData: CountyCaseData = {
+              caseNumber: caseNumberInRow || `FOUND-${Date.now()}`,
+              caseTitle: row.find(c => c.includes(' vs ') || c.includes(' v. ') || c.includes('[IMAGED]')) || 
+                        row.find((c, i) => i > 0 && c.length > 10) || 
+                        `Case involving ${searchTerm}`,
+              caseType: row.find(c => /dissolution|family|criminal|civil|probate|domestic/i.test(c)) || 
+                       this.determineCaseType(caseNumberInRow),
+              status: 'Active',
+              dateFiled: this.normalizeDate(row.find(c => /\d{1,2}\/\d{1,2}\/\d{4}/.test(c)) || ''),
+              lastActivity: new Date().toISOString().split('T')[0],
+              department: row.find(c => /^\d{3}$/.test(c.trim())) || 'San Diego Superior Court',
+              judge: 'Unknown',
+              parties: this.extractPartiesFromRow(row, searchTerm),
+              upcomingEvents: [],
+              registerOfActions: [],
+              note: caseNumberInRow ? undefined : 'Case found but case number could not be extracted.'
+            };
+            
+            // Normalize case number if we found one
+            if (caseNumberInRow) {
+              const normalized = caseNumberInRow.replace(/-/g, '');
+              if (/^[A-Z]{2}\d{8,10}$/.test(normalized)) {
+                const match = normalized.match(/^([A-Z]{2})(\d{2})(\d{6,8})$/);
+                if (match) {
+                  caseData.caseNumber = match[2] + match[1] + match[3];
+                }
+              } else {
+                caseData.caseNumber = normalized;
+              }
+            }
+            
+            if (!cases.find(c => c.caseNumber === caseData.caseNumber)) {
+              cases.push(caseData);
+              console.log('✅ Extracted case from ROASearch table:', caseData.caseNumber, caseData.caseTitle);
+            }
+          }
+        }
+      }
+      
       // For each case number found, extract detailed information
       for (const caseNumber of uniqueCaseNumbers) {
         // Look for this case number in table rows
@@ -1582,6 +1651,43 @@ class CountyDataService {
       if (match && match[1]) {
         parties.push(match[1].trim());
       }
+    }
+    
+    return [...new Set(parties)]; // Remove duplicates
+  }
+
+  /**
+   * Extract parties from a table row (ROASearch format)
+   */
+  private extractPartiesFromRow(row: string[], searchTerm: string): string[] {
+    const parties: string[] = [];
+    
+    // Look for "vs" or "v." in case title cell
+    const titleCell = row.find(c => c.includes(' vs ') || c.includes(' v. ')) || '';
+    
+    if (titleCell) {
+      // Extract names from "Name1 vs Name2" format
+      const vsMatch = titleCell.match(/([^v]+?)\s+vs?\.?\s+(.+)/i);
+      if (vsMatch) {
+        parties.push(vsMatch[1].trim().replace(/\[IMAGED\]/gi, '').trim());
+        parties.push(vsMatch[2].trim().replace(/\[IMAGED\]/gi, '').trim());
+      }
+      
+      // Also look for "Petitioner:" and "Respondent:" patterns
+      const petitionerMatch = titleCell.match(/Petitioner[:\s]+([^,\n]+)/i);
+      const respondentMatch = titleCell.match(/Respondent[:\s]+([^,\n]+)/i);
+      
+      if (petitionerMatch && !parties.includes(petitionerMatch[1].trim())) {
+        parties.push(petitionerMatch[1].trim());
+      }
+      if (respondentMatch && !parties.includes(respondentMatch[1].trim())) {
+        parties.push(respondentMatch[1].trim());
+      }
+    }
+    
+    // If no parties found, use search term
+    if (parties.length === 0) {
+      parties.push(searchTerm);
     }
     
     return [...new Set(parties)]; // Remove duplicates
