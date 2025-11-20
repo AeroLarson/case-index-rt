@@ -209,6 +209,73 @@ export class AIService {
     return this.generateResponse(prompt)
   }
 
+  // Analyze case and return summary string
+  static async analyzeCase(caseData: any, countyData?: any): Promise<string> {
+    try {
+      // Build prompt from case data
+      let prompt = `
+      Generate a comprehensive case analysis for:
+      
+      Case Number: ${caseData.caseNumber || 'N/A'}
+      Case Title: ${caseData.caseTitle || 'N/A'}
+      Case Type: ${caseData.caseType || 'Family Law'}
+      Status: ${caseData.status || 'Active'}
+      Court: ${caseData.courtLocation || caseData.court || 'San Diego Superior Court'}
+      Judge: ${caseData.judicialOfficer || caseData.judge || 'N/A'}
+      
+      Parties:
+      - Petitioner/Plaintiff: ${caseData.parties?.petitioner || caseData.parties?.plaintiff || 'N/A'}
+      - Respondent/Defendant: ${caseData.parties?.respondent || caseData.parties?.defendant || 'N/A'}
+      `
+      
+      // Add register of actions if available
+      if (caseData.registerOfActions && typeof caseData.registerOfActions === 'string') {
+        prompt += `\n\nRecent Case Activity:\n${caseData.registerOfActions}`
+      } else if (Array.isArray(caseData.registerOfActions) && caseData.registerOfActions.length > 0) {
+        prompt += `\n\nRecent Case Activity:\n${caseData.registerOfActions.slice(0, 10).map((a: any) => `${a.date}: ${a.action} - ${a.description}`).join('\n')}`
+      }
+      
+      // Add upcoming events if available
+      if (caseData.upcomingEvents && typeof caseData.upcomingEvents === 'string') {
+        prompt += `\n\nUpcoming Events:\n${caseData.upcomingEvents}`
+      } else if (Array.isArray(caseData.upcomingEvents) && caseData.upcomingEvents.length > 0) {
+        prompt += `\n\nUpcoming Events:\n${caseData.upcomingEvents.map((e: any) => `${e.date} ${e.time}: ${e.eventType} - ${e.description}`).join('\n')}`
+      }
+      
+      // Add recent motions if available
+      if (caseData.recentMotions) {
+        prompt += `\n\nRecent Motions:\n${caseData.recentMotions}`
+      }
+      
+      prompt += `
+      
+      Please provide:
+      1. A detailed case summary
+      2. Key legal points and considerations
+      3. Strategic recommendations
+      4. Timeline analysis
+      5. Next steps and deadlines
+      
+      Focus on California family law procedures and practical advice. Be concise but comprehensive.
+      `
+      
+      // Use generateResponse with countyData if available
+      return await this.generateResponse(prompt, countyData || caseData)
+    } catch (error) {
+      console.error('Error in analyzeCase:', error)
+      // Fallback to intelligent analysis
+      const prompt = `
+      Case Number: ${caseData.caseNumber || 'N/A'}
+      Case Title: ${caseData.caseTitle || 'N/A'}
+      Case Type: ${caseData.caseType || 'Family Law'}
+      Status: ${caseData.status || 'Active'}
+      Court: ${caseData.courtLocation || caseData.court || 'San Diego Superior Court'}
+      Judge: ${caseData.judicialOfficer || caseData.judge || 'N/A'}
+      `
+      return this.generateIntelligentAnalysis(prompt, countyData || caseData)
+    }
+  }
+
   // Generate comprehensive case insights
   static async generateCaseInsights(caseData: any, countyData?: any): Promise<any> {
     let prompt = `

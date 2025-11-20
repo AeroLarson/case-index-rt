@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AIService, CaseData } from '@/lib/aiService'
+import { AIService } from '@/lib/aiService'
 
 export async function POST(request: NextRequest) {
   try {
-    const caseData: CaseData = await request.json()
+    const caseData: any = await request.json()
 
     // Validate required fields
     if (!caseData.caseNumber || !caseData.caseTitle) {
@@ -13,8 +13,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Extract countyData if provided separately
+    const countyData = caseData.countyData || caseData
+
     // Get AI insights using analyzeCase
-    const insights = await AIService.analyzeCase(caseData)
+    const insights = await AIService.analyzeCase(caseData, countyData)
 
     return NextResponse.json({
       success: true,
