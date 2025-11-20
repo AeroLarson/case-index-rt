@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { userProfileManager } from '@/lib/userProfile'
+import AIOverview from '@/components/AIOverview'
 
 interface CaseResult {
   id: string
@@ -16,6 +17,13 @@ interface CaseResult {
   documents: number
   hearings: number
   isDetailed: boolean
+  caseType?: string
+  dateFiled?: string
+  department?: string
+  countyData?: {
+    registerOfActions?: Array<{ date: string; action: string; description: string }>
+    upcomingEvents?: Array<{ date: string; time: string; eventType: string; description: string }>
+  }
 }
 
 export default function SearchPageContent() {
@@ -24,6 +32,8 @@ export default function SearchPageContent() {
   const [results, setResults] = useState<CaseResult[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedCase, setSelectedCase] = useState<CaseResult | null>(null)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -97,35 +107,105 @@ export default function SearchPageContent() {
     setError(null)
   }
 
-  const addToCalendar = (c: CaseResult) => {
+  const saveCase = (c: CaseResult) => {
     if (!user) return
     try {
+      // Check if case is already saved
+      const profile = userProfileManager.getUserProfile(user.id, user.name || '', user.email || '')
+      const isAlreadySaved = profile.savedCases.some(saved => saved.caseNumber === c.caseNumber)
+      
+      if (isAlreadySaved) {
+        alert('This case is already saved to your profile')
+        return
+      }
+
       userProfileManager.addSavedCase(user.id, {
         caseNumber: c.caseNumber,
         caseTitle: c.title,
-        caseType: 'Unknown',
+        caseType: c.caseType || 'Unknown',
         caseStatus: c.status,
-        dateFiled: new Date().toISOString(),
+        dateFiled: c.dateFiled || new Date().toISOString(),
         court: c.court,
         judge: c.judge,
         parties: { petitioner: c.parties.plaintiff, respondent: c.parties.defendant }
       })
-      userProfileManager.addCalendarEvent(user.id, {
-        title: `Hearing - ${c.title}`,
-        date: new Date().toISOString().slice(0, 10),
-        time: '09:00',
-        type: 'hearing',
-        caseNumber: c.caseNumber,
-        location: c.court,
-        description: 'Auto-added from search result',
-        duration: 60,
-        priority: 'normal',
-        status: 'scheduled'
-      })
+      
       refreshProfile()
-      alert('Saved and added to calendar')
+      alert('Case saved successfully!')
     } catch (e) {
       console.error(e)
+      alert('Failed to save case. Please try again.')
+    }
+  }
+
+  const addToCalendar = (c: CaseResult) => {
+    if (!user) return
+    try {
+      // First save the case if not already saved
+      const profile = userProfileManager.getUserProfile(user.id, user.name || '', user.email || '')
+      const isAlreadySaved = profile.savedCases.some(saved => saved.caseNumber === c.caseNumber)
+      
+      if (!isAlreadySaved) {
+        saveCase(c)
+      }
+
+      // Add calendar events from real upcoming events
+      const upcomingEvents = c.countyData?.upcomingEvents || []
+      
+      if (upcomingEvents.length > 0) {
+        // Add each upcoming event to calendar with real dates
+        upcomingEvents.forEach((event) => {
+          // Parse the date - handle different formats
+          let eventDate = event.date
+          if (eventDate && !eventDate.includes('T')) {
+            // If it's just a date string, ensure it's in YYYY-MM-DD format
+            try {
+              const parsedDate = new Date(eventDate)
+              if (!isNaN(parsedDate.getTime())) {
+                eventDate = parsedDate.toISOString().split('T')[0]
+              }
+            } catch (e) {
+              console.warn('Could not parse event date:', eventDate)
+            }
+          }
+
+          userProfileManager.addCalendarEvent(user.id, {
+            title: `${event.eventType || 'Hearing'} - ${c.title}`,
+            date: eventDate || new Date().toISOString().split('T')[0],
+            time: event.time || '09:00',
+            type: 'hearing',
+            caseNumber: c.caseNumber,
+            location: c.court,
+            description: event.description || `Auto-added from search result for ${c.caseNumber}`,
+            duration: 60,
+            priority: 'normal',
+            status: 'scheduled'
+          })
+        })
+        refreshProfile()
+        alert(`Added ${upcomingEvents.length} event(s) to calendar with real dates!`)
+      } else {
+        // If no upcoming events, add a general case reminder using the date filed
+        const dateFiled = c.dateFiled ? new Date(c.dateFiled).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        
+        userProfileManager.addCalendarEvent(user.id, {
+          title: `Case Reminder - ${c.title}`,
+          date: dateFiled,
+          time: '09:00',
+          type: 'reminder',
+          caseNumber: c.caseNumber,
+          location: c.court,
+          description: `Case reminder for ${c.caseNumber}. Filed on ${c.dateFiled || 'unknown date'}`,
+          duration: 60,
+          priority: 'normal',
+          status: 'scheduled'
+        })
+        refreshProfile()
+        alert('Added case reminder to calendar')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Failed to add to calendar. Please try again.')
     }
   }
 
@@ -255,14 +335,24 @@ export default function SearchPageContent() {
               </div>
               <div className="flex gap-2 pt-4 border-t border-white/10">
                 <button 
+                  onClick={() => setSelectedCase(c); setShowDetailsModal(true)} 
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-eye"></i>
+                  View Details
+                </button>
+                <button 
                   onClick={() => addToCalendar(c)} 
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                 >
                   <i className="fa-solid fa-calendar-plus"></i>
                   Add to Calendar
                 </button>
-                <button className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/10 transition-colors">
-                  <i className="fa-solid fa-bookmark mr-2"></i>
+                <button 
+                  onClick={() => saveCase(c)}
+                  className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/10 transition-colors flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-bookmark"></i>
                   Save
                 </button>
               </div>
@@ -270,6 +360,174 @@ export default function SearchPageContent() {
           ))}
         </div>
       </div>
+
+      {/* Case Details Modal */}
+      {showDetailsModal && selectedCase && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
+            <div className="sticky top-0 bg-gray-900 border-b border-white/10 p-6 flex items-center justify-between">
+              <h2 className="text-white text-2xl font-bold">Case Details</h2>
+              <button
+                onClick={() => { setShowDetailsModal(false); setSelectedCase(null); }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <i className="fa-solid fa-times text-2xl"></i>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Case Header */}
+              <div className="apple-card p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-white text-xl font-semibold mb-2">{selectedCase.title}</h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                      <span className="flex items-center gap-1">
+                        <i className="fa-solid fa-hashtag text-blue-400"></i>
+                        {selectedCase.caseNumber}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <i className="fa-solid fa-landmark text-purple-400"></i>
+                        {selectedCase.court}
+                      </span>
+                      {selectedCase.dateFiled && (
+                        <span className="flex items-center gap-1">
+                          <i className="fa-solid fa-calendar text-green-400"></i>
+                          Filed: {new Date(selectedCase.dateFiled).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded text-sm font-medium ${
+                        selectedCase.status === 'Active' ? 'bg-green-500/20 text-green-400' : 
+                        selectedCase.status === 'Closed' ? 'bg-gray-500/20 text-gray-400' : 
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {selectedCase.status}
+                      </span>
+                      {selectedCase.caseType && (
+                        <span className="px-3 py-1 rounded text-sm font-medium bg-purple-500/20 text-purple-400">
+                          {selectedCase.caseType}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {selectedCase.parties && (selectedCase.parties.plaintiff || selectedCase.parties.defendant) && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-gray-400 text-sm mb-2">Parties:</p>
+                    <p className="text-white">
+                      <span className="font-medium">{selectedCase.parties.plaintiff || 'Unknown'}</span>
+                      {' v. '}
+                      <span className="font-medium">{selectedCase.parties.defendant || 'Unknown'}</span>
+                    </p>
+                  </div>
+                )}
+
+                {selectedCase.judge && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-gray-400 text-sm mb-1">Judge:</p>
+                    <p className="text-white">{selectedCase.judge}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* AI Overview */}
+              <AIOverview
+                caseId={selectedCase.caseNumber}
+                caseTitle={selectedCase.title}
+                caseStatus={selectedCase.status}
+                court={selectedCase.court}
+                judge={selectedCase.judge}
+                parties={selectedCase.parties}
+              />
+
+              {/* Upcoming Events */}
+              {selectedCase.countyData?.upcomingEvents && selectedCase.countyData.upcomingEvents.length > 0 && (
+                <div className="apple-card p-6">
+                  <h4 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <i className="fa-solid fa-calendar-days text-blue-400"></i>
+                    Upcoming Events
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedCase.countyData.upcomingEvents.map((event, idx) => (
+                      <div key={idx} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{event.eventType || 'Hearing'}</p>
+                            <p className="text-gray-400 text-sm mt-1">{event.description}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <i className="fa-solid fa-calendar text-blue-400"></i>
+                                {event.date ? new Date(event.date).toLocaleDateString() : 'Date TBD'}
+                              </span>
+                              {event.time && (
+                                <span className="flex items-center gap-1">
+                                  <i className="fa-solid fa-clock text-green-400"></i>
+                                  {event.time}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Register of Actions */}
+              {selectedCase.countyData?.registerOfActions && selectedCase.countyData.registerOfActions.length > 0 && (
+                <div className="apple-card p-6">
+                  <h4 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <i className="fa-solid fa-file-lines text-purple-400"></i>
+                    Register of Actions ({selectedCase.countyData.registerOfActions.length})
+                  </h4>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {selectedCase.countyData.registerOfActions.slice(0, 10).map((action, idx) => (
+                      <div key={idx} className="bg-white/5 rounded-lg p-3 border border-white/10">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-white text-sm font-medium">{action.action}</p>
+                            <p className="text-gray-400 text-xs mt-1">{action.description}</p>
+                            <p className="text-gray-500 text-xs mt-1">
+                              {action.date ? new Date(action.date).toLocaleDateString() : 'Date unknown'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {selectedCase.countyData.registerOfActions.length > 10 && (
+                      <p className="text-gray-400 text-sm text-center mt-2">
+                        Showing 10 of {selectedCase.countyData.registerOfActions.length} actions
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-white/10">
+                <button 
+                  onClick={() => { saveCase(selectedCase); setShowDetailsModal(false); }}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-bookmark"></i>
+                  Save Case
+                </button>
+                <button 
+                  onClick={() => { addToCalendar(selectedCase); setShowDetailsModal(false); }}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-calendar-plus"></i>
+                  Add to Calendar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

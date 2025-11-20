@@ -82,11 +82,13 @@ export default function AIOverview({
       })
 
       if (!response.ok) {
-        throw new Error(`AI insights failed: ${response.status}`)
+        // If API fails, provide a fallback overview
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `AI insights failed: ${response.status}`)
       }
 
       const result = await response.json()
-      const insights = result.insights
+      const insights = result.insights || result.analysis || 'AI analysis is currently unavailable. Please try again later.'
       
       // Format the overview with court details
       let formattedOverview = ''
