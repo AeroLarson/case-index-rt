@@ -283,12 +283,15 @@ class CountyDataService {
       
       // Use serverless-compatible Puppeteer for Vercel
       const puppeteer = await import('puppeteer-core').catch(() => null);
-      const chromium = await import('@sparticuz/chromium').catch(() => null);
+      const chromiumModule = await import('@sparticuz/chromium').catch(() => null);
       
-      if (!puppeteer || !chromium) {
+      if (!puppeteer || !chromiumModule) {
         console.log('⚠️ Puppeteer/Chromium not available, skipping browser-based search');
         return [];
       }
+      
+      // Handle different export formats for @sparticuz/chromium
+      const chromium = chromiumModule.default || chromiumModule;
       
       // Configure Chromium for Vercel serverless - setGraphicsMode is optional
       if (chromium && typeof (chromium as any).setGraphicsMode === 'function') {
@@ -299,11 +302,30 @@ class CountyDataService {
         }
       }
       
+      // Get executable path - handle both function and property
+      let executablePath: string;
+      if (typeof chromium.executablePath === 'function') {
+        executablePath = await chromium.executablePath();
+      } else if (typeof chromium.executablePath === 'string') {
+        executablePath = chromium.executablePath;
+      } else {
+        // Try to get it from the module
+        executablePath = (chromium as any).executablePath || '';
+        if (!executablePath && typeof (chromium as any).executablePath === 'function') {
+          executablePath = await (chromium as any).executablePath();
+        }
+      }
+      
+      if (!executablePath) {
+        console.log('⚠️ Could not get Chromium executable path');
+        return [];
+      }
+      
       const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        args: chromium.args || [],
+        defaultViewport: chromium.defaultViewport || { width: 1280, height: 720 },
+        executablePath: executablePath,
+        headless: chromium.headless !== false, // Default to true
       });
       
       try {
@@ -366,12 +388,15 @@ class CountyDataService {
       console.log('🤖 Using Puppeteer to search CourtIndex...');
       
       const puppeteer = await import('puppeteer-core').catch(() => null);
-      const chromium = await import('@sparticuz/chromium').catch(() => null);
+      const chromiumModule = await import('@sparticuz/chromium').catch(() => null);
       
-      if (!puppeteer || !chromium) {
+      if (!puppeteer || !chromiumModule) {
         console.log('⚠️ Puppeteer/Chromium not available');
         return [];
       }
+      
+      // Handle different export formats for @sparticuz/chromium
+      const chromium = chromiumModule.default || chromiumModule;
       
       // Configure Chromium for serverless - setGraphicsMode is optional
       if (chromium && typeof (chromium as any).setGraphicsMode === 'function') {
@@ -382,11 +407,30 @@ class CountyDataService {
         }
       }
       
+      // Get executable path - handle both function and property
+      let executablePath: string;
+      if (typeof chromium.executablePath === 'function') {
+        executablePath = await chromium.executablePath();
+      } else if (typeof chromium.executablePath === 'string') {
+        executablePath = chromium.executablePath;
+      } else {
+        // Try to get it from the module
+        executablePath = (chromium as any).executablePath || '';
+        if (!executablePath && typeof (chromium as any).executablePath === 'function') {
+          executablePath = await (chromium as any).executablePath();
+        }
+      }
+      
+      if (!executablePath) {
+        console.log('⚠️ Could not get Chromium executable path');
+        return [];
+      }
+      
       const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        args: chromium.args || [],
+        defaultViewport: chromium.defaultViewport || { width: 1280, height: 720 },
+        executablePath: executablePath,
+        headless: chromium.headless !== false, // Default to true
       });
       
       try {
@@ -690,12 +734,15 @@ class CountyDataService {
       console.log('🤖 Using Puppeteer to search ROASearch for:', searchQuery, 'type:', searchType);
       
       const puppeteer = await import('puppeteer-core').catch(() => null);
-      const chromium = await import('@sparticuz/chromium').catch(() => null);
+      const chromiumModule = await import('@sparticuz/chromium').catch(() => null);
       
-      if (!puppeteer || !chromium) {
+      if (!puppeteer || !chromiumModule) {
         console.log('⚠️ Puppeteer/Chromium not available');
         return [];
       }
+      
+      // Handle different export formats for @sparticuz/chromium
+      const chromium = chromiumModule.default || chromiumModule;
       
       // Configure Chromium for serverless - setGraphicsMode is optional
       if (chromium && typeof (chromium as any).setGraphicsMode === 'function') {
@@ -706,11 +753,30 @@ class CountyDataService {
         }
       }
       
+      // Get executable path - handle both function and property
+      let executablePath: string;
+      if (typeof chromium.executablePath === 'function') {
+        executablePath = await chromium.executablePath();
+      } else if (typeof chromium.executablePath === 'string') {
+        executablePath = chromium.executablePath;
+      } else {
+        // Try to get it from the module
+        executablePath = (chromium as any).executablePath || '';
+        if (!executablePath && typeof (chromium as any).executablePath === 'function') {
+          executablePath = await (chromium as any).executablePath();
+        }
+      }
+      
+      if (!executablePath) {
+        console.log('⚠️ Could not get Chromium executable path');
+        return [];
+      }
+      
       const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        args: chromium.args || [],
+        defaultViewport: chromium.defaultViewport || { width: 1280, height: 720 },
+        executablePath: executablePath,
+        headless: chromium.headless !== false, // Default to true
       });
       
       try {
