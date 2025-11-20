@@ -16,6 +16,24 @@ export interface CalendarEvent {
   createdAt: string
 }
 
+export interface Notification {
+  id: string
+  type: 'case_update' | 'new_filing' | 'hearing_scheduled' | 'hearing_changed' | 'zoom_updated' | 'status_change'
+  title: string
+  message: string
+  caseNumber?: string
+  caseTitle?: string
+  read: boolean
+  createdAt: string
+  actionUrl?: string
+  metadata?: {
+    eventType?: string
+    date?: string
+    zoomId?: string
+    passcode?: string
+  }
+}
+
 export interface UserProfile {
   id: string
   name: string
@@ -25,6 +43,7 @@ export interface UserProfile {
   recentSearches: RecentSearch[]
   starredCases: string[]
   calendarEvents: CalendarEvent[]
+  notifications: Notification[]
   supportTickets?: any[]
   monthlyUsage: number
   maxMonthlyUsage: number
@@ -88,6 +107,7 @@ class UserProfileManager {
       recentSearches: [],
       starredCases: [],
       calendarEvents: [],
+      notifications: [],
       monthlyUsage: 0,
       maxMonthlyUsage: 1, // Free plan limit - only 1 case per month
       plan: 'free',
@@ -115,6 +135,7 @@ class UserProfileManager {
         if (!profile.recentSearches) profile.recentSearches = []
         if (!profile.starredCases) profile.starredCases = []
         if (!profile.calendarEvents) profile.calendarEvents = []
+        if (!profile.notifications) profile.notifications = []
         
         // Save previous login time before updating
         profile.previousLogin = profile.lastLogin
@@ -382,6 +403,72 @@ class UserProfileManager {
     } catch (error) {
       console.warn('Failed to add payment record:', error)
     }
+  }
+
+  // Notification methods
+  addNotification(userId: string, notification: Omit<Notification, 'id' | 'read' | 'createdAt'>): Notification {
+    const profile = this.getUserProfile(userId, '', '')
+    
+    // Initialize notifications if it doesn't exist
+    if (!profile.notifications) {
+      profile.notifications = []
+    }
+    
+    const newNotification: Notification = {
+      ...notification,
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      read: false,
+      createdAt: new Date().toISOString()
+    }
+    
+    profile.notifications.unshift(newNotification)
+    
+    // Keep only last 100 notifications
+    if (profile.notifications.length > 100) {
+      profile.notifications = profile.notifications.slice(0, 100)
+    }
+    
+    this.saveUserProfile(profile)
+    return newNotification
+  }
+
+  markNotificationAsRead(userId: string, notificationId: string): void {
+    const profile = this.getUserProfile(userId, '', '')
+    if (!profile.notifications) return
+    
+    const notification = profile.notifications.find(n => n.id === notificationId)
+    if (notification) {
+      notification.read = true
+      this.saveUserProfile(profile)
+    }
+  }
+
+  markAllNotificationsAsRead(userId: string): void {
+    const profile = this.getUserProfile(userId, '', '')
+    if (!profile.notifications) return
+    
+    profile.notifications.forEach(n => n.read = true)
+    this.saveUserProfile(profile)
+  }
+
+  getUnreadNotificationsCount(userId: string): number {
+    const profile = this.getUserProfile(userId, '', '')
+    if (!profile.notifications) return 0
+    return profile.notifications.filter(n => !n.read).length
+  }
+
+  getNotifications(userId: string, unreadOnly: boolean = false): Notification[] {
+    const profile = this.getUserProfile(userId, '', '')
+    if (!profile.notifications) return []
+    return unreadOnly ? profile.notifications.filter(n => !n.read) : profile.notifications
+  }
+
+  deleteNotification(userId: string, notificationId: string): void {
+    const profile = this.getUserProfile(userId, '', '')
+    if (!profile.notifications) return
+    
+    profile.notifications = profile.notifications.filter(n => n.id !== notificationId)
+    this.saveUserProfile(profile)
   }
 
   // Support tickets methods

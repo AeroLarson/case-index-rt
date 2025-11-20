@@ -25,8 +25,33 @@ export async function POST(request: NextRequest) {
       
       console.log(`✅ Found ${countyResults.length} cases from San Diego County`)
       
+      // Fetch detailed information for each case (including register of actions, upcoming events, judge names)
+      const casesWithDetails = await Promise.all(
+        countyResults.map(async (caseData) => {
+          try {
+            // Try to get detailed case information
+            const detailedData = await countyDataService.getCaseDetails(caseData.caseNumber).catch(() => null)
+            
+            // Merge detailed data with search results
+            if (detailedData) {
+              return {
+                ...caseData,
+                judge: detailedData.judge !== 'Unknown' ? detailedData.judge : caseData.judge,
+                registerOfActions: detailedData.registerOfActions.length > 0 ? detailedData.registerOfActions : caseData.registerOfActions,
+                upcomingEvents: detailedData.upcomingEvents.length > 0 ? detailedData.upcomingEvents : caseData.upcomingEvents,
+                department: detailedData.department || caseData.department
+              }
+            }
+            return caseData
+          } catch (error) {
+            console.log(`⚠️ Could not fetch details for case ${caseData.caseNumber}:`, error)
+            return caseData
+          }
+        })
+      )
+      
       // Transform county data to our format
-      const cases = countyResults.map(caseData => ({
+      const cases = casesWithDetails.map(caseData => ({
         id: `county_${caseData.caseNumber.replace(/[^a-zA-Z0-9]/g, '_')}`,
         caseNumber: caseData.caseNumber,
         title: caseData.caseTitle,

@@ -1318,13 +1318,20 @@ class CountyDataService {
     await this.respectRateLimit();
     
     try {
-      // San Diego Superior Court case details endpoint
-      const caseUrl = `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch?caseNumber=${encodeURIComponent(caseNumber)}`;
+      // Try Puppeteer first for JavaScript-rendered content
+      try {
+        return await this.getCaseDetailsWithPuppeteer(caseNumber);
+      } catch (puppeteerError: any) {
+        console.log('⚠️ Puppeteer case details failed, trying direct fetch:', puppeteerError.message);
+      }
       
-      const response = await fetch(caseUrl, {
+      // Fallback to direct fetch
+      const caseUrl = `${this.roaBaseUrl}/Cases?caseNumber=${encodeURIComponent(caseNumber)}`;
+      
+      const response = await this.fetchWithSession(caseUrl, {
         headers: {
           'User-Agent': 'CaseIndexRT/1.0 (Legal Technology Platform)',
-          'Referer': `${this.baseUrl}/sdcourt/generalinformation/courtrecords2/onlinecasesearch`,
+          'Referer': `${this.roaBaseUrl}/`,
         }
       });
 
@@ -1339,6 +1346,46 @@ class CountyDataService {
     } catch (error) {
       console.error('County case details failed:', error);
       throw new Error('Unable to retrieve case details at this time');
+    }
+  }
+
+  /**
+   * Get case details using Puppeteer for JavaScript-rendered content
+   */
+  private async getCaseDetailsWithPuppeteer(caseNumber: string): Promise<CountyCaseData> {
+    try {
+      const puppeteer = require('puppeteer-core');
+      const chromium = require('@sparticuz/chromium');
+      
+      // Configure Chromium for serverless
+      chromium.setGraphicsMode(false);
+      
+      const browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: (chromium as any).executablePath || chromium.executablePath,
+        headless: chromium.headless,
+      });
+      
+      const page = await browser.newPage();
+      
+      // Navigate to case details page
+      const caseUrl = `${this.roaBaseUrl}/Cases?caseNumber=${encodeURIComponent(caseNumber)}`;
+      console.log('🔍 Navigating to case details:', caseUrl);
+      
+      await page.goto(caseUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for content to load
+      
+      // Get the rendered HTML
+      const html = await page.content();
+      
+      await browser.close();
+      
+      // Parse the HTML
+      return this.parseCaseDetailsHTML(html, caseNumber);
+    } catch (error: any) {
+      console.log('⚠️ Puppeteer case details failed:', error.message);
+      throw error;
     }
   }
 
@@ -2413,33 +2460,194 @@ class CountyDataService {
    */
   private parseCaseDetailsHTML(html: string, caseNumber: string): CountyCaseData {
     try {
-      // This is a simplified parser - in production, you'd use a proper HTML parser
-      console.log('San Diego County case details HTML response:', html.substring(0, 500));
+      console.log('📄 Parsing San Diego County case details HTML, length:', html.length);
       
-      // TODO: Implement proper HTML parsing for San Diego County case details
-      // The actual implementation would parse the HTML structure to extract:
-      // - Case information
-      // - Register of actions
-      // - Upcoming events
-      // - Party information
+      const stripTags = (html: string): string => {
+        return html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
       
-      // For now, return a basic structure
+      const textContent = stripTags(html);
+      
+      // Extract judge name with multiple patterns
+      const judgePatterns = [
+        /Judicial\s+Officer[:\s]*([^<\n\r]{1,100})/gi,
+        /Judge[:\s]*([^<\n\r]{1,100})/gi,
+        /Hon\.?\s+([^<\n\r]{1,100})/gi,
+        /Assigned\s+Judge[:\s]*([^<\n\r]{1,100})/gi,
+        /Presiding\s+Judge[:\s]*([^<\n\r]{1,100})/gi
+      ];
+      
+      let judge = 'Unknown';
+      for (const pattern of judgePatterns) {
+        const matches = html.match(pattern);
+        if (matches && matches.length > 0) {
+          const judgeMatch = matches[0].match(/[:\s]+([^<\n\r]{1,100})/i);
+          if (judgeMatch && judgeMatch[1]) {
+            const extractedJudge = judgeMatch[1].trim();
+            // Filter out common false positives
+            if (!extractedJudge.match(/^(Case|Status|Filed|Date|Department|Type|Number|Title)/i) &&
+                extractedJudge.length > 2 && extractedJudge.length < 100) {
+              judge = extractedJudge;
+              console.log('✅ Extracted judge:', judge);
+              break;
+            }
+          }
+        }
+      }
+      
+      // Extract register of actions
+      const registerOfActions: CountyAction[] = [];
+      
+      // Look for table rows containing action information
+      const actionRowPattern = /<tr[^>]*>[\s\S]*?<\/tr>/gi;
+      const actionRows = html.match(actionRowPattern) || [];
+      
+      for (const row of actionRows) {
+        const rowText = stripTags(row).toLowerCase();
+        // Look for rows that contain action-related keywords
+        if (rowText.includes('filed') || rowText.includes('motion') || rowText.includes('order') || 
+            rowText.includes('hearing') || rowText.includes('notice') || rowText.includes('judgment')) {
+          
+          // Extract date
+          const dateMatch = row.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+          const actionDate = dateMatch ? this.normalizeDate(dateMatch[1]) : '';
+          
+          // Extract action type and description
+          const cells = row.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [];
+          const cellTexts = cells.map(cell => stripTags(cell).trim()).filter(t => t.length > 0);
+          
+          if (cellTexts.length >= 2) {
+            const actionType = cellTexts[0] || '';
+            const description = cellTexts.slice(1).join(' ') || '';
+            const filedBy = cellTexts.find(c => c.includes('by') || c.includes('filed')) || 'Unknown';
+            
+            if (actionType || description) {
+              registerOfActions.push({
+                date: actionDate,
+                action: actionType,
+                description: description || actionType,
+                filedBy: filedBy
+              });
+            }
+          }
+        }
+      }
+      
+      console.log(`✅ Extracted ${registerOfActions.length} register of actions`);
+      
+      // Extract upcoming events with Zoom meeting IDs
+      const upcomingEvents: CountyEvent[] = [];
+      
+      // Look for event/hearing information
+      const eventRowPattern = /<tr[^>]*>[\s\S]*?<\/tr>/gi;
+      const eventRows = html.match(eventRowPattern) || [];
+      
+      for (const row of eventRows) {
+        const rowText = stripTags(row).toLowerCase();
+        // Look for rows that contain event-related keywords
+        if (rowText.includes('hearing') || rowText.includes('trial') || rowText.includes('conference') ||
+            rowText.includes('motion') || rowText.includes('status') || rowText.includes('calendar')) {
+          
+          // Extract date
+          const dateMatch = row.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+          const eventDate = dateMatch ? this.normalizeDate(dateMatch[1]) : '';
+          
+          // Extract time
+          const timeMatch = row.match(/(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)/i);
+          const eventTime = timeMatch ? timeMatch[1] : '';
+          
+          // Extract Zoom meeting ID and passcode
+          const zoomIdMatch = row.match(/zoom[:\s]*([0-9]{9,11})/i) || row.match(/meeting[:\s]*id[:\s]*([0-9]{9,11})/i);
+          const passcodeMatch = row.match(/passcode[:\s]*([0-9]{4,10})/i) || row.match(/password[:\s]*([0-9]{4,10})/i);
+          
+          const cells = row.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [];
+          const cellTexts = cells.map(cell => stripTags(cell).trim()).filter(t => t.length > 0);
+          
+          if (cellTexts.length >= 1) {
+            const eventType = cellTexts[0] || 'Hearing';
+            const description = cellTexts.slice(1).join(' ') || eventType;
+            
+            upcomingEvents.push({
+              date: eventDate,
+              time: eventTime,
+              eventType: eventType,
+              department: '',
+              judge: judge !== 'Unknown' ? judge : '',
+              description: description,
+              virtualInfo: zoomIdMatch ? {
+                zoomId: zoomIdMatch[1],
+                passcode: passcodeMatch ? passcodeMatch[1] : ''
+              } : undefined
+            });
+          }
+        }
+      }
+      
+      console.log(`✅ Extracted ${upcomingEvents.length} upcoming events`);
+      
+      // Extract case title
+      const titleMatch = html.match(/Case\s+Title[:\s]*([^<\n\r]{1,200})/i) || 
+                        html.match(/Title[:\s]*([^<\n\r]{1,200})/i);
+      const caseTitle = titleMatch ? titleMatch[1].trim() : `Case ${caseNumber}`;
+      
+      // Extract case type
+      const caseTypeMatch = html.match(/Case\s+Type[:\s]*([^<\n\r]{1,100})/i);
+      const caseType = caseTypeMatch ? caseTypeMatch[1].trim() : this.determineCaseType(caseNumber);
+      
+      // Extract status
+      const statusMatch = html.match(/Status[:\s]*([^<\n\r]{1,50})/i);
+      const status = statusMatch ? statusMatch[1].trim() : 'Active';
+      
+      // Extract date filed
+      const dateFiledMatch = html.match(/Date\s+Filed[:\s]*(\d{1,2}\/\d{1,2}\/\d{4})/i);
+      const dateFiled = dateFiledMatch ? this.normalizeDate(dateFiledMatch[1]) : new Date().toISOString().split('T')[0];
+      
+      // Extract department
+      const deptMatch = html.match(/Department[:\s]*([^<\n\r]{1,50})/i);
+      const department = deptMatch ? deptMatch[1].trim() : 'San Diego Superior Court';
+      
+      // Extract parties
+      const parties: string[] = [];
+      const plaintiffMatch = html.match(/Plaintiff[:\s]*([^<\n\r]{1,100})/i) || html.match(/Petitioner[:\s]*([^<\n\r]{1,100})/i);
+      const defendantMatch = html.match(/Defendant[:\s]*([^<\n\r]{1,100})/i) || html.match(/Respondent[:\s]*([^<\n\r]{1,100})/i);
+      
+      if (plaintiffMatch) parties.push(plaintiffMatch[1].trim());
+      if (defendantMatch) parties.push(defendantMatch[1].trim());
+      
       return {
         caseNumber,
-        caseTitle: 'Case Details from San Diego County',
+        caseTitle,
+        caseType,
+        status,
+        dateFiled,
+        lastActivity: new Date().toISOString().split('T')[0],
+        department,
+        judge,
+        parties: parties.length > 0 ? parties : [],
+        upcomingEvents,
+        registerOfActions
+      };
+    } catch (error) {
+      console.error('Error parsing county case details HTML:', error);
+      // Return basic structure on error
+      return {
+        caseNumber,
+        caseTitle: `Case ${caseNumber}`,
         caseType: 'Unknown',
         status: 'Active',
         dateFiled: new Date().toISOString().split('T')[0],
         lastActivity: new Date().toISOString().split('T')[0],
-        department: 'Unknown',
+        department: 'San Diego Superior Court',
         judge: 'Unknown',
         parties: [],
         upcomingEvents: [],
         registerOfActions: []
       };
-    } catch (error) {
-      console.error('Error parsing county case details HTML:', error);
-      throw new Error('Unable to parse case details from county response');
     }
   }
 

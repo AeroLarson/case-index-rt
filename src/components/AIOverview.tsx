@@ -14,6 +14,10 @@ interface AIOverviewProps {
   }
   lastLogin?: string
   className?: string
+  countyData?: {
+    registerOfActions?: Array<{ date: string; action: string; description: string; filedBy?: string }>
+    upcomingEvents?: Array<{ date: string; time: string; eventType: string; description: string; virtualInfo?: { zoomId: string; passcode: string } }>
+  }
 }
 
 export default function AIOverview({ 
@@ -24,7 +28,8 @@ export default function AIOverview({
   judge, 
   parties,
   lastLogin, 
-  className = '' 
+  className = '',
+  countyData
 }: AIOverviewProps) {
   const [isThinking, setIsThinking] = useState(false)
   const [overview, setOverview] = useState('')
@@ -34,8 +39,8 @@ export default function AIOverview({
   useEffect(() => {
     if (!caseId) return
 
-    generateAIOverview(caseId, caseTitle, caseStatus, court, judge, parties, lastLogin)
-  }, [caseId, caseTitle, caseStatus, court, judge, parties, lastLogin])
+    generateAIOverview(caseId, caseTitle, caseStatus, court, judge, parties, lastLogin, countyData)
+  }, [caseId, caseTitle, caseStatus, court, judge, parties, lastLogin, countyData])
 
   const generateAIOverview = async (
     caseId: string, 
@@ -44,7 +49,11 @@ export default function AIOverview({
     court?: string, 
     judge?: string, 
     parties?: { plaintiff: string; defendant: string },
-    lastLogin?: string
+    lastLogin?: string,
+    countyData?: {
+      registerOfActions?: Array<{ date: string; action: string; description: string; filedBy?: string }>
+      upcomingEvents?: Array<{ date: string; time: string; eventType: string; description: string; virtualInfo?: { zoomId: string; passcode: string } }>
+    }
   ) => {
     try {
       setIsThinking(true)
@@ -56,20 +65,35 @@ export default function AIOverview({
       const caseType = caseTypeMatch ? caseTypeMatch[1] : "Family Law"
       
       // Prepare case data using actual selected case information
+      // Include register of actions and upcoming events for better AI analysis
+      const registerOfActions = countyData?.registerOfActions || []
+      const upcomingEvents = countyData?.upcomingEvents || []
+      
+      // Build summary of recent actions
+      const recentActions = registerOfActions.slice(0, 10).map(action => 
+        `${action.date}: ${action.action} - ${action.description}`
+      ).join('\n')
+      
+      // Build summary of upcoming events
+      const upcomingEventsSummary = upcomingEvents.map(event => 
+        `${event.date} ${event.time}: ${event.eventType} - ${event.description}${event.virtualInfo ? ` (Zoom ID: ${event.virtualInfo.zoomId})` : ''}`
+      ).join('\n')
+      
       const caseData = {
         caseNumber: caseId,
         caseTitle: caseTitle || `Case ${caseId}`,
         caseType: `Family Law - ${caseType}`,
         status: caseStatus || "Active",
-        dateFiled: "March 15, 2024", // Could be enhanced to use real date if available
+        dateFiled: new Date().toISOString().split('T')[0], // Use current date as fallback
         parties: {
           petitioner: parties?.plaintiff || "Unknown",
-          respondent: parties?.defendant || "Unknown",
-          petitionerAttorney: "Law Office of Smith & Associates",
-          respondentAttorney: "Martinez Family Law Group"
+          respondent: parties?.defendant || "Unknown"
         },
         courtLocation: court || "San Diego Superior Court",
-        judicialOfficer: judge || "Hon. Rebecca Kanter"
+        judicialOfficer: judge || "Unknown",
+        registerOfActions: recentActions,
+        upcomingEvents: upcomingEventsSummary,
+        recentMotions: registerOfActions.filter(a => /motion|order|judgment/i.test(a.action)).slice(0, 5).map(a => a.description).join(', ')
       }
 
       // Call API to generate AI insights

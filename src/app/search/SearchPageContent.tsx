@@ -441,6 +441,7 @@ export default function SearchPageContent() {
                 court={selectedCase.court}
                 judge={selectedCase.judge}
                 parties={selectedCase.parties}
+                countyData={selectedCase.countyData}
               />
 
               {/* Upcoming Events */}
@@ -448,16 +449,24 @@ export default function SearchPageContent() {
                 <div className="apple-card p-6">
                   <h4 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
                     <i className="fa-solid fa-calendar-days text-blue-400"></i>
-                    Upcoming Events
+                    Upcoming Events ({selectedCase.countyData.upcomingEvents.length})
                   </h4>
                   <div className="space-y-3">
                     {selectedCase.countyData.upcomingEvents.map((event, idx) => (
                       <div key={idx} className="bg-white/5 rounded-lg p-4 border border-white/10">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="text-white font-medium">{event.eventType || 'Hearing'}</p>
+                            <div className="flex items-center gap-2 mb-2">
+                              <p className="text-white font-medium">{event.eventType || 'Hearing'}</p>
+                              {event.virtualInfo && (
+                                <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded">
+                                  <i className="fa-solid fa-video mr-1"></i>
+                                  Virtual
+                                </span>
+                              )}
+                            </div>
                             <p className="text-gray-400 text-sm mt-1">{event.description}</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                            <div className="flex items-center gap-4 mt-3 text-sm text-gray-400 flex-wrap">
                               <span className="flex items-center gap-1">
                                 <i className="fa-solid fa-calendar text-blue-400"></i>
                                 {event.date ? new Date(event.date).toLocaleDateString() : 'Date TBD'}
@@ -467,6 +476,17 @@ export default function SearchPageContent() {
                                   <i className="fa-solid fa-clock text-green-400"></i>
                                   {event.time}
                                 </span>
+                              )}
+                              {event.virtualInfo && (
+                                <div className="flex items-center gap-2 mt-2 w-full">
+                                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2 flex-1">
+                                    <p className="text-purple-300 text-xs font-medium mb-1">Zoom Meeting</p>
+                                    <p className="text-white text-sm font-mono">ID: {event.virtualInfo.zoomId}</p>
+                                    {event.virtualInfo.passcode && (
+                                      <p className="text-gray-400 text-xs mt-1">Passcode: {event.virtualInfo.passcode}</p>
+                                    )}
+                                  </div>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -485,24 +505,40 @@ export default function SearchPageContent() {
                     Register of Actions ({selectedCase.countyData.registerOfActions.length})
                   </h4>
                   <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {selectedCase.countyData.registerOfActions.slice(0, 10).map((action, idx) => (
-                      <div key={idx} className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="text-white text-sm font-medium">{action.action}</p>
-                            <p className="text-gray-400 text-xs mt-1">{action.description}</p>
-                            <p className="text-gray-500 text-xs mt-1">
-                              {action.date ? new Date(action.date).toLocaleDateString() : 'Date unknown'}
-                            </p>
+                    {selectedCase.countyData.registerOfActions.map((action, idx) => {
+                      const isMotion = /motion|order|judgment|ruling/i.test(action.action || action.description)
+                      const isFiling = /filed|filing|document/i.test(action.action || action.description)
+                      const isHearing = /hearing|trial|conference/i.test(action.action || action.description)
+                      
+                      return (
+                        <div key={idx} className={`bg-white/5 rounded-lg p-3 border ${
+                          isMotion ? 'border-yellow-500/20 bg-yellow-500/5' :
+                          isFiling ? 'border-blue-500/20 bg-blue-500/5' :
+                          isHearing ? 'border-green-500/20 bg-green-500/5' :
+                          'border-white/10'
+                        }`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                {isMotion && <i className="fa-solid fa-gavel text-yellow-400 text-xs"></i>}
+                                {isFiling && <i className="fa-solid fa-file text-blue-400 text-xs"></i>}
+                                {isHearing && <i className="fa-solid fa-calendar-check text-green-400 text-xs"></i>}
+                                <p className="text-white text-sm font-medium">{action.action || 'Action'}</p>
+                              </div>
+                              <p className="text-gray-400 text-xs mt-1">{action.description}</p>
+                              <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                <span>
+                                  {action.date ? new Date(action.date).toLocaleDateString() : 'Date unknown'}
+                                </span>
+                                {action.filedBy && action.filedBy !== 'Unknown' && (
+                                  <span className="text-gray-400">• Filed by: {action.filedBy}</span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                    {selectedCase.countyData.registerOfActions.length > 10 && (
-                      <p className="text-gray-400 text-sm text-center mt-2">
-                        Showing 10 of {selectedCase.countyData.registerOfActions.length} actions
-                      </p>
-                    )}
+                      )
+                    })}
                   </div>
                 </div>
               )}
