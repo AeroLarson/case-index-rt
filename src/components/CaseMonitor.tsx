@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { userProfileManager } from '@/lib/userProfile'
 
 /**
  * Automatic Case Monitor Component
@@ -26,6 +27,14 @@ export default function CaseMonitor() {
       }
 
       try {
+        // Get user's saved cases from profile
+        const profile = userProfileManager.getUserProfile(user.id, user.name || '', user.email || '')
+        const savedCases = profile.savedCases || []
+        
+        if (savedCases.length === 0) {
+          return // No cases to monitor
+        }
+        
         console.log('🔍 Automatic case monitoring: Checking for updates...')
         const response = await fetch('/api/cases/monitor', {
           method: 'POST',
@@ -33,17 +42,50 @@ export default function CaseMonitor() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${user.id}`
           },
-          body: JSON.stringify({ userId: user.id })
+          body: JSON.stringify({ 
+            userId: user.id,
+            savedCases: savedCases.map(c => ({
+              caseNumber: c.caseNumber,
+              caseTitle: c.caseTitle,
+              caseStatus: c.caseStatus,
+              notes: c.notes,
+              calendarEvents: profile.calendarEvents?.filter(e => e.caseNumber === c.caseNumber) || []
+            }))
+          })
         })
 
         if (response.ok) {
           const data = await response.json()
           console.log('✅ Case monitoring complete:', data.message)
+          
+          if (data.notifications && data.notifications.length > 0) {
+            // Add notifications on client side
+            data.notifications.forEach((notif: any) => {
+              userProfileManager.addNotification(user.id, notif)
+            })
+            console.log(`📬 Added ${data.notifications.length} notification(s)`)
+          }
+          
           if (data.updates && data.updates.length > 0) {
             console.log(`📬 Found ${data.updates.length} case(s) with updates`)
-            // Refresh profile to show new notifications
-            refreshProfile()
+            
+            // Update saved cases with new data
+            data.updates.forEach((update: any) => {
+              const caseIndex = profile.savedCases.findIndex(c => c.caseNumber === update.caseNumber)
+              if (caseIndex >= 0) {
+                profile.savedCases[caseIndex] = {
+                  ...profile.savedCases[caseIndex],
+                  caseStatus: update.updatedData.status,
+                  notes: update.updatedData.registerOfActionsCount.toString()
+                }
+              }
+            })
+            
+            userProfileManager.saveUserProfile(profile)
           }
+          
+          // Refresh profile to show new notifications
+          refreshProfile()
           lastCheckRef.current = now
         }
       } catch (error) {

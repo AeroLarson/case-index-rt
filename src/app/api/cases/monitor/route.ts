@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { countyDataService } from '@/lib/countyDataService'
-import { userProfileManager } from '@/lib/userProfile'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json()
+    const { userId, savedCases } = await request.json()
     
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    // Get user's saved cases
-    const profile = userProfileManager.getUserProfile(userId, '', '')
-    const savedCases = profile.savedCases || []
+    // Saved cases should be passed from the client since userProfileManager is client-side only
+    if (!savedCases || !Array.isArray(savedCases)) {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'No saved cases provided',
+        updates: []
+      })
+    }
     
     if (savedCases.length === 0) {
       return NextResponse.json({ 
@@ -25,6 +29,7 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 Monitoring ${savedCases.length} saved cases for user ${userId}`)
     
     const updates: any[] = []
+    const notifications: any[] = []
     
     // Check each saved case for updates
     for (const savedCase of savedCases.slice(0, 10)) { // Limit to 10 cases per check
@@ -39,7 +44,7 @@ export async function POST(request: NextRequest) {
         if (currentData.status !== savedCase.caseStatus) {
           changes.push(`Status changed from "${savedCase.caseStatus}" to "${currentData.status}"`)
           
-          userProfileManager.addNotification(userId, {
+          notifications.push({
             type: 'status_change',
             title: `Case Status Updated: ${savedCase.caseNumber}`,
             message: `Case status changed from "${savedCase.caseStatus}" to "${currentData.status}"`,
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest) {
           changes.push(`${newActions.length} new filing(s) added`)
           
           newActions.forEach(action => {
-            userProfileManager.addNotification(userId, {
+            notifications.push({
               type: 'new_filing',
               title: `New Filing: ${savedCase.caseNumber}`,
               message: `${action.action}: ${action.description}`,
@@ -73,10 +78,13 @@ export async function POST(request: NextRequest) {
         
         // Check for new or changed upcoming events
         if (currentData.upcomingEvents.length > 0) {
+          // Get existing calendar events from saved case (passed from client)
+          const existingEvents = savedCase.calendarEvents || []
+          
           currentData.upcomingEvents.forEach(event => {
-            // Check if this is a new event or if Zoom info changed
-            const existingEvent = profile.calendarEvents.find(
-              e => e.caseNumber === savedCase.caseNumber && 
+            // Check if this is a new event
+            const existingEvent = existingEvents.find(
+              (e: any) => e.caseNumber === savedCase.caseNumber && 
                    e.date === event.date && 
                    e.time === event.time
             )
@@ -85,7 +93,7 @@ export async function POST(request: NextRequest) {
               // New event
               changes.push(`New ${event.eventType} scheduled for ${event.date} ${event.time}`)
               
-              userProfileManager.addNotification(userId, {
+              notifications.push({
                 type: 'hearing_scheduled',
                 title: `New Hearing Scheduled: ${savedCase.caseNumber}`,
                 message: `${event.eventType} scheduled for ${event.date} at ${event.time}`,
@@ -103,7 +111,7 @@ export async function POST(request: NextRequest) {
               // Zoom info added
               changes.push(`Zoom meeting info added for ${event.eventType} on ${event.date}`)
               
-              userProfileManager.addNotification(userId, {
+              notifications.push({
                 type: 'zoom_updated',
                 title: `Zoom Meeting Info Added: ${savedCase.caseNumber}`,
                 message: `Zoom meeting ID: ${event.virtualInfo.zoomId} for ${event.eventType} on ${event.date}`,
@@ -121,23 +129,16 @@ export async function POST(request: NextRequest) {
           })
         }
         
-        // Update saved case with new action count
         if (changes.length > 0) {
-          const updatedCase = { ...savedCase }
-          updatedCase.notes = currentData.registerOfActions.length.toString()
-          updatedCase.caseStatus = currentData.status
-          
-          // Update saved case
-          const cases = profile.savedCases
-          const caseIndex = cases.findIndex(c => c.caseNumber === savedCase.caseNumber)
-          if (caseIndex >= 0) {
-            cases[caseIndex] = updatedCase
-            userProfileManager.saveUserProfile(profile)
-          }
-          
           updates.push({
             caseNumber: savedCase.caseNumber,
-            changes
+            caseTitle: savedCase.caseTitle,
+            changes,
+            updatedData: {
+              status: currentData.status,
+              registerOfActionsCount: currentData.registerOfActions.length,
+              upcomingEventsCount: currentData.upcomingEvents.length
+            }
           })
         }
         
@@ -154,6 +155,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `Checked ${savedCases.length} cases, found ${updates.length} with updates`,
       updates,
+      notifications, // Return notifications to be added on client side
       checkedAt: new Date().toISOString()
     })
     
