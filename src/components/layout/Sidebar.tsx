@@ -2,13 +2,30 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, usePathname } from 'next/navigation'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { userProfileManager } from '@/lib/userProfile'
 
 export default function Sidebar() {
-  const { user, logout } = useAuth()
+  const { user, logout, userProfile } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    if (user) {
+      const count = userProfileManager.getUnreadNotificationsCount(user.id)
+      setUnreadCount(count)
+      
+      // Update count every 30 seconds
+      const interval = setInterval(() => {
+        const newCount = userProfileManager.getUnreadNotificationsCount(user.id)
+        setUnreadCount(newCount)
+      }, 30000)
+      
+      return () => clearInterval(interval)
+    }
+  }, [user, userProfile])
 
   const handleLogout = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -101,6 +118,14 @@ export default function Sidebar() {
               <span>Case Search</span>
             </button>
             <button 
+              onClick={() => handleNavigation('/court-rules')}
+              id="nav-court-rules"
+              className={getButtonClasses('/court-rules')}
+            >
+              <i className="fa-solid fa-book text-base" />
+              <span>Court Rules</span>
+            </button>
+            <button 
               onClick={() => handleNavigation('/analytics')}
               id="nav-analytics"
               className={getButtonClasses('/analytics')}
@@ -113,7 +138,14 @@ export default function Sidebar() {
               id="nav-notifications"
               className={getButtonClasses('/notifications')}
             >
-              <i className="fa-solid fa-bell text-base" />
+              <div className="relative">
+                <i className="fa-solid fa-bell text-base" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
               <span>Notifications</span>
             </button>
             <button 

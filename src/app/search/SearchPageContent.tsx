@@ -219,50 +219,109 @@ export default function SearchPageContent() {
       }}
     >
       <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
         <div className="mb-8">
-          <h1 className="text-white text-4xl font-bold mb-3 flex items-center gap-3">
-            <i className="fa-solid fa-search text-blue-400"></i>
-            San Diego County Case Search
-          </h1>
-          <p className="text-gray-300 text-lg">Search by case number (e.g., 22FL001581C) or party name (e.g., John Smith)</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-white text-4xl font-bold mb-3 flex items-center gap-3">
+                <i className="fa-solid fa-search text-blue-400"></i>
+                San Diego County Case Search
+              </h1>
+              <p className="text-gray-300 text-lg">Search by case number or party name to find case information, filings, and upcoming hearings</p>
+            </div>
+          </div>
+          
+          {/* Quick Stats */}
+          {userProfile && userProfile.savedCases && userProfile.savedCases.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="apple-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <i className="fa-solid fa-bookmark text-blue-400 text-xl"></i>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-lg">{userProfile.savedCases.length}</p>
+                    <p className="text-gray-400 text-sm">Saved Cases</p>
+                  </div>
+                </div>
+              </div>
+              <div className="apple-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <i className="fa-solid fa-calendar-check text-green-400 text-xl"></i>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-lg">{userProfile.calendarEvents?.length || 0}</p>
+                    <p className="text-gray-400 text-sm">Upcoming Events</p>
+                  </div>
+                </div>
+              </div>
+              <div className="apple-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                    <i className="fa-solid fa-bell text-purple-400 text-xl"></i>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-lg">{userProfile.notifications?.filter(n => !n.read).length || 0}</p>
+                    <p className="text-gray-400 text-sm">Unread Notifications</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Single Search Bar */}
+        {/* Enhanced Search Bar */}
         <form onSubmit={performSearch} className="apple-card p-6 mb-6">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter case number (e.g., 22FL001581C) or name (e.g., John Smith)"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
-                disabled={loading}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading || !searchQuery.trim()}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-blue-800 disabled:to-purple-900 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-            >
-              <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-lg`}></i>
-              {loading ? 'Searching…' : 'Search'}
-            </button>
-            {searchQuery && (
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <i className="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Enter case number (e.g., 22FL001581C, FL-2024-123456) or party name (e.g., John Smith)"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                  disabled={loading}
+                />
+              </div>
               <button
-                type="button"
-                onClick={clearForm}
-                className="bg-white/5 hover:bg-white/10 text-white px-6 py-4 rounded-lg font-medium border border-white/10 transition-colors"
-                disabled={loading}
+                type="submit"
+                disabled={loading || !searchQuery.trim()}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-blue-800 disabled:to-purple-900 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl flex items-center gap-2 min-w-[140px] justify-center"
               >
-                <i className="fa-solid fa-times"></i>
+                <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-lg`}></i>
+                {loading ? 'Searching…' : 'Search'}
               </button>
-            )}
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearForm}
+                  className="bg-white/5 hover:bg-white/10 text-white px-6 py-4 rounded-lg font-medium border border-white/10 transition-colors"
+                  disabled={loading}
+                  title="Clear search"
+                >
+                  <i className="fa-solid fa-times"></i>
+                </button>
+              )}
+            </div>
+            
+            {/* Search Tips */}
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <i className="fa-solid fa-lightbulb text-blue-400 mt-1"></i>
+                <div className="flex-1">
+                  <p className="text-blue-300 font-medium mb-2">Search Tips</p>
+                  <ul className="text-gray-300 text-sm space-y-1">
+                    <li>• <strong>Case Numbers:</strong> Use format like <code className="bg-white/10 px-1 rounded">22FL001581C</code> or <code className="bg-white/10 px-1 rounded">FL-2024-123456</code></li>
+                    <li>• <strong>Party Names:</strong> Enter first name, last name, or full name (e.g., "John Smith" or "Smith")</li>
+                    <li>• <strong>Auto-Detection:</strong> We'll automatically detect if you're searching by case number or name</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-gray-400 text-sm mt-3">
-            <i className="fa-solid fa-info-circle mr-2"></i>
-            We'll automatically detect if you're searching by case number or name
-          </p>
         </form>
 
         {error && (
@@ -293,67 +352,115 @@ export default function SearchPageContent() {
         )}
 
         {results.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-white text-2xl font-semibold mb-4">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-white text-2xl font-semibold">
               Search Results ({results.length})
             </h2>
+            <div className="text-gray-400 text-sm">
+              <i className="fa-solid fa-info-circle mr-2"></i>
+              Click "View Details" to see full case information, motions, and upcoming hearings
+            </div>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {results.map((c) => (
-            <div key={c.id} className="apple-card p-6 hover:bg-white/5 transition-colors">
+            <div key={c.id} className="apple-card p-6 hover:bg-white/5 transition-all hover:shadow-xl">
               <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-white font-semibold text-lg">{c.title}</div>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      c.status === 'Active' ? 'bg-green-500/20 text-green-400' : 
-                      c.status === 'Closed' ? 'bg-gray-500/20 text-gray-400' : 
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {c.status}
-                    </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold text-lg mb-2 line-clamp-2">{c.title}</h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                          c.status === 'Active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
+                          c.status === 'Closed' ? 'bg-gray-500/20 text-gray-400 border border-gray-500/30' : 
+                          'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                        }`}>
+                          {c.status}
+                        </span>
+                        {c.caseType && (
+                          <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                            {c.caseType}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <i className="fa-solid fa-hashtag text-blue-400"></i>
-                      {c.caseNumber}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <i className="fa-solid fa-landmark text-purple-400"></i>
-                      {c.court}
-                    </span>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <i className="fa-solid fa-hashtag text-blue-400 w-4"></i>
+                      <span className="text-gray-300 font-mono">{c.caseNumber}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <i className="fa-solid fa-landmark text-purple-400 w-4"></i>
+                      <span className="text-gray-300">{c.court}</span>
+                    </div>
+                    {c.judge && c.judge !== 'Unknown' && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <i className="fa-solid fa-gavel text-yellow-400 w-4"></i>
+                        <span className="text-gray-300">Judge: {c.judge}</span>
+                      </div>
+                    )}
+                    {c.dateFiled && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <i className="fa-solid fa-calendar text-green-400 w-4"></i>
+                        <span className="text-gray-300">Filed: {new Date(c.dateFiled).toLocaleDateString()}</span>
+                      </div>
+                    )}
                   </div>
+                  
                   {c.parties && (c.parties.plaintiff || c.parties.defendant) && (
-                    <div className="mt-2 text-sm text-gray-300">
-                      <span className="text-gray-500">Parties: </span>
-                      {c.parties.plaintiff || 'Unknown'} v. {c.parties.defendant || 'Unknown'}
+                    <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                      <p className="text-gray-400 text-xs mb-1">Parties</p>
+                      <p className="text-white text-sm">
+                        <span className="font-medium">{c.parties.plaintiff || 'Unknown'}</span>
+                        {' v. '}
+                        <span className="font-medium">{c.parties.defendant || 'Unknown'}</span>
+                      </p>
                     </div>
                   )}
+
+                  {/* Quick Stats */}
+                  <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
+                    {c.countyData?.registerOfActions && c.countyData.registerOfActions.length > 0 && (
+                      <span className="flex items-center gap-1">
+                        <i className="fa-solid fa-file-lines text-blue-400"></i>
+                        {c.countyData.registerOfActions.length} filing(s)
+                      </span>
+                    )}
+                    {c.countyData?.upcomingEvents && c.countyData.upcomingEvents.length > 0 && (
+                      <span className="flex items-center gap-1">
+                        <i className="fa-solid fa-calendar-days text-green-400"></i>
+                        {c.countyData.upcomingEvents.length} event(s)
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2 pt-4 border-t border-white/10">
+              
+              <div className="flex gap-2 pt-4 border-t border-white/10 flex-wrap">
                 <button 
                   onClick={() => { setSelectedCase(c); setShowDetailsModal(true) }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   <i className="fa-solid fa-eye"></i>
                   View Details
                 </button>
                 <button 
                   onClick={() => addToCalendar(c)}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   <i className="fa-solid fa-calendar-plus"></i>
                   Add to Calendar
                 </button>
                 <button 
                   onClick={() => saveCase(c)}
-                  className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/10 transition-colors flex items-center gap-2"
+                  className="bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium border border-white/10 transition-colors flex items-center gap-2"
+                  title="Save case to your profile"
                 >
                   <i className="fa-solid fa-bookmark"></i>
-                  Save
                 </button>
               </div>
             </div>

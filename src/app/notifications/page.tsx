@@ -3,21 +3,10 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-
-interface Notification {
-  id: string
-  type: 'hearing' | 'deadline' | 'document' | 'case_update' | 'system'
-  title: string
-  message: string
-  timestamp: string
-  isRead: boolean
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  caseNumber?: string
-  actionUrl?: string
-}
+import { userProfileManager, Notification } from '@/lib/userProfile'
 
 export default function NotificationsPage() {
-  const { user, userProfile, isLoading: authLoading } = useAuth()
+  const { user, userProfile, isLoading: authLoading, refreshProfile } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent'>('all')
@@ -30,105 +19,45 @@ export default function NotificationsPage() {
     }
 
     if (user) {
-      // Load real notifications based on user data
-    const loadNotifications = async () => {
-      setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      const realNotifications: Notification[] = []
-      
-      // Generate notifications from user's saved cases
-      const savedCases = userProfile?.savedCases || []
-      const now = new Date()
-      
-      savedCases.forEach(case_ => {
-        // Check if case has upcoming hearings (within 24 hours = urgent)
-        const hearingDate = new Date(case_.dateFiled)
-        const timeDiff = hearingDate.getTime() - now.getTime()
-        const hoursDiff = timeDiff / (1000 * 60 * 60)
-        
-        if (hoursDiff <= 24 && hoursDiff > 0) {
-          realNotifications.push({
-            id: `urgent_${case_.id}`,
-            type: 'hearing',
-            title: 'URGENT: Upcoming Hearing',
-            message: `Hearing for ${case_.caseTitle} scheduled within 24 hours`,
-            timestamp: 'Just now',
-            isRead: false,
-            priority: 'urgent',
-            caseNumber: case_.caseNumber,
-            actionUrl: '/search'
-          })
-        }
-        
-        // Add case update notifications
-        if (case_.caseStatus === 'Active') {
-          realNotifications.push({
-            id: `update_${case_.id}`,
-            type: 'case_update',
-            title: 'Case Status Update',
-            message: `${case_.caseTitle} status: ${case_.caseStatus}`,
-            timestamp: new Date(case_.savedAt).toLocaleDateString(),
-            isRead: false,
-            priority: 'medium',
-            caseNumber: case_.caseNumber,
-            actionUrl: '/search'
-          })
-        }
-      })
-      
-      // Add search limit notifications for free users
-      if (userProfile?.plan === 'free' && userProfile?.monthlyUsage >= userProfile?.maxMonthlyUsage) {
-        realNotifications.push({
-          id: 'limit_reached',
-          type: 'system',
-          title: 'Search Limit Reached',
-          message: 'You have reached your monthly search limit. Upgrade to Pro for unlimited searches.',
-          timestamp: 'Just now',
-          isRead: false,
-          priority: 'high',
-          actionUrl: '/billing'
-        })
-      }
-      
-      // If no real notifications, show empty state
-      if (realNotifications.length === 0) {
-        realNotifications.push({
-          id: 'no_notifications',
-          type: 'system',
-          title: 'No Notifications',
-          message: 'You have no notifications at this time. Start searching for cases to receive updates.',
-          timestamp: 'Just now',
-          isRead: true,
-          priority: 'low',
-          actionUrl: '/search'
-        })
-      }
-      
-      setNotifications(realNotifications)
-      setIsLoading(false)
-    }
-
-    loadNotifications()
+      loadNotifications()
     }
   }, [authLoading, user, userProfile, router])
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
+  const loadNotifications = () => {
+    if (!user) return
+    
+    setIsLoading(true)
+    const profile = userProfileManager.getUserProfile(user.id, user.name || '', user.email || '')
+    const userNotifications = userProfileManager.getNotifications(user.id)
+    
+    // Sort by date (newest first)
+    const sortedNotifications = [...userNotifications].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
+    
+    setNotifications(sortedNotifications)
+    setIsLoading(false)
+  }
+
+  const markAsRead = (id: string) => {
+    if (!user) return
+    userProfileManager.markNotificationAsRead(user.id, id)
+    refreshProfile()
+    loadNotifications()
   }
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, isRead: true }))
-    )
+    if (!user) return
+    userProfileManager.markAllNotificationsAsRead(user.id)
+    refreshProfile()
+    loadNotifications()
   }
 
   const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id))
+    if (!user) return
+    userProfileManager.deleteNotification(user.id, id)
+    refreshProfile()
+    loadNotifications()
   }
 
   const handleNotificationClick = (notification: Notification) => {
@@ -164,14 +93,16 @@ export default function NotificationsPage() {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'hearing':
-        return 'fa-gavel'
-      case 'deadline':
-        return 'fa-clock'
-      case 'document':
-        return 'fa-file'
+      case 'hearing_scheduled':
+      case 'hearing_changed':
+        return 'fa-calendar-days'
+      case 'new_filing':
+        return 'fa-file-circle-plus'
       case 'case_update':
+      case 'status_change':
         return 'fa-sync'
+      case 'zoom_updated':
+        return 'fa-video'
       case 'system':
         return 'fa-robot'
       default:
@@ -179,24 +110,32 @@ export default function NotificationsPage() {
     }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-500'
-      case 'high':
-        return 'bg-orange-500'
-      case 'medium':
-        return 'bg-yellow-500'
-      case 'low':
-        return 'bg-blue-500'
-      default:
-        return 'bg-gray-500'
-    }
+  const getPriorityColor = (type: string) => {
+    if (type === 'hearing_scheduled' || type === 'hearing_changed') return 'bg-green-500'
+    if (type === 'new_filing') return 'bg-blue-500'
+    if (type === 'status_change') return 'bg-yellow-500'
+    if (type === 'zoom_updated') return 'bg-purple-500'
+    return 'bg-gray-500'
+  }
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString()
   }
 
   const filteredNotifications = notifications.filter(notif => {
-    if (filter === 'unread') return !notif.isRead
-    if (filter === 'urgent') return notif.priority === 'urgent'
+    if (filter === 'unread') return !notif.read
+    if (filter === 'urgent') return notif.type === 'hearing_scheduled' || notif.type === 'hearing_changed'
     return true
   })
 
@@ -250,7 +189,7 @@ export default function NotificationsPage() {
                 : 'bg-white/5 text-gray-300 hover:bg-white/10'
             }`}
           >
-            Unread ({notifications.filter(n => !n.isRead).length})
+            Unread ({notifications.filter(n => !n.read).length})
           </button>
           <button
             onClick={() => setFilter('urgent')}
@@ -260,7 +199,7 @@ export default function NotificationsPage() {
                 : 'bg-white/5 text-gray-300 hover:bg-white/10'
             }`}
           >
-            Urgent ({notifications.filter(n => n.priority === 'urgent').length})
+            Urgent ({notifications.filter(n => n.type === 'hearing_scheduled' || n.type === 'hearing_changed').length})
           </button>
         </div>
 
@@ -294,44 +233,47 @@ export default function NotificationsPage() {
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={`apple-card p-6 hover-lift transition-all duration-200 cursor-pointer ${
-                    !notification.isRead ? 'ring-2 ring-blue-500/50' : ''
+                    !notification.read ? 'ring-2 ring-blue-500/50' : ''
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 ${getPriorityColor(notification.priority)} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    <div className={`w-12 h-12 ${getPriorityColor(notification.type)} rounded-xl flex items-center justify-center flex-shrink-0`}>
                       <i className={`fa-solid ${getNotificationIcon(notification.type)} text-white text-lg`}></i>
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-2">
                         <h3 className="text-white font-semibold text-lg">{notification.title}</h3>
                         <div className="flex items-center gap-2">
-                          {!notification.isRead && (
+                          {!notification.read && (
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           )}
-                          <span className="text-gray-400 text-sm">{notification.timestamp}</span>
+                          <span className="text-gray-400 text-sm">{formatTimestamp(notification.createdAt)}</span>
                         </div>
                       </div>
                       
                       <p className="text-gray-300 mb-3">{notification.message}</p>
                       
                       {notification.caseNumber && (
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-4 text-sm flex-wrap">
                           <span className="text-blue-300 font-medium">{notification.caseNumber}</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            notification.priority === 'urgent' ? 'bg-red-500/20 text-red-400' :
-                            notification.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                            notification.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-blue-500/20 text-blue-400'
-                          }`}>
-                            {notification.priority.toUpperCase()}
-                          </span>
+                          {notification.caseTitle && (
+                            <span className="text-gray-400">{notification.caseTitle}</span>
+                          )}
+                          {notification.metadata?.zoomId && (
+                            <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg px-3 py-1">
+                              <span className="text-purple-300 text-xs">
+                                <i className="fa-solid fa-video mr-1"></i>
+                                Zoom: {notification.metadata.zoomId}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                     
                     <div className="flex flex-col gap-2">
-                      {!notification.isRead && (
+                      {!notification.read && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
