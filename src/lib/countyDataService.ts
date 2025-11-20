@@ -197,10 +197,12 @@ class CountyDataService {
   }
 
   private isValidCaseNumber(caseNumber: string): boolean {
-    // San Diego County case number format: YY[Type]######[Optional]
-    // Examples: 22FL001581C, 23CV123456, 24CR789012A
-    const pattern = /^\d{2}[A-Z]{2}\d{6}[A-Z]?$/;
-    return pattern.test(caseNumber);
+    // San Diego County case number formats:
+    // Format 1: YY[Type]######[Optional] - e.g., 22FL001581C
+    // Format 2: [Type]-YYYY-###### - e.g., FL-2024-123456
+    const pattern1 = /^\d{2}[A-Z]{2}\d{6}[A-Z]?$/;
+    const pattern2 = /^[A-Z]{2}-\d{4}-\d{4,8}$/i;
+    return pattern1.test(caseNumber) || pattern2.test(caseNumber);
   }
 
   private async getRealDataFromWhitelistedSystems(searchQuery: string, searchType: string): Promise<CountyCaseData[]> {
