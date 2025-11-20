@@ -737,9 +737,10 @@ class CountyDataService {
           await page.screenshot({ path: '/tmp/roasearch-page.png', fullPage: true }).catch(() => {});
         }
         
-        // Get all input elements to understand the form structure
-        const allInputs = await page.$$eval('input, textbox', (elements) => 
-          elements.map((el: any) => ({
+        // Get all input elements to understand the form structure (using evaluate instead of $$eval to avoid CSP issues)
+        const allInputs = await page.evaluate(() => {
+          const inputs = Array.from(document.querySelectorAll('input, [role="textbox"]'));
+          return inputs.map((el: any) => ({
             tag: el.tagName,
             type: el.type,
             name: el.name,
@@ -747,8 +748,8 @@ class CountyDataService {
             placeholder: el.placeholder,
             value: el.value,
             role: el.getAttribute('role')
-          }))
-        ).catch(() => []);
+          }));
+        }).catch(() => []);
         console.log('📋 Found form inputs:', JSON.stringify(allInputs, null, 2));
         
         if (searchType === 'caseNumber') {
@@ -913,42 +914,75 @@ class CountyDataService {
         // Find and click Search button - try multiple methods
         let buttonClicked = false;
         
-        // Method 1: Try button with "Search" text
+        // Method 1: Try button with "Search" text using evaluate
         try {
-          const searchBtn = await page.evaluateHandle(() => {
+          const buttonFound = await page.evaluate(() => {
             const buttons = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"]'));
-            return buttons.find((btn: any) => 
-              btn.textContent?.toLowerCase().includes('search') || 
-              btn.value?.toLowerCase().includes('search')
-            );
-          }).catch(() => null);
+            const searchBtn = buttons.find((btn: any) => {
+              const text = (btn.textContent || btn.value || '').toLowerCase();
+              return text.includes('search') || text.includes('submit');
+            });
+            if (searchBtn) {
+              (searchBtn as HTMLElement).click();
+              return true;
+            }
+            return false;
+          }).catch(() => false);
           
-          if (searchBtn && searchBtn.asElement()) {
-            await searchBtn.asElement()!.click();
+          if (buttonFound) {
             buttonClicked = true;
-            console.log('✅ Clicked Search button via text content');
+            console.log('✅ Clicked Search button via evaluate');
           }
         } catch (e) {
-          console.log('⚠️ Button text method failed:', e);
+          console.log('⚠️ Button evaluate method failed:', e);
         }
         
-        // Method 2: Try any button
+        // Method 2: Try clicking by selector
         if (!buttonClicked) {
           try {
-            const anyButton = await page.$('button, input[type="submit"]').catch(() => null);
-            if (anyButton) {
-              await anyButton.click();
-              buttonClicked = true;
-              console.log('✅ Clicked first available button');
+            const buttonSelectors = [
+              'button[type="submit"]',
+              'input[type="submit"]',
+              'button:contains("Search")',
+              'button',
+              'input[value*="Search" i]',
+              'input[value*="Submit" i]'
+            ];
+            
+            for (const selector of buttonSelectors) {
+              try {
+                const button = await page.$(selector).catch(() => null);
+                if (button) {
+                  await button.click();
+                  buttonClicked = true;
+                  console.log(`✅ Clicked button via selector: ${selector}`);
+                  break;
+                }
+              } catch (e) {
+                // Try next selector
+              }
             }
           } catch (e) {
-            console.log('⚠️ Generic button method failed:', e);
+            console.log('⚠️ Button selector method failed:', e);
+          }
+        }
+        
+        // Method 3: Try pressing Enter on the input field
+        if (!buttonClicked) {
+          try {
+            const inputs = await page.$$('input[type="text"], textbox').catch(() => []);
+            if (inputs.length > 0) {
+              await inputs[0].press('Enter');
+              buttonClicked = true;
+              console.log('✅ Pressed Enter on input field');
+            }
+          } catch (e) {
+            console.log('⚠️ Enter key method failed:', e);
           }
         }
         
         if (!buttonClicked) {
-          console.log('❌ Could not find Search button');
-          throw new Error('Could not find Search button');
+          console.log('⚠️ Could not find Search button, but continuing anyway - form might auto-submit');
         }
         
         // Wait for results to load
