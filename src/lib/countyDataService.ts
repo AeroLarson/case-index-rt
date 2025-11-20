@@ -336,7 +336,7 @@ class CountyDataService {
         await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
         
         // Wait for page to load
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Try to find and fill search form
         if (searchType === 'caseNumber') {
@@ -346,7 +346,7 @@ class CountyDataService {
             const submitBtn = await page.$('button[type="submit"], input[type="submit"]').catch(() => null);
             if (submitBtn) {
               await submitBtn.click();
-              await page.waitForTimeout(3000);
+              await new Promise(resolve => setTimeout(resolve, 3000));
             }
           }
         } else {
@@ -356,7 +356,7 @@ class CountyDataService {
             const submitBtn = await page.$('button[type="submit"], input[type="submit"]').catch(() => null);
             if (submitBtn) {
               await submitBtn.click();
-              await page.waitForTimeout(3000);
+              await new Promise(resolve => setTimeout(resolve, 3000));
             }
           }
         }
@@ -447,7 +447,7 @@ class CountyDataService {
         
         console.log('📡 Navigating to:', searchPageUrl);
         await page.goto(searchPageUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Find and fill the search form
         if (searchType === 'caseNumber') {
@@ -455,7 +455,7 @@ class CountyDataService {
           const caseInput = await page.$('input[name*="case" i], input[id*="case" i]').catch(() => null);
           if (caseInput) {
             await caseInput.type(searchQuery, { delay: 50 });
-            await page.waitForTimeout(500);
+            await new Promise(resolve => setTimeout(resolve, 500));
             
             // Find and click submit button
             const submitBtn = await page.$('input[type="submit"], button[type="submit"], input[value*="Search" i]').catch(() => null);
@@ -464,7 +464,7 @@ class CountyDataService {
                 page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
                 submitBtn.click()
               ]);
-              await page.waitForTimeout(3000);
+              await new Promise(resolve => setTimeout(resolve, 3000));
             }
           }
         } else {
@@ -494,7 +494,7 @@ class CountyDataService {
             console.log('✅ Filled first name:', firstName);
           }
           
-          await page.waitForTimeout(500);
+          await new Promise(resolve => setTimeout(resolve, 500));
           
           // Find and click Submit button (CourtIndex uses button with text "Submit")
           const submitBtn = await page.$('button:has-text("Submit"), input[value="Submit"], input[type="submit"][value*="Submit" i]').catch(() => null);
@@ -507,7 +507,7 @@ class CountyDataService {
                 page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
                 submitBtn2.click()
               ]);
-              await page.waitForTimeout(4000); // Wait longer for results to load
+              await new Promise(resolve => setTimeout(resolve, 4000)); // Wait longer for results to load
             }
           } else {
             console.log('✅ Found submit button, clicking...');
@@ -515,7 +515,7 @@ class CountyDataService {
               page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
               submitBtn.click()
             ]);
-            await page.waitForTimeout(4000); // Wait longer for results to load
+            await new Promise(resolve => setTimeout(resolve, 4000)); // Wait longer for results to load
           }
         }
         
@@ -793,10 +793,10 @@ class CountyDataService {
         
         console.log('📡 Navigating to ROASearch:', roaSearchUrl);
         await page.goto(roaSearchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Wait for page to fully load
-        await page.waitForTimeout(3000);
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Take a screenshot for debugging (in development)
         if (process.env.NODE_ENV === 'development') {
@@ -975,7 +975,7 @@ class CountyDataService {
           }
         }
         
-        await page.waitForTimeout(1000);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Find and click Search button - try multiple methods
         let buttonClicked = false;
@@ -1053,7 +1053,7 @@ class CountyDataService {
         
         // Wait for results to load
         console.log('⏳ Waiting for search results...');
-        await page.waitForTimeout(5000);
+        await new Promise(resolve => setTimeout(resolve, 5000));
         
         // Try to wait for results table or navigation
         try {
@@ -1062,7 +1062,7 @@ class CountyDataService {
           console.log('⚠️ Results table not found, continuing anyway');
         }
         
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Get the rendered HTML after search
         const html = await page.content();
