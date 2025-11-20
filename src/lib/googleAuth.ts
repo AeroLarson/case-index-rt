@@ -32,10 +32,21 @@ export const authenticateWithGoogle = async (): Promise<GoogleUser> => {
       script.async = true
       script.defer = true
       script.onload = () => {
-        // Add a small delay to ensure Google is fully initialized
+        // Add a delay to ensure Google is fully initialized
         setTimeout(() => {
-          initializeGoogleAuth(resolve, reject)
-        }, 100)
+          if (window.google && (window.google as any).accounts) {
+            initializeGoogleAuth(resolve, reject)
+          } else {
+            // Try again after a longer delay
+            setTimeout(() => {
+              if (window.google && (window.google as any).accounts) {
+                initializeGoogleAuth(resolve, reject)
+              } else {
+                reject(new Error('Google Identity Services loaded but not initialized. Please refresh the page and try again.'))
+              }
+            }, 500)
+          }
+        }, 200)
       }
       script.onerror = () => {
         console.error('Failed to load Google Identity Services script')
