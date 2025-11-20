@@ -35,13 +35,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (savedUser) {
         try {
           const userData = JSON.parse(savedUser)
-          if (userData.id && userData.name && userData.email) {
+          // Don't restore test user or simulation users
+          if (userData.id && userData.name && userData.email && 
+              !userData.id.startsWith('sim_') && 
+              userData.name !== 'Test User' &&
+              userData.email !== 'test@example.com') {
             setUser(userData)
             const profile = userProfileManager.getUserProfile(userData.id, userData.name, userData.email)
             setUserProfile(profile)
+          } else {
+            // Clear test user data
+            console.log('Clearing test user data from localStorage')
+            localStorage.removeItem('user')
           }
         } catch (error) {
           console.warn('AuthContext: Failed to parse saved user:', error)
+          localStorage.removeItem('user')
         }
       }
     }
