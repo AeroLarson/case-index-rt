@@ -335,14 +335,14 @@ export default function SearchPageContent() {
               </div>
               <div className="flex gap-2 pt-4 border-t border-white/10">
                 <button 
-                  onClick={() => setSelectedCase(c); setShowDetailsModal(true)} 
+                  onClick={() => { setSelectedCase(c); setShowDetailsModal(true) }}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                 >
                   <i className="fa-solid fa-eye"></i>
                   View Details
                 </button>
                 <button 
-                  onClick={() => addToCalendar(c)} 
+                  onClick={() => addToCalendar(c)}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                 >
                   <i className="fa-solid fa-calendar-plus"></i>
@@ -368,7 +368,7 @@ export default function SearchPageContent() {
             <div className="sticky top-0 bg-gray-900 border-b border-white/10 p-6 flex items-center justify-between">
               <h2 className="text-white text-2xl font-bold">Case Details</h2>
               <button
-                onClick={() => { setShowDetailsModal(false); setSelectedCase(null); }}
+                onClick={() => { setShowDetailsModal(false); setSelectedCase(null) }}
                 className="text-gray-400 hover:text-white transition-colors"
               >
                 <i className="fa-solid fa-times text-2xl"></i>
@@ -510,14 +510,14 @@ export default function SearchPageContent() {
               {/* Action Buttons */}
               <div className="flex gap-3 pt-4 border-t border-white/10">
                 <button 
-                  onClick={() => { saveCase(selectedCase); setShowDetailsModal(false); }}
+                  onClick={() => { saveCase(selectedCase); setShowDetailsModal(false) }}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                 >
                   <i className="fa-solid fa-bookmark"></i>
                   Save Case
                 </button>
                 <button 
-                  onClick={() => { addToCalendar(selectedCase); setShowDetailsModal(false); }}
+                  onClick={() => { addToCalendar(selectedCase); setShowDetailsModal(false) }}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                 >
                   <i className="fa-solid fa-calendar-plus"></i>
