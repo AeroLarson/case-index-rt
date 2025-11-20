@@ -26,7 +26,15 @@ export default function LoginPage() {
       router.push('/')
     } catch (err: any) {
       console.error('Google sign-in error:', err)
-      setError('Failed to sign in with Google. Please try again.')
+      const errorMessage = err?.message || 'Failed to sign in with Google. Please try again.'
+      setError(errorMessage)
+      
+      // If it's a configuration error, provide more helpful message
+      if (errorMessage.includes('not configured') || errorMessage.includes('NEXT_PUBLIC_GOOGLE_CLIENT_ID')) {
+        setError('Google OAuth is not properly configured. Please contact support.')
+      } else if (errorMessage.includes('failed to load')) {
+        setError('Unable to connect to Google. Please check your internet connection and try again.')
+      }
     } finally {
       setIsLoading(false)
     }
