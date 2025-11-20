@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AIService, CaseData } from '@/lib/aiService'
+import { AIService } from '@/lib/aiService'
 
 export async function POST(request: NextRequest) {
   try {
-    let caseData: CaseData
+    let caseData: any
     try {
       caseData = await request.json()
     } catch (jsonError) {
@@ -15,17 +15,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    if (!caseData.caseNumber || !caseData.caseTitle || !caseData.caseType) {
+    if (!caseData.caseNumber || !caseData.caseTitle) {
       return NextResponse.json(
         { error: 'Missing required case data fields' },
         { status: 400 }
       )
     }
 
-    // API key is hardcoded in the service
+    // Extract countyData if provided separately
+    const countyData = caseData.countyData || caseData
 
     // Get AI analysis
-    const analysis = await AIService.analyzeCase(caseData)
+    const analysis = await AIService.analyzeCase(caseData, countyData)
 
     return NextResponse.json({
       success: true,
