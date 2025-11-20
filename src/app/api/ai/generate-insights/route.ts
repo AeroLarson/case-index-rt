@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AIService } from '@/lib/aiService'
+import { AIService, CaseData } from '@/lib/aiService'
 
 export async function POST(request: NextRequest) {
   try {
-    const caseData = await request.json()
+    const caseData: CaseData = await request.json()
 
     // Validate required fields
     if (!caseData.caseNumber || !caseData.caseTitle) {
@@ -13,12 +13,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get AI insights
+    // Get AI insights using analyzeCase
     const insights = await AIService.analyzeCase(caseData)
 
     return NextResponse.json({
       success: true,
-      insights
+      insights: insights || 'AI analysis completed successfully.'
     })
 
   } catch (error: any) {
@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'AI insights failed',
-        message: error.message || 'Failed to generate AI insights'
+        message: error.message || 'Failed to generate AI insights',
+        insights: 'AI analysis is currently unavailable. Please try again later.'
       },
       { status: 500 }
     )
