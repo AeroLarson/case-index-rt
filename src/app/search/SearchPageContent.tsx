@@ -210,10 +210,10 @@ export default function SearchPageContent() {
   }
 
   return (
-    <div 
-      role="main" 
+    <div
+      role="main"
       className="min-h-screen animated-aura pb-20 lg:pb-10"
-      style={{ 
+      style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
         padding: '40px 24px'
       }}
