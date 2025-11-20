@@ -727,133 +727,271 @@ class CountyDataService {
         await page.goto(roaSearchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
         await page.waitForTimeout(2000);
         
-        // Wait for form fields to be available
-        await page.waitForSelector('input[type="text"], textbox, input[name*="Case"], input[name*="First"], input[name*="Last"]', { timeout: 15000 }).catch(() => {});
-        await page.waitForTimeout(1000);
+        // Wait for page to fully load
+        await page.waitForTimeout(3000);
+        
+        // Take a screenshot for debugging (in development)
+        if (process.env.NODE_ENV === 'development') {
+          await page.screenshot({ path: '/tmp/roasearch-page.png', fullPage: true }).catch(() => {});
+        }
+        
+        // Get all input elements to understand the form structure
+        const allInputs = await page.$$eval('input, textbox', (elements) => 
+          elements.map((el: any) => ({
+            tag: el.tagName,
+            type: el.type,
+            name: el.name,
+            id: el.id,
+            placeholder: el.placeholder,
+            value: el.value,
+            role: el.getAttribute('role')
+          }))
+        ).catch(() => []);
+        console.log('📋 Found form inputs:', JSON.stringify(allInputs, null, 2));
         
         if (searchType === 'caseNumber') {
           // CASE NUMBER SEARCH
           console.log('🔍 Searching by case number:', searchQuery);
           
-          // Find case number input - try multiple selectors
-          let caseInput = await page.$('input[name*="case" i], input[id*="case" i], textbox').catch(() => null);
-          if (!caseInput) {
-            const textboxes = await page.$$('textbox').catch(() => []);
-            if (textboxes.length > 0) {
-              caseInput = textboxes[0]; // First textbox for case number search
+          // Try multiple methods to find and fill the case number input
+          let filled = false;
+          
+          // Method 1: Try by name/id containing "case"
+          try {
+            const caseInput = await page.$('input[name*="case" i], input[id*="case" i]').catch(() => null);
+            if (caseInput) {
+              await caseInput.click({ clickCount: 3 });
+              await caseInput.type(searchQuery, { delay: 50 });
+              filled = true;
+              console.log('✅ Filled case number via name/id selector');
             }
+          } catch (e) {
+            console.log('⚠️ Method 1 failed:', e);
           }
-          if (!caseInput) {
-            const inputs = await page.$$('input[type="text"]').catch(() => []);
-            if (inputs.length > 0) {
-              caseInput = inputs[0];
+          
+          // Method 2: Try first textbox
+          if (!filled) {
+            try {
+              const textboxes = await page.$$('textbox').catch(() => []);
+              if (textboxes.length > 0) {
+                await textboxes[0].click({ clickCount: 3 });
+                await textboxes[0].type(searchQuery, { delay: 50 });
+                filled = true;
+                console.log('✅ Filled case number via first textbox');
+              }
+            } catch (e) {
+              console.log('⚠️ Method 2 failed:', e);
             }
           }
           
-          if (caseInput) {
+          // Method 3: Try first text input
+          if (!filled) {
             try {
-              await caseInput.click({ clickCount: 3 });
-              await caseInput.type(searchQuery, { delay: 50 });
-              console.log('✅ Filled case number:', searchQuery);
+              const inputs = await page.$$('input[type="text"]').catch(() => []);
+              if (inputs.length > 0) {
+                await inputs[0].click({ clickCount: 3 });
+                await inputs[0].type(searchQuery, { delay: 50 });
+                filled = true;
+                console.log('✅ Filled case number via first text input');
+              }
             } catch (e) {
-              console.log('⚠️ Error filling case number:', e);
+              console.log('⚠️ Method 3 failed:', e);
             }
-          } else {
-            console.log('⚠️ Could not find case number input');
+          }
+          
+          if (!filled) {
+            console.log('❌ Could not find case number input field');
+            throw new Error('Could not find case number input field');
           }
         } else {
-          // PARTY NAME SEARCH (Plaintiff/Petitioner or Defendant)
+          // PARTY NAME SEARCH
           const nameParts = searchQuery.trim().split(/\s+/);
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || (nameParts[0] || '');
+          // For name searches, last word is usually last name, everything else is first name
+          const lastName = nameParts[nameParts.length - 1] || '';
+          const firstName = nameParts.slice(0, -1).join(' ') || nameParts[0] || '';
           
           console.log('🔍 Filling ROASearch form with:', { firstName, lastName, fullQuery: searchQuery });
           
-          // Try to find inputs by looking for textboxes or input fields
-          let firstNameInput = null;
-          let lastNameInput = null;
+          let firstNameFilled = false;
+          let lastNameFilled = false;
           
-          // Method 1: Try finding by textbox role (accessibility)
-          const textboxes = await page.$$('textbox').catch(() => []);
-          if (textboxes.length >= 3) {
-            firstNameInput = textboxes[0]; // First textbox is First Name
-            lastNameInput = textboxes[2];  // Third textbox is Last Name (after Middle)
-          }
-          
-          // Method 2: Try finding by input type if textboxes didn't work
-          if (!firstNameInput || !lastNameInput) {
-            const allInputs = await page.$$('input[type="text"]').catch(() => []);
-            if (allInputs.length >= 3) {
-              firstNameInput = allInputs[0];
-              lastNameInput = allInputs[2];
-            }
-          }
-          
-          // Fill First Name
-          if (firstNameInput) {
-            try {
-              await firstNameInput.click({ clickCount: 3 });
-              await firstNameInput.type(firstName, { delay: 50 });
-              console.log('✅ Filled first name:', firstName);
-            } catch (e) {
-              console.log('⚠️ Error filling first name:', e);
-            }
-          }
-          
-          // Fill Last Name
-          if (lastNameInput) {
-            try {
-              await lastNameInput.click({ clickCount: 3 });
-              await lastNameInput.type(lastName, { delay: 50 });
-              console.log('✅ Filled last name:', lastName);
-            } catch (e) {
-              console.log('⚠️ Error filling last name:', e);
-            }
-          }
-        }
-        
-        await page.waitForTimeout(500);
-        
-        // Find and click Search button - try multiple selectors
-        let searchBtn = await page.$('button:has-text("Search")').catch(() => null);
-        if (!searchBtn) {
-          searchBtn = await page.$('button[type="button"]').catch(() => null);
-        }
-        if (!searchBtn) {
-          searchBtn = await page.$('button').catch(() => null);
-        }
-        
-        if (searchBtn) {
-          console.log('✅ Found Search button, clicking...');
+          // Method 1: Try finding by textbox role
           try {
-            await Promise.all([
-              page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
-              searchBtn.click()
-            ]);
-            await page.waitForTimeout(5000); // Wait longer for results table to load
-            console.log('✅ Search submitted, waiting for results...');
-          } catch (navError) {
-            console.log('⚠️ Navigation error (might still have results):', navError);
-            await page.waitForTimeout(5000);
+            const textboxes = await page.$$('textbox').catch(() => []);
+            console.log('📋 Found textboxes:', textboxes.length);
+            
+            if (textboxes.length >= 1 && firstName) {
+              await textboxes[0].click({ clickCount: 3 });
+              await textboxes[0].type(firstName, { delay: 50 });
+              firstNameFilled = true;
+              console.log('✅ Filled first name via textbox[0]');
+            }
+            
+            // Last name is usually the 3rd textbox (after first and middle)
+            if (textboxes.length >= 3 && lastName) {
+              await textboxes[2].click({ clickCount: 3 });
+              await textboxes[2].type(lastName, { delay: 50 });
+              lastNameFilled = true;
+              console.log('✅ Filled last name via textbox[2]');
+            } else if (textboxes.length >= 2 && lastName) {
+              // Sometimes there's no middle name field
+              await textboxes[1].click({ clickCount: 3 });
+              await textboxes[1].type(lastName, { delay: 50 });
+              lastNameFilled = true;
+              console.log('✅ Filled last name via textbox[1]');
+            }
+          } catch (e) {
+            console.log('⚠️ Textbox method failed:', e);
           }
-        } else {
-          console.log('⚠️ Could not find Search button');
+          
+          // Method 2: Try finding by input type
+          if (!firstNameFilled || !lastNameFilled) {
+            try {
+              const inputs = await page.$$('input[type="text"]').catch(() => []);
+              console.log('📋 Found text inputs:', inputs.length);
+              
+              if (inputs.length >= 1 && firstName && !firstNameFilled) {
+                await inputs[0].click({ clickCount: 3 });
+                await inputs[0].type(firstName, { delay: 50 });
+                firstNameFilled = true;
+                console.log('✅ Filled first name via input[0]');
+              }
+              
+              if (inputs.length >= 3 && lastName && !lastNameFilled) {
+                await inputs[2].click({ clickCount: 3 });
+                await inputs[2].type(lastName, { delay: 50 });
+                lastNameFilled = true;
+                console.log('✅ Filled last name via input[2]');
+              } else if (inputs.length >= 2 && lastName && !lastNameFilled) {
+                await inputs[1].click({ clickCount: 3 });
+                await inputs[1].type(lastName, { delay: 50 });
+                lastNameFilled = true;
+                console.log('✅ Filled last name via input[1]');
+              }
+            } catch (e) {
+              console.log('⚠️ Input method failed:', e);
+            }
+          }
+          
+          // Method 3: Try finding by name attribute
+          if (!firstNameFilled || !lastNameFilled) {
+            try {
+              if (firstName && !firstNameFilled) {
+                const firstInput = await page.$('input[name*="first" i], input[name*="First" i]').catch(() => null);
+                if (firstInput) {
+                  await firstInput.click({ clickCount: 3 });
+                  await firstInput.type(firstName, { delay: 50 });
+                  firstNameFilled = true;
+                  console.log('✅ Filled first name via name attribute');
+                }
+              }
+              
+              if (lastName && !lastNameFilled) {
+                const lastInput = await page.$('input[name*="last" i], input[name*="Last" i]').catch(() => null);
+                if (lastInput) {
+                  await lastInput.click({ clickCount: 3 });
+                  await lastInput.type(lastName, { delay: 50 });
+                  lastNameFilled = true;
+                  console.log('✅ Filled last name via name attribute');
+                }
+              }
+            } catch (e) {
+              console.log('⚠️ Name attribute method failed:', e);
+            }
+          }
+          
+          if (!firstNameFilled && !lastNameFilled) {
+            console.log('❌ Could not find name input fields');
+            throw new Error('Could not find name input fields');
+          }
         }
+        
+        await page.waitForTimeout(1000);
+        
+        // Find and click Search button - try multiple methods
+        let buttonClicked = false;
+        
+        // Method 1: Try button with "Search" text
+        try {
+          const searchBtn = await page.evaluateHandle(() => {
+            const buttons = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"]'));
+            return buttons.find((btn: any) => 
+              btn.textContent?.toLowerCase().includes('search') || 
+              btn.value?.toLowerCase().includes('search')
+            );
+          }).catch(() => null);
+          
+          if (searchBtn && searchBtn.asElement()) {
+            await searchBtn.asElement()!.click();
+            buttonClicked = true;
+            console.log('✅ Clicked Search button via text content');
+          }
+        } catch (e) {
+          console.log('⚠️ Button text method failed:', e);
+        }
+        
+        // Method 2: Try any button
+        if (!buttonClicked) {
+          try {
+            const anyButton = await page.$('button, input[type="submit"]').catch(() => null);
+            if (anyButton) {
+              await anyButton.click();
+              buttonClicked = true;
+              console.log('✅ Clicked first available button');
+            }
+          } catch (e) {
+            console.log('⚠️ Generic button method failed:', e);
+          }
+        }
+        
+        if (!buttonClicked) {
+          console.log('❌ Could not find Search button');
+          throw new Error('Could not find Search button');
+        }
+        
+        // Wait for results to load
+        console.log('⏳ Waiting for search results...');
+        await page.waitForTimeout(5000);
+        
+        // Try to wait for results table or navigation
+        try {
+          await page.waitForSelector('table, .results, [class*="result"], [id*="result"]', { timeout: 10000 }).catch(() => {});
+        } catch (e) {
+          console.log('⚠️ Results table not found, continuing anyway');
+        }
+        
+        await page.waitForTimeout(2000);
         
         // Get the rendered HTML after search
         const html = await page.content();
+        const currentUrl = page.url();
         console.log('✅ Got rendered HTML from ROASearch, length:', html.length);
-        console.log('✅ URL after search:', page.url());
+        console.log('✅ URL after search:', currentUrl);
         
         // Check if we got results or are still on the form page
-        if (html.includes('Case Number') && html.includes('Case Title') && html.length > 10000) {
+        const hasResultsTable = html.includes('Case Number') && html.includes('Case Title') && html.length > 10000;
+        const stillOnForm = html.length < 10000 && (html.includes('search') || html.includes('Search'));
+        
+        if (hasResultsTable) {
           console.log('✅ Detected results table page');
-        } else if (html.length < 10000 && html.includes('search')) {
+        } else if (stillOnForm) {
           console.log('⚠️ Still on search form page, might not have navigated');
+          console.log('📄 Page title:', await page.title().catch(() => 'Unknown'));
+          
+          // Try to see what's on the page
+          const pageText = await page.evaluate(() => document.body.innerText).catch(() => '');
+          console.log('📄 Page text preview:', pageText.substring(0, 500));
         }
         
         // Parse the results
         const results = this.parseCaseSearchHTML(html, searchQuery);
+        console.log(`📊 Parsed ${results.length} results from ROASearch`);
+        
+        // If no results but we have a results table, log more details
+        if (results.length === 0 && hasResultsTable) {
+          console.log('⚠️ Results table detected but no cases parsed. HTML preview:');
+          console.log(html.substring(0, 5000));
+        }
         
         await browser.close();
         

@@ -20,21 +20,7 @@ interface CaseResult {
 
 export default function SearchPageContent() {
   const { user, isLoading, userProfile, refreshProfile } = useAuth()
-  const [searchType, setSearchType] = useState<'caseNumber' | 'partyName' | 'defendantName'>('partyName')
-  
-  // Case Number Search
-  const [caseNumber, setCaseNumber] = useState('')
-  
-  // Party Name Search (Plaintiff/Petitioner)
-  const [firstName, setFirstName] = useState('')
-  const [middleName, setMiddleName] = useState('')
-  const [lastName, setLastName] = useState('')
-  
-  // Defendant Name Search
-  const [defendantFirstName, setDefendantFirstName] = useState('')
-  const [defendantMiddleName, setDefendantMiddleName] = useState('')
-  const [defendantLastName, setDefendantLastName] = useState('')
-  
+  const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<CaseResult[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,71 +31,68 @@ export default function SearchPageContent() {
     }
   }, [isLoading, user])
 
+  // Auto-detect search type: case number vs name
+  const detectSearchType = (query: string): 'caseNumber' | 'name' => {
+    const trimmed = query.trim()
+    // Check if it looks like a case number (e.g., 22FL001581C, FL-2024-123456, etc.)
+    if (/^\d{2}[A-Z]{2}\d{6}[A-Z]?$/.test(trimmed) || /^[A-Z]{2}-\d{4}-\d{4,8}$/i.test(trimmed)) {
+      return 'caseNumber'
+    }
+    return 'name'
+  }
+
   const performSearch = async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!user) return
     
-    let query = ''
-    let finalSearchType: 'caseNumber' | 'name' | 'attorney' = 'name'
-    
-    // Build query based on search type
-    if (searchType === 'caseNumber') {
-      if (!caseNumber.trim()) {
-        setError('Please enter a case number')
-        return
-      }
-      query = caseNumber.trim()
-      finalSearchType = 'caseNumber'
-    } else if (searchType === 'partyName') {
-      if (!firstName.trim() && !lastName.trim()) {
-        setError('Please enter at least a first or last name')
-        return
-      }
-      const nameParts = [firstName.trim(), middleName.trim(), lastName.trim()].filter(Boolean)
-      query = nameParts.join(' ')
-      finalSearchType = 'name'
-    } else if (searchType === 'defendantName') {
-      if (!defendantFirstName.trim() && !defendantLastName.trim()) {
-        setError('Please enter at least a first or last name')
-        return
-      }
-      const nameParts = [defendantFirstName.trim(), defendantMiddleName.trim(), defendantLastName.trim()].filter(Boolean)
-      query = nameParts.join(' ')
-      finalSearchType = 'name'
-    }
-    
+    const query = searchQuery.trim()
     if (!query) {
-      setError('Please enter search criteria')
+      setError('Please enter a case number or name to search')
       return
     }
     
+    const searchType = detectSearchType(query)
+    
     setLoading(true)
     setError(null)
+    setResults([])
+    
     try {
+      console.log('🔍 Searching for:', query, 'Type:', searchType)
       const res = await fetch('/api/cases/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.id}` },
-        body: JSON.stringify({ query: query.trim(), searchType: finalSearchType })
+        body: JSON.stringify({ query, searchType })
       })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${res.status}`)
+      }
+      
       const data = await res.json()
-      setResults(data.cases || [])
+      console.log('📊 Search response:', data)
+      
+      if (data.cases && Array.isArray(data.cases)) {
+        setResults(data.cases)
+        if (data.cases.length === 0) {
+          setError('No cases found. Try a different search term or check the spelling.')
+        }
+      } else {
+        setResults([])
+        setError('No results returned from search')
+      }
     } catch (err: any) {
+      console.error('❌ Search error:', err)
       setResults([])
-      setError(err?.message || 'Search failed')
+      setError(err?.message || 'Search failed. Please try again.')
     } finally {
       setLoading(false)
     }
   }
   
   const clearForm = () => {
-    setCaseNumber('')
-    setFirstName('')
-    setMiddleName('')
-    setLastName('')
-    setDefendantFirstName('')
-    setDefendantMiddleName('')
-    setDefendantLastName('')
+    setSearchQuery('')
     setResults([])
     setError(null)
   }
@@ -161,157 +144,46 @@ export default function SearchPageContent() {
             <i className="fa-solid fa-search text-blue-400"></i>
             San Diego County Case Search
           </h1>
-          <p className="text-gray-300 text-lg">Search for cases by case number, party name, or defendant name</p>
-        </div>
-      
-        {/* Search Type Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-white/10 overflow-x-auto">
-          <button
-            onClick={() => { setSearchType('caseNumber'); clearForm(); }}
-            className={`px-4 py-3 font-medium transition-colors whitespace-nowrap ${
-              searchType === 'caseNumber'
-                ? 'text-blue-400 border-b-2 border-blue-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <i className="fa-solid fa-hashtag mr-2"></i>
-            Case Number
-          </button>
-          <button
-            onClick={() => { setSearchType('partyName'); clearForm(); }}
-            className={`px-4 py-3 font-medium transition-colors whitespace-nowrap ${
-              searchType === 'partyName'
-                ? 'text-blue-400 border-b-2 border-blue-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <i className="fa-solid fa-user-tie mr-2"></i>
-            Party Name
-          </button>
-          <button
-            onClick={() => { setSearchType('defendantName'); clearForm(); }}
-            className={`px-4 py-3 font-medium transition-colors whitespace-nowrap ${
-              searchType === 'defendantName'
-                ? 'text-blue-400 border-b-2 border-blue-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <i className="fa-solid fa-user-slash mr-2"></i>
-            Defendant Name
-          </button>
+          <p className="text-gray-300 text-lg">Search by case number (e.g., 22FL001581C) or party name (e.g., John Smith)</p>
         </div>
 
-      {/* Search Form */}
-      <form onSubmit={performSearch} className="apple-card p-6 mb-6">
-        {searchType === 'caseNumber' && (
-          <div>
-            <label className="block text-white font-medium mb-2">Case Number</label>
-            <input
-              type="text"
-              value={caseNumber}
-              onChange={(e) => setCaseNumber(e.target.value)}
-              placeholder="e.g., 22FL001581C or FL-2024-123456"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p className="text-gray-400 text-sm mt-2">Enter the case number (e.g., 22FL001581C, FL-2024-123456)</p>
-          </div>
-        )}
-
-        {searchType === 'partyName' && (
-          <div className="space-y-4">
-            <h3 className="text-white font-medium mb-4">Party Name (Plaintiff/Petitioner)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-white font-medium mb-2">First Name</label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="First"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-white font-medium mb-2">Middle Name (Optional)</label>
-                <input
-                  type="text"
-                  value={middleName}
-                  onChange={(e) => setMiddleName(e.target.value)}
-                  placeholder="Middle"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-white font-medium mb-2">Last Name</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Last"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+        {/* Single Search Bar */}
+        <form onSubmit={performSearch} className="apple-card p-6 mb-6">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Enter case number (e.g., 22FL001581C) or name (e.g., John Smith)"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                disabled={loading}
+              />
             </div>
+            <button
+              type="submit"
+              disabled={loading || !searchQuery.trim()}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-blue-800 disabled:to-purple-900 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+            >
+              <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-lg`}></i>
+              {loading ? 'Searching…' : 'Search'}
+            </button>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearForm}
+                className="bg-white/5 hover:bg-white/10 text-white px-6 py-4 rounded-lg font-medium border border-white/10 transition-colors"
+                disabled={loading}
+              >
+                <i className="fa-solid fa-times"></i>
+              </button>
+            )}
           </div>
-        )}
-
-        {searchType === 'defendantName' && (
-          <div className="space-y-4">
-            <h3 className="text-white font-medium mb-4">Defendant Name</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-white font-medium mb-2">First Name</label>
-                <input
-                  type="text"
-                  value={defendantFirstName}
-                  onChange={(e) => setDefendantFirstName(e.target.value)}
-                  placeholder="First"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-white font-medium mb-2">Middle Name (Optional)</label>
-                <input
-                  type="text"
-                  value={defendantMiddleName}
-                  onChange={(e) => setDefendantMiddleName(e.target.value)}
-                  placeholder="Middle"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-white font-medium mb-2">Last Name</label>
-                <input
-                  type="text"
-                  value={defendantLastName}
-                  onChange={(e) => setDefendantLastName(e.target.value)}
-                  placeholder="Last"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-3 mt-6">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-blue-800 disabled:to-purple-900 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
-          >
-            <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-search'} mr-2`}></i>
-            {loading ? 'Searching…' : 'Search'}
-          </button>
-          <button
-            type="button"
-            onClick={clearForm}
-            className="bg-white/5 hover:bg-white/10 text-white px-6 py-3 rounded-lg font-medium border border-white/10 transition-colors"
-          >
-            <i className="fa-solid fa-eraser mr-2"></i>
-            Clear
-          </button>
-        </div>
-      </form>
+          <p className="text-gray-400 text-sm mt-3">
+            <i className="fa-solid fa-info-circle mr-2"></i>
+            We'll automatically detect if you're searching by case number or name
+          </p>
+        </form>
 
         {error && (
           <div className="apple-card p-4 mb-6 bg-red-500/10 border-red-500/20">
@@ -325,7 +197,7 @@ export default function SearchPageContent() {
           </div>
         )}
 
-        {!loading && results.length === 0 && (caseNumber || firstName || lastName || defendantFirstName || defendantLastName) && (
+        {!loading && results.length === 0 && searchQuery && !error && (
           <div className="apple-card p-8 text-center">
             <i className="fa-solid fa-search text-gray-500 text-4xl mb-4"></i>
             <p className="text-gray-300 text-lg font-medium mb-2">No matches found</p>
