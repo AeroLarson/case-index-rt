@@ -69,10 +69,17 @@ export default function AIOverview({
       const registerOfActions = countyData?.registerOfActions || []
       const upcomingEvents = countyData?.upcomingEvents || []
       
-      // Build summary of recent actions
-      const recentActions = registerOfActions.slice(0, 10).map(action => 
-        `${action.date}: ${action.action} - ${action.description}`
-      ).join('\n')
+      // Build summary of recent actions with more detail
+      const recentActions = registerOfActions.slice(0, 15).map(action => {
+        let actionLine = `${action.date || 'Date unknown'}: ${action.action || 'Filing'}`
+        if (action.description && action.description !== action.action) {
+          actionLine += ` - ${action.description}`
+        }
+        if (action.filedBy && action.filedBy !== 'Unknown') {
+          actionLine += ` (Filed by: ${action.filedBy})`
+        }
+        return actionLine
+      }).join('\n')
       
       // Build summary of upcoming events
       const upcomingEventsSummary = upcomingEvents.map(event => 
@@ -93,7 +100,11 @@ export default function AIOverview({
         judicialOfficer: judge || "Unknown",
         registerOfActions: recentActions,
         upcomingEvents: upcomingEventsSummary,
-        recentMotions: registerOfActions.filter(a => /motion|order|judgment/i.test(a.action)).slice(0, 5).map(a => a.description).join(', ')
+        recentMotions: registerOfActions
+          .filter(a => /motion|order|judgment|stipulation|petition|response|reply/i.test(a.action || a.description))
+          .slice(0, 10)
+          .map(a => `${a.date || 'Date unknown'}: ${a.action || 'Filing'} - ${a.description || ''}`)
+          .join('\n')
       }
 
       // Call API to generate AI insights

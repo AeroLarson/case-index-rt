@@ -59,9 +59,68 @@ export default function CaseMonitor() {
           console.log('✅ Case monitoring complete:', data.message)
           
           if (data.notifications && data.notifications.length > 0) {
-            // Add notifications on client side
+            // Add notifications on client side and handle calendar updates
             data.notifications.forEach((notif: any) => {
               userProfileManager.addNotification(user.id, notif)
+              
+              // Automatically add/update calendar events based on notification metadata
+              if (notif.metadata) {
+                if (notif.metadata.addToCalendar && notif.metadata.date) {
+                  // New event - add to calendar
+                  userProfileManager.addCalendarEvent(user.id, {
+                    title: `${notif.metadata.eventType || 'Hearing'} - ${notif.caseTitle}`,
+                    date: notif.metadata.date,
+                    time: notif.metadata.time || '09:00',
+                    type: 'hearing',
+                    caseNumber: notif.caseNumber,
+                    location: 'San Diego Superior Court',
+                    description: notif.message || `${notif.metadata.eventType} for ${notif.caseTitle}`,
+                    duration: 60,
+                    priority: 'normal',
+                    status: 'scheduled',
+                    virtualMeetingInfo: notif.metadata.zoomId ? `Zoom ID: ${notif.metadata.zoomId}${notif.metadata.passcode ? `, Passcode: ${notif.metadata.passcode}` : ''}` : undefined
+                  })
+                  console.log(`📅 Auto-added calendar event for ${notif.caseNumber}`)
+                } else if (notif.metadata.updateCalendar && notif.metadata.newDate) {
+                  // Event rescheduled - update calendar
+                  const existingEvent = profile.calendarEvents.find(
+                    e => e.caseNumber === notif.caseNumber && 
+                         e.date === notif.metadata.oldDate &&
+                         e.time === notif.metadata.oldTime
+                  )
+                  
+                  if (existingEvent) {
+                    // Remove old event and add new one
+                    const updatedEvents = profile.calendarEvents.filter(
+                      e => !(e.id === existingEvent.id)
+                    )
+                    
+                    updatedEvents.push({
+                      ...existingEvent,
+                      date: notif.metadata.newDate,
+                      time: notif.metadata.newTime || existingEvent.time,
+                      description: notif.message || existingEvent.description,
+                      virtualMeetingInfo: notif.metadata.zoomId ? `Zoom ID: ${notif.metadata.zoomId}${notif.metadata.passcode ? `, Passcode: ${notif.metadata.passcode}` : ''}` : existingEvent.virtualMeetingInfo
+                    })
+                    
+                    profile.calendarEvents = updatedEvents
+                    userProfileManager.saveUserProfile(profile)
+                    console.log(`📅 Auto-updated calendar event for ${notif.caseNumber}`)
+                  }
+                } else if (notif.metadata.updateCalendar && notif.metadata.zoomId) {
+                  // Zoom info added - update existing calendar event
+                  const existingEvent = profile.calendarEvents.find(
+                    e => e.caseNumber === notif.caseNumber && 
+                         e.date === notif.metadata.date
+                  )
+                  
+                  if (existingEvent) {
+                    existingEvent.virtualMeetingInfo = `Zoom ID: ${notif.metadata.zoomId}${notif.metadata.passcode ? `, Passcode: ${notif.metadata.passcode}` : ''}`
+                    userProfileManager.saveUserProfile(profile)
+                    console.log(`📅 Auto-updated Zoom info for ${notif.caseNumber}`)
+                  }
+                }
+              }
             })
             console.log(`📬 Added ${data.notifications.length} notification(s)`)
           }

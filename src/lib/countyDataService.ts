@@ -2500,45 +2500,206 @@ class CountyDataService {
         }
       }
       
-      // Extract register of actions
+      // Extract register of actions with improved parsing
       const registerOfActions: CountyAction[] = [];
       
-      // Look for table rows containing action information
-      const actionRowPattern = /<tr[^>]*>[\s\S]*?<\/tr>/gi;
-      const actionRows = html.match(actionRowPattern) || [];
+      // Multiple strategies to find register of actions table
+      // Strategy 1: Look for tables with "Register of Actions" or "Case History" headers
+      const registerTablePatterns = [
+        /Register\s+of\s+Actions[\s\S]*?<table[^>]*>([\s\S]*?)<\/table>/gi,
+        /Case\s+History[\s\S]*?<table[^>]*>([\s\S]*?)<\/table>/gi,
+        /Filing\s+History[\s\S]*?<table[^>]*>([\s\S]*?)<\/table>/gi,
+        /<table[^>]*id[^>]*register[^>]*>([\s\S]*?)<\/table>/gi,
+        /<table[^>]*class[^>]*register[^>]*>([\s\S]*?)<\/table>/gi
+      ];
       
-      for (const row of actionRows) {
-        const rowText = stripTags(row).toLowerCase();
-        // Look for rows that contain action-related keywords
-        if (rowText.includes('filed') || rowText.includes('motion') || rowText.includes('order') || 
-            rowText.includes('hearing') || rowText.includes('notice') || rowText.includes('judgment')) {
+      let registerTableHTML = '';
+      for (const pattern of registerTablePatterns) {
+        const match = html.match(pattern);
+        if (match && match[0]) {
+          registerTableHTML = match[0];
+          console.log('✅ Found register of actions table using pattern');
+          break;
+        }
+      }
+      
+      // Strategy 2: If no specific table found, look for all tables and find the one with action data
+      if (!registerTableHTML) {
+        const allTables = html.match(/<table[^>]*>[\s\S]*?<\/table>/gi) || [];
+        for (const table of allTables) {
+          const tableText = stripTags(table).toLowerCase();
+          // Check if table contains action-related content
+          if (tableText.includes('date') && (tableText.includes('filed') || tableText.includes('action') || 
+              tableText.includes('motion') || tableText.includes('order') || tableText.includes('hearing'))) {
+            registerTableHTML = table;
+            console.log('✅ Found register of actions table by content analysis');
+            break;
+          }
+        }
+      }
+      
+      // Strategy 3: Look for div-based structures (some sites use divs instead of tables)
+      if (!registerTableHTML) {
+        const divPatterns = [
+          /<div[^>]*class[^>]*register[^>]*>([\s\S]*?)<\/div>/gi,
+          /<div[^>]*id[^>]*actions[^>]*>([\s\S]*?)<\/div>/gi
+        ];
+        for (const pattern of divPatterns) {
+          const match = html.match(pattern);
+          if (match && match[0]) {
+            registerTableHTML = match[0];
+            console.log('✅ Found register of actions in div structure');
+            break;
+          }
+        }
+      }
+      
+      // Parse rows from the found table/structure
+      const actionRowPattern = /<tr[^>]*>[\s\S]*?<\/tr>/gi;
+      const actionRows = registerTableHTML ? registerTableHTML.match(actionRowPattern) || [] : [];
+      
+      // If no table rows found, try div-based rows
+      let actionDivRows: string[] = [];
+      if (actionRows.length === 0 && registerTableHTML) {
+        const divRowPattern = /<div[^>]*class[^>]*row[^>]*>[\s\S]*?<\/div>/gi;
+        actionDivRows = registerTableHTML.match(divRowPattern) || [];
+      }
+      
+      const allRows = [...actionRows, ...actionDivRows];
+      
+      console.log(`📋 Found ${allRows.length} potential action rows to parse`);
+      
+      for (const row of allRows) {
+        const rowText = stripTags(row).trim();
+        const rowTextLower = rowText.toLowerCase();
+        
+        // Skip header rows
+        if (rowTextLower.includes('date') && rowTextLower.includes('action') && rowTextLower.includes('description')) {
+          continue;
+        }
+        
+        // Look for rows that contain action-related keywords or date patterns
+        const hasDate = /\d{1,2}\/\d{1,2}\/\d{4}/.test(rowText);
+        const hasActionKeywords = /filed|motion|order|hearing|notice|judgment|petition|response|reply|stipulation|declaration|affidavit|exhibit|subpoena|deposition|discovery|settlement|dismissal|default/i.test(rowText);
+        
+        if (hasDate && (hasActionKeywords || rowText.length > 20)) {
+          // Extract date (multiple formats)
+          const datePatterns = [
+            /(\d{1,2}\/\d{1,2}\/\d{4})/,
+            /(\d{4}-\d{2}-\d{2})/,
+            /(\d{1,2}-\d{1,2}-\d{4})/
+          ];
           
-          // Extract date
-          const dateMatch = row.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-          const actionDate = dateMatch ? this.normalizeDate(dateMatch[1]) : '';
+          let actionDate = '';
+          for (const pattern of datePatterns) {
+            const dateMatch = row.match(pattern);
+            if (dateMatch) {
+              actionDate = this.normalizeDate(dateMatch[1]);
+              break;
+            }
+          }
           
-          // Extract action type and description
-          const cells = row.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [];
-          const cellTexts = cells.map(cell => stripTags(cell).trim()).filter(t => t.length > 0);
+          // Extract cells (table cells or div-based cells)
+          const cells = row.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || 
+                       row.match(/<div[^>]*class[^>]*cell[^>]*>([\s\S]*?)<\/div>/gi) ||
+                       row.match(/<div[^>]*class[^>]*col[^>]*>([\s\S]*?)<\/div>/gi) || [];
           
-          if (cellTexts.length >= 2) {
-            const actionType = cellTexts[0] || '';
-            const description = cellTexts.slice(1).join(' ') || '';
-            const filedBy = cellTexts.find(c => c.includes('by') || c.includes('filed')) || 'Unknown';
+          const cellTexts = cells.map(cell => {
+            const text = stripTags(cell).trim();
+            // Remove extra whitespace
+            return text.replace(/\s+/g, ' ');
+          }).filter(t => t.length > 0);
+          
+          if (cellTexts.length >= 1) {
+            // Try to identify which cell is which based on content
+            let actionType = '';
+            let description = '';
+            let filedBy = 'Unknown';
             
-            if (actionType || description) {
+            // First cell is usually date (skip if we already extracted it)
+            let startIdx = 0;
+            if (cellTexts[0].match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+              startIdx = 1;
+            }
+            
+            // Next cell(s) are usually action type/description
+            if (cellTexts.length > startIdx) {
+              actionType = cellTexts[startIdx] || '';
+              
+              // Combine remaining cells as description
+              if (cellTexts.length > startIdx + 1) {
+                description = cellTexts.slice(startIdx + 1).join(' | ');
+              } else {
+                description = actionType;
+              }
+              
+              // Look for "filed by" or "by" in any cell
+              const filedByMatch = cellTexts.find(c => 
+                /filed\s+by|by\s+[A-Z]|attorney|lawyer|counsel/i.test(c)
+              );
+              if (filedByMatch) {
+                filedBy = filedByMatch.replace(/filed\s+by\s*/i, '').trim();
+              }
+            } else {
+              // Fallback: use the row text itself
+              const parts = rowText.split(/\s{2,}|\|/).filter(p => p.trim().length > 0);
+              if (parts.length >= 2) {
+                actionDate = parts[0].match(/\d{1,2}\/\d{1,2}\/\d{4}/) ? this.normalizeDate(parts[0]) : actionDate;
+                actionType = parts[1] || '';
+                description = parts.slice(2).join(' ') || actionType;
+              }
+            }
+            
+            // Only add if we have meaningful data
+            if (actionDate || actionType || description) {
               registerOfActions.push({
-                date: actionDate,
-                action: actionType,
-                description: description || actionType,
+                date: actionDate || new Date().toISOString().split('T')[0],
+                action: actionType || 'Filing',
+                description: description || actionType || 'Case activity',
                 filedBy: filedBy
               });
+            }
+          } else {
+            // Fallback: parse from plain text if no cells found
+            const textParts = rowText.split(/\s{2,}|\|/).filter(p => p.trim().length > 0);
+            if (textParts.length >= 2) {
+              const extractedDate = textParts.find(p => /\d{1,2}\/\d{1,2}\/\d{4}/.test(p));
+              const date = extractedDate ? this.normalizeDate(extractedDate) : '';
+              const action = textParts.find(p => !/\d{1,2}\/\d{1,2}\/\d{4}/.test(p)) || 'Filing';
+              const desc = textParts.slice(textParts.indexOf(action) + 1).join(' ') || action;
+              
+              if (date || action !== 'Filing' || desc.length > 5) {
+                registerOfActions.push({
+                  date: date || new Date().toISOString().split('T')[0],
+                  action: action,
+                  description: desc,
+                  filedBy: 'Unknown'
+                });
+              }
             }
           }
         }
       }
       
-      console.log(`✅ Extracted ${registerOfActions.length} register of actions`);
+      // Remove duplicates and sort by date (newest first)
+      const uniqueActions = registerOfActions.filter((action, index, self) =>
+        index === self.findIndex(a => 
+          a.date === action.date && 
+          a.action === action.action && 
+          a.description === action.description
+        )
+      );
+      
+      uniqueActions.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA; // Newest first
+      });
+      
+      console.log(`✅ Extracted ${uniqueActions.length} unique register of actions entries`);
+      
+      // Store in variable for return
+      const finalRegisterOfActions = uniqueActions;
       
       // Extract upcoming events with Zoom meeting IDs
       const upcomingEvents: CountyEvent[] = [];
@@ -2599,9 +2760,51 @@ class CountyDataService {
       const caseTypeMatch = html.match(/Case\s+Type[:\s]*([^<\n\r]{1,100})/i);
       const caseType = caseTypeMatch ? caseTypeMatch[1].trim() : this.determineCaseType(caseNumber);
       
-      // Extract status
-      const statusMatch = html.match(/Status[:\s]*([^<\n\r]{1,50})/i);
-      const status = statusMatch ? statusMatch[1].trim() : 'Active';
+      // Extract status with improved patterns
+      const statusPatterns = [
+        /Status[:\s]*([^<\n\r]{1,50})/i,
+        /Case\s+Status[:\s]*([^<\n\r]{1,50})/i,
+        /Current\s+Status[:\s]*([^<\n\r]{1,50})/i,
+        /<span[^>]*status[^>]*>([^<]{1,50})<\/span>/i,
+        /<div[^>]*status[^>]*>([^<]{1,50})<\/div>/i
+      ];
+      
+      let status = 'Active';
+      for (const pattern of statusPatterns) {
+        const statusMatch = html.match(pattern);
+        if (statusMatch && statusMatch[1]) {
+          const extractedStatus = statusMatch[1].trim();
+          // Normalize status values
+          if (/closed|dismissed|terminated|final/i.test(extractedStatus)) {
+            status = 'Closed';
+            break;
+          } else if (/active|open|pending|in\s+progress/i.test(extractedStatus)) {
+            status = 'Active';
+            break;
+          } else if (extractedStatus.length > 0 && extractedStatus.length < 50) {
+            status = extractedStatus;
+            break;
+          }
+        }
+      }
+      
+      // Also check for "Closed" in the HTML text
+      if (status === 'Active') {
+        const closedIndicators = [
+          /case\s+closed/i,
+          /closed\s+case/i,
+          /status:\s*closed/i,
+          /final\s+judgment/i,
+          /dismissed/i
+        ];
+        for (const indicator of closedIndicators) {
+          if (indicator.test(textContent)) {
+            status = 'Closed';
+            console.log('✅ Detected Closed status from text content');
+            break;
+          }
+        }
+      }
       
       // Extract date filed
       const dateFiledMatch = html.match(/Date\s+Filed[:\s]*(\d{1,2}\/\d{1,2}\/\d{4})/i);
@@ -2630,7 +2833,7 @@ class CountyDataService {
         judge,
         parties: parties.length > 0 ? parties : [],
         upcomingEvents,
-        registerOfActions
+        registerOfActions: finalRegisterOfActions
       };
     } catch (error) {
       console.error('Error parsing county case details HTML:', error);

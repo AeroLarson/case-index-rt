@@ -506,11 +506,11 @@ export default function SearchPageContent() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`px-3 py-1 rounded text-sm font-medium ${
-                        selectedCase.status === 'Active' ? 'bg-green-500/20 text-green-400' : 
-                        selectedCase.status === 'Closed' ? 'bg-gray-500/20 text-gray-400' : 
+                        selectedCase.status === 'Active' || selectedCase.status === 'Open' ? 'bg-green-500/20 text-green-400' : 
+                        selectedCase.status === 'Closed' || selectedCase.status === 'Dismissed' || selectedCase.status === 'Terminated' ? 'bg-gray-500/20 text-gray-400' : 
                         'bg-blue-500/20 text-blue-400'
                       }`}>
-                        {selectedCase.status}
+                        {selectedCase.status || 'Active'}
                       </span>
                       {selectedCase.caseType && (
                         <span className="px-3 py-1 rounded text-sm font-medium bg-purple-500/20 text-purple-400">
@@ -605,40 +605,64 @@ export default function SearchPageContent() {
               )}
 
               {/* Register of Actions */}
-              {selectedCase.countyData?.registerOfActions && selectedCase.countyData.registerOfActions.length > 0 && (
+              {selectedCase.countyData?.registerOfActions && selectedCase.countyData.registerOfActions.length > 0 ? (
                 <div className="apple-card p-6">
                   <h4 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
                     <i className="fa-solid fa-file-lines text-purple-400"></i>
-                    Register of Actions ({selectedCase.countyData.registerOfActions.length})
+                    Register of Actions ({selectedCase.countyData.registerOfActions.length} entries)
                   </h4>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Complete case history including all filings, motions, orders, and hearings
+                  </p>
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {selectedCase.countyData.registerOfActions.map((action, idx) => {
-                      const isMotion = /motion|order|judgment|ruling/i.test(action.action || action.description)
-                      const isFiling = /filed|filing|document/i.test(action.action || action.description)
-                      const isHearing = /hearing|trial|conference/i.test(action.action || action.description)
+                      const isMotion = /motion|order|judgment|ruling|stipulation/i.test(action.action || action.description || '')
+                      const isFiling = /filed|filing|document|petition|response|reply/i.test(action.action || action.description || '')
+                      const isHearing = /hearing|trial|conference|status|calendar/i.test(action.action || action.description || '')
+                      const isImportant = /judgment|order|dismissal|settlement|default/i.test(action.action || action.description || '')
                       
                       return (
-                        <div key={idx} className={`bg-white/5 rounded-lg p-3 border ${
-                          isMotion ? 'border-yellow-500/20 bg-yellow-500/5' :
-                          isFiling ? 'border-blue-500/20 bg-blue-500/5' :
-                          isHearing ? 'border-green-500/20 bg-green-500/5' :
+                        <div key={idx} className={`bg-white/5 rounded-lg p-4 border transition-all hover:bg-white/10 ${
+                          isMotion ? 'border-yellow-500/30 bg-yellow-500/10' :
+                          isFiling ? 'border-blue-500/30 bg-blue-500/10' :
+                          isHearing ? 'border-green-500/30 bg-green-500/10' :
+                          isImportant ? 'border-red-500/30 bg-red-500/10' :
                           'border-white/10'
                         }`}>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                {isMotion && <i className="fa-solid fa-gavel text-yellow-400 text-xs"></i>}
-                                {isFiling && <i className="fa-solid fa-file text-blue-400 text-xs"></i>}
-                                {isHearing && <i className="fa-solid fa-calendar-check text-green-400 text-xs"></i>}
-                                <p className="text-white text-sm font-medium">{action.action || 'Action'}</p>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                {isMotion && <i className="fa-solid fa-gavel text-yellow-400 text-sm"></i>}
+                                {isFiling && <i className="fa-solid fa-file text-blue-400 text-sm"></i>}
+                                {isHearing && <i className="fa-solid fa-calendar-check text-green-400 text-sm"></i>}
+                                {isImportant && <i className="fa-solid fa-exclamation-circle text-red-400 text-sm"></i>}
+                                <p className="text-white text-sm font-semibold truncate">
+                                  {action.action || 'Case Activity'}
+                                </p>
                               </div>
-                              <p className="text-gray-400 text-xs mt-1">{action.description}</p>
-                              <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                                <span>
-                                  {action.date ? new Date(action.date).toLocaleDateString() : 'Date unknown'}
-                                </span>
+                              {action.description && action.description !== action.action && (
+                                <p className="text-gray-300 text-sm mt-1 leading-relaxed">
+                                  {action.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 mt-3 text-xs text-gray-400 flex-wrap">
+                                {action.date && action.date !== 'Date unknown' ? (
+                                  <span className="flex items-center gap-1">
+                                    <i className="fa-solid fa-calendar text-blue-400"></i>
+                                    {new Date(action.date).toLocaleDateString('en-US', { 
+                                      year: 'numeric', 
+                                      month: 'short', 
+                                      day: 'numeric' 
+                                    })}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-500">Date unknown</span>
+                                )}
                                 {action.filedBy && action.filedBy !== 'Unknown' && (
-                                  <span className="text-gray-400">• Filed by: {action.filedBy}</span>
+                                  <span className="flex items-center gap-1 text-gray-400">
+                                    <i className="fa-solid fa-user text-purple-400"></i>
+                                    Filed by: {action.filedBy}
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -646,6 +670,24 @@ export default function SearchPageContent() {
                         </div>
                       )
                     })}
+                  </div>
+                  {selectedCase.countyData.registerOfActions.length === 0 && (
+                    <div className="text-center py-8 text-gray-400">
+                      <i className="fa-solid fa-file-lines text-4xl mb-3 opacity-50"></i>
+                      <p>No register of actions available for this case</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="apple-card p-6">
+                  <h4 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <i className="fa-solid fa-file-lines text-purple-400"></i>
+                    Register of Actions
+                  </h4>
+                  <div className="text-center py-8 text-gray-400">
+                    <i className="fa-solid fa-file-lines text-4xl mb-3 opacity-50"></i>
+                    <p>Register of actions data is being retrieved...</p>
+                    <p className="text-sm mt-2">This may take a moment</p>
                   </div>
                 </div>
               )}

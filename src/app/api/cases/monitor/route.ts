@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
             )
             
             if (!existingEvent) {
-              // New event
+              // New event - add to calendar automatically
               changes.push(`New ${event.eventType} scheduled for ${event.date} ${event.time}`)
               
               notifications.push({
@@ -103,28 +103,55 @@ export async function POST(request: NextRequest) {
                 metadata: {
                   eventType: event.eventType,
                   date: event.date,
+                  time: event.time,
                   zoomId: event.virtualInfo?.zoomId,
-                  passcode: event.virtualInfo?.passcode
+                  passcode: event.virtualInfo?.passcode,
+                  addToCalendar: true // Flag to add to calendar
                 }
               })
-            } else if (event.virtualInfo && !existingEvent.virtualMeetingInfo) {
-              // Zoom info added
-              changes.push(`Zoom meeting info added for ${event.eventType} on ${event.date}`)
-              
-              notifications.push({
-                type: 'zoom_updated',
-                title: `Zoom Meeting Info Added: ${savedCase.caseNumber}`,
-                message: `Zoom meeting ID: ${event.virtualInfo.zoomId} for ${event.eventType} on ${event.date}`,
-                caseNumber: savedCase.caseNumber,
-                caseTitle: savedCase.caseTitle,
-                actionUrl: `/search?case=${savedCase.caseNumber}`,
-                metadata: {
-                  eventType: event.eventType,
-                  date: event.date,
-                  zoomId: event.virtualInfo.zoomId,
-                  passcode: event.virtualInfo.passcode
-                }
-              })
+            } else {
+              // Check if event was rescheduled (date or time changed)
+              if (existingEvent.date !== event.date || existingEvent.time !== event.time) {
+                changes.push(`${event.eventType} rescheduled from ${existingEvent.date} ${existingEvent.time} to ${event.date} ${event.time}`)
+                
+                notifications.push({
+                  type: 'hearing_rescheduled',
+                  title: `Hearing Rescheduled: ${savedCase.caseNumber}`,
+                  message: `${event.eventType} rescheduled from ${existingEvent.date} ${existingEvent.time} to ${event.date} ${event.time}`,
+                  caseNumber: savedCase.caseNumber,
+                  caseTitle: savedCase.caseTitle,
+                  actionUrl: `/search?case=${savedCase.caseNumber}`,
+                  metadata: {
+                    eventType: event.eventType,
+                    oldDate: existingEvent.date,
+                    oldTime: existingEvent.time,
+                    newDate: event.date,
+                    newTime: event.time,
+                    zoomId: event.virtualInfo?.zoomId,
+                    passcode: event.virtualInfo?.passcode,
+                    updateCalendar: true // Flag to update calendar
+                  }
+                })
+              } else if (event.virtualInfo && !existingEvent.virtualMeetingInfo) {
+                // Zoom info added
+                changes.push(`Zoom meeting info added for ${event.eventType} on ${event.date}`)
+                
+                notifications.push({
+                  type: 'zoom_updated',
+                  title: `Zoom Meeting Info Added: ${savedCase.caseNumber}`,
+                  message: `Zoom meeting ID: ${event.virtualInfo.zoomId} for ${event.eventType} on ${event.date}`,
+                  caseNumber: savedCase.caseNumber,
+                  caseTitle: savedCase.caseTitle,
+                  actionUrl: `/search?case=${savedCase.caseNumber}`,
+                  metadata: {
+                    eventType: event.eventType,
+                    date: event.date,
+                    zoomId: event.virtualInfo.zoomId,
+                    passcode: event.virtualInfo.passcode,
+                    updateCalendar: true // Flag to update calendar
+                  }
+                })
+              }
             }
           })
         }
