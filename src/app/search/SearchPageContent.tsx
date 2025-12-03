@@ -373,11 +373,11 @@ export default function SearchPageContent() {
                       <h3 className="text-white font-semibold text-lg mb-2 line-clamp-2">{c.title}</h3>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                          c.status === 'Active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
-                          c.status === 'Closed' ? 'bg-gray-500/20 text-gray-400 border border-gray-500/30' : 
+                          c.status === 'Active' || c.status === 'Open' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
+                          c.status === 'Closed' || c.status === 'Dismissed' || c.status === 'Terminated' ? 'bg-gray-500/20 text-gray-400 border border-gray-500/30' : 
                           'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         }`}>
-                          {c.status}
+                          {c.status || 'Active'}
                         </span>
                         {c.caseType && (
                           <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
