@@ -381,9 +381,9 @@ export default function Home() {
       </ClientOnly>
 
       {/* Single Hero Section - Modern Tech Startup Style */}
-      <section className="relative px-4 lg:px-6 pt-24 pb-16 lg:pt-32 lg:pb-24">
+      <section className="relative px-4 lg:px-6 pt-12 pb-10 lg:pt-16 lg:pb-12">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 fade-in-up">
+          <div className="text-center mb-10 fade-in-up">
             {/* Main Headline - Single, Powerful */}
             <h1 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight">
               Search California Court Cases<br />
@@ -401,7 +401,7 @@ export default function Home() {
             </p>
             
             {/* Single CTA Section */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10">
               <button 
                 onClick={handleGetStarted}
                 className="group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 overflow-hidden"
@@ -417,23 +417,28 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Key Stats - Modern Style */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="text-white text-4xl font-bold mb-2">100%</div>
-                <div className="text-gray-400 text-sm">Real-Time Data</div>
+            {/* Trust Indicators - Better Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+              <div className="text-center p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-shield-check text-blue-400 text-xl"></i>
+                </div>
+                <div className="text-white text-2xl md:text-3xl font-bold mb-1 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Secure</div>
+                <div className="text-gray-400 text-xs">Enterprise-Grade Security</div>
               </div>
-              <div className="text-center">
-                <div className="text-white text-4xl font-bold mb-2">AI</div>
-                <div className="text-gray-400 text-sm">Powered</div>
+              <div className="text-center p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-bolt text-purple-400 text-xl"></i>
+                </div>
+                <div className="text-white text-2xl md:text-3xl font-bold mb-1 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Instant</div>
+                <div className="text-gray-400 text-xs">Lightning-Fast Results</div>
               </div>
-              <div className="text-center">
-                <div className="text-white text-4xl font-bold mb-2">24/7</div>
-                <div className="text-gray-400 text-sm">Monitoring</div>
-              </div>
-              <div className="text-center">
-                <div className="text-white text-4xl font-bold mb-2">Free</div>
-                <div className="text-gray-400 text-sm">Trial</div>
+              <div className="text-center p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group col-span-2 md:col-span-1">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-certificate text-green-400 text-xl"></i>
+                </div>
+                <div className="text-white text-2xl md:text-3xl font-bold mb-1 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">Accurate</div>
+                <div className="text-gray-400 text-xs">Court-Validated Data</div>
               </div>
             </div>
           </div>
@@ -441,20 +446,23 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4 lg:px-6">
+      <section className="py-10 px-4 lg:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-white text-3xl md:text-4xl font-bold mb-4">Powerful Features</h2>
             <p className="text-gray-400 text-lg">Everything you need to manage your legal cases</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            <div className="apple-card p-6 hover-lift transition-all duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4">
-                <i className="fa-solid fa-database text-white text-2xl" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+            <div className="apple-card p-6 hover-lift transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-database text-white text-2xl" />
+                </div>
+                <h3 className="text-white text-xl font-semibold mb-2">Live County Data</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">Real-time access to California court records with automatic syncing and updates</p>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-2">Live County Data</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Real-time access to California court records with automatic syncing and updates</p>
             </div>
             <div className="apple-card p-6 hover-lift transition-all duration-300">
               <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
@@ -494,7 +502,7 @@ export default function Home() {
           </div>
 
           {/* Demo Preview Section */}
-          <div className="apple-card p-8 mb-12">
+          <div className="apple-card p-8 mb-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Case Preview */}
               <div>
@@ -549,9 +557,9 @@ export default function Home() {
       </section>
 
       {/* AI-Powered Case Intelligence Section */}
-      <section className="py-16 px-4 lg:px-6 bg-gradient-to-b from-transparent to-purple-900/10">
+      <section className="py-10 px-4 lg:px-6 bg-gradient-to-b from-transparent to-purple-900/10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-white text-3xl md:text-4xl font-bold mb-4">AI-Powered Case Intelligence</h2>
             <p className="text-gray-400 text-lg">Get instant insights and summaries with advanced AI</p>
           </div>
@@ -662,23 +670,36 @@ export default function Home() {
       </section>
 
       {/* Operations Map Section */}
-      <section className="py-16 px-4 lg:px-6">
+      <section className="py-10 px-4 lg:px-6">
         <div className="max-w-7xl mx-auto">
           <OperationsMap />
         </div>
       </section>
 
       {/* Final CTA Section - Modern & Clean */}
-      <section className="py-20 px-4 lg:px-6 bg-gradient-to-b from-purple-900/10 to-transparent">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-white text-4xl md:text-5xl font-bold mb-4">Ready to Transform Your Practice?</h2>
-          <p className="text-gray-300 text-xl mb-8">Start tracking cases with AI-powered insights today</p>
-          <button 
-            onClick={handleGetStarted}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-5 rounded-xl font-semibold text-xl hover:scale-105 transition-all duration-300 shadow-2xl"
-          >
-            Get Started Free
-          </button>
+      <section className="py-12 px-4 lg:px-6 bg-gradient-to-b from-purple-900/10 via-blue-900/5 to-transparent relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_50%)]"></div>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30">
+            <span className="text-purple-300 text-sm font-medium">Join hundreds of legal professionals</span>
+          </div>
+          <h2 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Ready to Transform Your Practice?</h2>
+          <p className="text-gray-300 text-lg md:text-xl mb-8 max-w-2xl mx-auto">Start tracking cases with AI-powered insights today. No credit card required.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button 
+              onClick={handleGetStarted}
+              className="group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:scale-105 transition-all duration-300 shadow-2xl overflow-hidden"
+            >
+              <span className="relative z-10">Get Started Free</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+            <button 
+              onClick={() => router.push('/pricing')}
+              className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 bg-white/5 hover:bg-white/10 border border-white/20 text-white backdrop-blur-sm"
+            >
+              View Pricing
+            </button>
+          </div>
         </div>
       </section>
     </main>
