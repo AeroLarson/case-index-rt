@@ -1,0 +1,22 @@
+{
+  "buildCommand": "next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/account",
+      "destination": "/account"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/account",
+      "dest": "/account",
+      "headers": {
+        "Cache-Control": "public, s-maxage=0, stale-while-revalidate=0"
+      }
+    }
+  ]
+}
+
