@@ -119,17 +119,40 @@ export default function SearchPageContent() {
                     if (detailsRes.ok) {
                       const detailsData = await detailsRes.json()
                       if (detailsData.success && detailsData.caseDetails) {
+                        // Use countyData if available, otherwise transform from detailedInfo
+                        let registerOfActions = []
+                        let upcomingEvents = []
+                        
+                        if (detailsData.caseDetails.countyData?.registerOfActions) {
+                          registerOfActions = detailsData.caseDetails.countyData.registerOfActions
+                        } else if (detailsData.caseDetails.detailedInfo?.caseHistory) {
+                          registerOfActions = detailsData.caseDetails.detailedInfo.caseHistory.map((item: any) => ({
+                            date: item.date,
+                            action: item.event || item.action,
+                            description: item.description || item.event || item.action,
+                            filedBy: item.filedBy || 'Court'
+                          }))
+                        }
+                        
+                        if (detailsData.caseDetails.countyData?.upcomingEvents) {
+                          upcomingEvents = detailsData.caseDetails.countyData.upcomingEvents
+                        } else if (detailsData.caseDetails.detailedInfo?.upcomingEvents) {
+                          upcomingEvents = detailsData.caseDetails.detailedInfo.upcomingEvents.map((event: any) => ({
+                            date: event.date,
+                            time: event.time,
+                            eventType: event.event || event.type || event.eventType,
+                            description: event.location || event.description || event.event || event.type
+                          }))
+                        }
+                        
                         // Update with detailed case info if available
                         const enhancedCase: CaseResult = {
                           ...selectedCase,
                           countyData: {
                             ...selectedCase.countyData,
-                            registerOfActions: detailsData.caseDetails.detailedInfo?.caseHistory?.map((item: any) => ({
-                              date: item.date,
-                              action: item.event,
-                              description: item.description,
-                              filedBy: 'Court'
-                            })) || []
+                            ...detailsData.caseDetails.countyData,
+                            registerOfActions: registerOfActions.length > 0 ? registerOfActions : (selectedCase.countyData?.registerOfActions || []),
+                            upcomingEvents: upcomingEvents.length > 0 ? upcomingEvents : (selectedCase.countyData?.upcomingEvents || [])
                           }
                         }
                         setSelectedCase(enhancedCase)
@@ -138,7 +161,12 @@ export default function SearchPageContent() {
                             c.caseNumber === selectedCase.caseNumber ? enhancedCase : c
                           )
                         )
+                        console.log('✅ Register of actions loaded:', registerOfActions.length, 'entries')
+                        setRegisterOfActionsError(null)
                       }
+                    } else {
+                      const errorData = await detailsRes.json().catch(() => ({}))
+                      setRegisterOfActionsError(errorData.error || 'Failed to fetch case details')
                     }
                   } catch (detailsError) {
                     console.error('Failed to fetch case details:', detailsError)
@@ -219,6 +247,25 @@ export default function SearchPageContent() {
         setResults(data.cases)
         if (data.cases.length === 0) {
           setError('No cases found. Try a different search term or check the spelling.')
+        } else {
+          // Save recent search to user profile
+          if (user) {
+            try {
+              // Map searchType to the format expected by RecentSearch
+              const mappedSearchType: 'case' | 'party' | 'attorney' = 
+                searchType === 'caseNumber' ? 'case' : 
+                searchType === 'name' ? 'party' : 'case'
+              
+              userProfileManager.addRecentSearch(user.id, {
+                query: query,
+                searchType: mappedSearchType,
+                resultsCount: data.cases.length
+              })
+              refreshProfile()
+            } catch (e) {
+              console.error('Failed to save recent search:', e)
+            }
+          }
         }
       } else {
         setResults([])
@@ -259,11 +306,99 @@ export default function SearchPageContent() {
         dateFiled: c.dateFiled || new Date().toISOString(),
         court: c.court,
         judge: c.judge,
-        parties: { petitioner: c.parties.plaintiff, respondent: c.parties.defendant }
+        parties: { petitioner: c.parties.plaintiff, respondent: c.parties.defendant },
+        department: c.department || '',
+        courtLocation: c.court
+      })
+      
+      // Automatically sync calendar events from case data
+      const upcomingEvents = c.countyData?.upcomingEvents || []
+      const registerOfActions = c.countyData?.registerOfActions || []
+      let eventsAdded = 0
+      
+      // Add upcoming events
+      upcomingEvents.forEach((event) => {
+        let eventDate = event.date
+        if (eventDate && !eventDate.includes('T')) {
+          try {
+            const parsedDate = new Date(eventDate)
+            if (!isNaN(parsedDate.getTime())) {
+              eventDate = parsedDate.toISOString().split('T')[0]
+            }
+          } catch (e) {
+            // Skip invalid dates
+          }
+        }
+        
+        const existingEvents = profile.calendarEvents || []
+        const alreadyExists = existingEvents.some(e => 
+          e.caseNumber === c.caseNumber && 
+          e.date === eventDate && 
+          e.title.includes(event.eventType || 'Hearing')
+        )
+        
+        if (!alreadyExists && eventDate) {
+          userProfileManager.addCalendarEvent(user.id, {
+            title: `${event.eventType || 'Hearing'} - ${c.title}`,
+            date: eventDate,
+            time: event.time || '09:00',
+            type: /trial/i.test(event.eventType || '') ? 'trial' : 'hearing',
+            caseNumber: c.caseNumber,
+            location: c.court,
+            description: event.description || `${event.eventType || 'Hearing'} for ${c.caseNumber}`,
+            duration: 60,
+            priority: 'high',
+            status: 'scheduled'
+          })
+          eventsAdded++
+        }
+      })
+      
+      // Extract future hearings from register of actions
+      const now = new Date()
+      registerOfActions.forEach((action) => {
+        if (action.date) {
+          try {
+            const actionDate = new Date(action.date)
+            if (actionDate > now && /hearing|trial|conference|calendar|status/i.test(action.action || action.description || '')) {
+              const isTrial = /trial|jury/i.test(action.action || action.description || '')
+              const eventDateStr = actionDate.toISOString().split('T')[0]
+              
+              const existingEvents = profile.calendarEvents || []
+              const alreadyExists = existingEvents.some(e => 
+                e.caseNumber === c.caseNumber && 
+                e.date === eventDateStr && 
+                e.description.includes(action.action || '')
+              )
+              
+              if (!alreadyExists) {
+                userProfileManager.addCalendarEvent(user.id, {
+                  title: `${isTrial ? 'Trial' : 'Hearing'} - ${c.title}`,
+                  date: eventDateStr,
+                  time: '09:00',
+                  type: isTrial ? 'trial' : 'hearing',
+                  caseNumber: c.caseNumber,
+                  location: c.court,
+                  description: action.description || action.action || 'Scheduled hearing',
+                  duration: 60,
+                  priority: 'high',
+                  status: 'scheduled'
+                })
+                eventsAdded++
+              }
+            }
+          } catch (e) {
+            // Skip invalid dates
+          }
+        }
       })
       
       refreshProfile()
-      alert('Case saved successfully!')
+      if (eventsAdded > 0) {
+        alert(`Case saved successfully! Added ${eventsAdded} calendar event(s). Events will auto-update when new hearings are scheduled.`)
+      } else {
+        alert('Case saved successfully! Calendar will auto-update when new hearings are scheduled.')
+      }
     } catch (e) {
       console.error(e)
       alert('Failed to save case. Please try again.')
@@ -281,59 +416,114 @@ export default function SearchPageContent() {
         saveCase(c)
       }
 
-      // Add calendar events from real upcoming events
-      const upcomingEvents = c.countyData?.upcomingEvents || []
+      // Extract events from multiple sources
+      const eventsToAdd: Array<{title: string, date: string, time: string, type: 'hearing' | 'trial' | 'deadline', description: string}> = []
       
-      if (upcomingEvents.length > 0) {
-        // Add each upcoming event to calendar with real dates
-        upcomingEvents.forEach((event) => {
-          // Parse the date - handle different formats
-          let eventDate = event.date
-          if (eventDate && !eventDate.includes('T')) {
-            // If it's just a date string, ensure it's in YYYY-MM-DD format
-            try {
-              const parsedDate = new Date(eventDate)
-              if (!isNaN(parsedDate.getTime())) {
-                eventDate = parsedDate.toISOString().split('T')[0]
-              }
-            } catch (e) {
-              console.warn('Could not parse event date:', eventDate)
+      // 1. Add upcoming events from countyData
+      const upcomingEvents = c.countyData?.upcomingEvents || []
+      upcomingEvents.forEach((event) => {
+        let eventDate = event.date
+        if (eventDate && !eventDate.includes('T')) {
+          try {
+            const parsedDate = new Date(eventDate)
+            if (!isNaN(parsedDate.getTime())) {
+              eventDate = parsedDate.toISOString().split('T')[0]
             }
+          } catch (e) {
+            console.warn('Could not parse event date:', eventDate)
           }
-
-          userProfileManager.addCalendarEvent(user.id, {
-            title: `${event.eventType || 'Hearing'} - ${c.title}`,
-            date: eventDate || new Date().toISOString().split('T')[0],
-            time: event.time || '09:00',
-            type: 'hearing',
-            caseNumber: c.caseNumber,
-            location: c.court,
-            description: event.description || `Auto-added from search result for ${c.caseNumber}`,
-            duration: 60,
-            priority: 'normal',
-            status: 'scheduled'
-          })
+        }
+        
+        const eventType = event.eventType || 'Hearing'
+        const isTrial = /trial|jury/i.test(eventType)
+        
+        eventsToAdd.push({
+          title: `${eventType} - ${c.title}`,
+          date: eventDate || new Date().toISOString().split('T')[0],
+          time: event.time || '09:00',
+          type: isTrial ? 'trial' : 'hearing',
+          description: event.description || `${eventType} for ${c.caseNumber}`
+        })
+      })
+      
+      // 2. Extract future hearings/trials from register of actions
+      const registerOfActions = c.countyData?.registerOfActions || []
+      const now = new Date()
+      registerOfActions.forEach((action) => {
+        if (action.date) {
+          try {
+            const actionDate = new Date(action.date)
+            // Only add future dates and events that look like hearings/trials
+            if (actionDate > now && /hearing|trial|conference|calendar|status/i.test(action.action || action.description || '')) {
+              const isTrial = /trial|jury/i.test(action.action || action.description || '')
+              const eventType = isTrial ? 'Trial' : 'Hearing'
+              
+              // Check if we already have this event from upcomingEvents
+              const eventDateStr = actionDate.toISOString().split('T')[0]
+              const alreadyAdded = eventsToAdd.some(e => e.date === eventDateStr && e.description.includes(action.action || ''))
+              
+              if (!alreadyAdded) {
+                eventsToAdd.push({
+                  title: `${eventType} - ${c.title}`,
+                  date: eventDateStr,
+                  time: '09:00',
+                  type: isTrial ? 'trial' : 'hearing',
+                  description: action.description || action.action || `${eventType} scheduled`
+                })
+              }
+            }
+          } catch (e) {
+            // Skip invalid dates
+          }
+        }
+      })
+      
+      // Add all extracted events to calendar
+      if (eventsToAdd.length > 0) {
+        eventsToAdd.forEach((event) => {
+          // Check if event already exists to avoid duplicates
+          const existingEvents = profile.calendarEvents || []
+          const alreadyExists = existingEvents.some(e => 
+            e.caseNumber === c.caseNumber && 
+            e.date === event.date && 
+            e.title.includes(event.title.split(' - ')[0])
+          )
+          
+          if (!alreadyExists) {
+            userProfileManager.addCalendarEvent(user.id, {
+              title: event.title,
+              date: event.date,
+              time: event.time,
+              type: event.type,
+              caseNumber: c.caseNumber,
+              location: c.court,
+              description: event.description,
+              duration: 60,
+              priority: 'high',
+              status: 'scheduled'
+            })
+          }
         })
         refreshProfile()
-        alert(`Added ${upcomingEvents.length} event(s) to calendar with real dates!`)
+        alert(`Added ${eventsToAdd.length} event(s) to calendar! Future hearings and trials will auto-update.`)
       } else {
-        // If no upcoming events, add a general case reminder using the date filed
+        // If no events found, add a general case reminder
         const dateFiled = c.dateFiled ? new Date(c.dateFiled).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
         
         userProfileManager.addCalendarEvent(user.id, {
           title: `Case Reminder - ${c.title}`,
           date: dateFiled,
           time: '09:00',
-          type: 'reminder',
+          type: 'deadline',
           caseNumber: c.caseNumber,
           location: c.court,
           description: `Case reminder for ${c.caseNumber}. Filed on ${c.dateFiled || 'unknown date'}`,
           duration: 60,
-          priority: 'normal',
+          priority: 'low',
           status: 'scheduled'
         })
         refreshProfile()
-        alert('Added case reminder to calendar')
+        alert('Added case reminder to calendar. Future events will auto-sync.')
       }
     } catch (e) {
       console.error(e)
