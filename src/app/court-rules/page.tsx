@@ -23,6 +23,7 @@ export default function CourtRulesPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<CourtRule[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -58,47 +59,121 @@ export default function CourtRulesPage() {
     }
 
     setLoading(true)
+    setResults([])
+    setError(null)
+    
     try {
-      // For now, return sample data - in production, this would search a court rules database
-      const sampleResults: CourtRule[] = [
-        {
-          id: '1',
-          title: 'Motion for Summary Judgment',
-          ruleNumber: 'CCP 437c',
-          category: 'Motion Practice',
-          court: 'California Superior Court',
-          content: 'A party may move for summary judgment in any action or proceeding if it is contended that the action has no merit or that there is no defense to the action or proceeding...',
-          lastUpdated: '2024-01-15',
-          relatedRules: ['CCP 437c(a)', 'CCP 437c(b)']
+      // Call the API endpoint to search court rules
+      const response = await fetch('/api/court-rules/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          id: '2',
-          title: 'Discovery Requests',
-          ruleNumber: 'CCP 2031.010',
-          category: 'Discovery',
-          court: 'California Superior Court',
-          content: 'Any party may obtain discovery by inspecting documents, tangible things, land or other property...',
-          lastUpdated: '2024-02-01'
+        body: JSON.stringify({
+          county: selectedCourt === 'all' ? 'san-diego' : selectedCourt.toLowerCase().replace(/\s+/g, '-'),
+          practiceArea: selectedCategory === 'all' ? 'family-law' : selectedCategory.toLowerCase().replace(/\s+/g, '-'),
+          searchQuery: query
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Search failed' }))
+        throw new Error(errorData.error || `Search failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.success && data.results) {
+        // Transform API results to our format
+        const transformedResults: CourtRule[] = []
+        
+        // Add rules from results
+        if (data.results.rules && Array.isArray(data.results.rules)) {
+          data.results.rules.forEach((rule: string, index: number) => {
+            transformedResults.push({
+              id: `rule-${index}`,
+              title: rule.split(',')[0] || rule,
+              ruleNumber: rule.match(/Rule\s+[\d.]+/i)?.[0] || rule.match(/CCP\s+[\d.]+/i)?.[0] || 'N/A',
+              category: selectedCategory === 'all' ? 'Civil Procedure' : selectedCategory,
+              court: selectedCourt === 'all' ? 'California Superior Court' : selectedCourt,
+              content: rule,
+              lastUpdated: new Date().toISOString().split('T')[0]
+            })
+          })
         }
-      ].filter(rule => 
-        rule.title.toLowerCase().includes(query.toLowerCase()) ||
-        rule.ruleNumber.toLowerCase().includes(query.toLowerCase()) ||
-        rule.content.toLowerCase().includes(query.toLowerCase())
-      )
+        
+        // Add deadlines as rules if available
+        if (data.results.deadlines && Array.isArray(data.results.deadlines)) {
+          data.results.deadlines.forEach((deadline: string, index: number) => {
+            transformedResults.push({
+              id: `deadline-${index}`,
+              title: deadline,
+              ruleNumber: 'Deadline',
+              category: 'Motion Practice',
+              court: selectedCourt === 'all' ? 'California Superior Court' : selectedCourt,
+              content: deadline,
+              lastUpdated: new Date().toISOString().split('T')[0]
+            })
+          })
+        }
+        
+        // If no results from API, provide some default helpful results
+        if (transformedResults.length === 0) {
+          const defaultResults: CourtRule[] = [
+            {
+              id: '1',
+              title: 'Motion for Summary Judgment',
+              ruleNumber: 'CCP 437c',
+              category: 'Motion Practice',
+              court: 'California Superior Court',
+              content: 'A party may move for summary judgment in any action or proceeding if it is contended that the action has no merit or that there is no defense to the action or proceeding. The motion shall be supported by affidavits, declarations, admissions, answers to interrogatories, depositions, and matters of which judicial notice shall or may be taken.',
+              lastUpdated: '2024-01-15',
+              relatedRules: ['CCP 437c(a)', 'CCP 437c(b)']
+            },
+            {
+              id: '2',
+              title: 'Discovery Requests',
+              ruleNumber: 'CCP 2031.010',
+              category: 'Discovery',
+              court: 'California Superior Court',
+              content: 'Any party may obtain discovery by inspecting documents, tangible things, land or other property, and electronically stored information in the possession, custody, or control of any other party to the action.',
+              lastUpdated: '2024-02-01'
+            }
+          ].filter(rule => 
+            rule.title.toLowerCase().includes(query.toLowerCase()) ||
+            rule.ruleNumber.toLowerCase().includes(query.toLowerCase()) ||
+            rule.content.toLowerCase().includes(query.toLowerCase())
+          )
+          
+          // Filter by court
+          const filteredByCourt = selectedCourt === 'all' 
+            ? defaultResults 
+            : defaultResults.filter(r => r.court === selectedCourt)
 
-      // Filter by court
-      const filteredByCourt = selectedCourt === 'all' 
-        ? sampleResults 
-        : sampleResults.filter(r => r.court === selectedCourt)
+          // Filter by category
+          const filteredByCategory = selectedCategory === 'all'
+            ? filteredByCourt
+            : filteredByCourt.filter(r => r.category === selectedCategory)
 
-      // Filter by category
-      const filteredByCategory = selectedCategory === 'all'
-        ? filteredByCourt
-        : filteredByCourt.filter(r => r.category === selectedCategory)
+          setResults(filteredByCategory)
+        } else {
+          // Filter transformed results
+          const filteredByCourt = selectedCourt === 'all' 
+            ? transformedResults 
+            : transformedResults.filter(r => r.court === selectedCourt)
 
-      setResults(filteredByCategory)
-    } catch (error) {
+          const filteredByCategory = selectedCategory === 'all'
+            ? filteredByCourt
+            : filteredByCourt.filter(r => r.category === selectedCategory)
+
+          setResults(filteredByCategory)
+        }
+      } else {
+        setResults([])
+      }
+    } catch (error: any) {
       console.error('Court rules search error:', error)
+      setError(error?.message || 'Failed to search court rules. Please try again.')
       setResults([])
     } finally {
       setLoading(false)
@@ -183,11 +258,25 @@ export default function CourtRulesPage() {
           </div>
         </form>
 
+        {/* Error Message */}
+        {error && (
+          <div className="apple-card p-4 mb-6 bg-red-500/10 border-red-500/20">
+            <div className="flex items-center gap-3">
+              <i className="fa-solid fa-exclamation-circle text-red-400"></i>
+              <div>
+                <p className="text-red-400 font-medium">Error</p>
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Results */}
         {loading && (
           <div className="apple-card p-8 text-center">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-300">Searching court rules...</p>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-300 font-medium mb-2">Searching court rules...</p>
+            <p className="text-gray-400 text-sm">Querying California court rules database</p>
           </div>
         )}
 

@@ -34,12 +34,144 @@ export default function SearchPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [selectedCase, setSelectedCase] = useState<CaseResult | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [loadingRegisterOfActions, setLoadingRegisterOfActions] = useState(false)
+  const [registerOfActionsError, setRegisterOfActionsError] = useState<string | null>(null)
+  const [loadingProgress, setLoadingProgress] = useState(0)
 
   useEffect(() => {
     if (!isLoading && !user) {
       // Let the parent layout handle redirect; render nothing here
     }
   }, [isLoading, user])
+
+  // Auto-fetch register of actions when a case is selected and data is missing
+  useEffect(() => {
+    if (!selectedCase || !user || !showDetailsModal) return
+
+    const hasRegisterOfActions = selectedCase.countyData?.registerOfActions && 
+                                  selectedCase.countyData.registerOfActions.length > 0
+
+    // If register of actions is missing, fetch it in the background
+    if (!hasRegisterOfActions && !loadingRegisterOfActions) {
+      setLoadingRegisterOfActions(true)
+      setRegisterOfActionsError(null)
+      setLoadingProgress(0)
+      
+      const fetchRegisterOfActions = async () => {
+        try {
+          console.log('🔄 Fetching register of actions for:', selectedCase.caseNumber)
+          
+          // Simulate progress for better UX
+          const progressInterval = setInterval(() => {
+            setLoadingProgress(prev => {
+              if (prev >= 90) return prev
+              return prev + Math.random() * 15
+            })
+          }, 300)
+          
+          // Try to get case details with register of actions
+          const res = await fetch('/api/cases/search', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json', 
+              Authorization: `Bearer ${user.id}` 
+            },
+            body: JSON.stringify({ 
+              query: selectedCase.caseNumber, 
+              searchType: 'caseNumber' 
+            })
+          })
+
+          clearInterval(progressInterval)
+          setLoadingProgress(100)
+
+          if (res.ok) {
+            const data = await res.json()
+            if (data.cases && data.cases.length > 0) {
+              const updatedCase = data.cases.find((c: CaseResult) => c.caseNumber === selectedCase.caseNumber)
+              if (updatedCase) {
+                // Check if we got register of actions or need to fetch separately
+                if (updatedCase.countyData?.registerOfActions && updatedCase.countyData.registerOfActions.length > 0) {
+                  // Update the selected case with the new data
+                  setSelectedCase(updatedCase)
+                  // Also update it in the results array
+                  setResults(prevResults => 
+                    prevResults.map(c => 
+                      c.caseNumber === selectedCase.caseNumber ? updatedCase : c
+                    )
+                  )
+                  console.log('✅ Register of actions loaded successfully')
+                  setRegisterOfActionsError(null)
+                } else {
+                  // Try fetching case details endpoint directly
+                  try {
+                    const detailsRes = await fetch('/api/cases/details', {
+                      method: 'POST',
+                      headers: { 
+                        'Content-Type': 'application/json', 
+                        Authorization: `Bearer ${user.id}` 
+                      },
+                      body: JSON.stringify({ 
+                        caseNumber: selectedCase.caseNumber
+                      })
+                    })
+                    
+                    if (detailsRes.ok) {
+                      const detailsData = await detailsRes.json()
+                      if (detailsData.success && detailsData.caseDetails) {
+                        // Update with detailed case info if available
+                        const enhancedCase: CaseResult = {
+                          ...selectedCase,
+                          countyData: {
+                            ...selectedCase.countyData,
+                            registerOfActions: detailsData.caseDetails.detailedInfo?.caseHistory?.map((item: any) => ({
+                              date: item.date,
+                              action: item.event,
+                              description: item.description,
+                              filedBy: 'Court'
+                            })) || []
+                          }
+                        }
+                        setSelectedCase(enhancedCase)
+                        setResults(prevResults => 
+                          prevResults.map(c => 
+                            c.caseNumber === selectedCase.caseNumber ? enhancedCase : c
+                          )
+                        )
+                      }
+                    }
+                  } catch (detailsError) {
+                    console.error('Failed to fetch case details:', detailsError)
+                  }
+                }
+              } else {
+                setRegisterOfActionsError('Case data not found. Please try searching again.')
+              }
+            } else {
+              setRegisterOfActionsError('No case data found for this case number.')
+            }
+          } else {
+            const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
+            setRegisterOfActionsError(errorData.error || 'Failed to load register of actions. Please try again.')
+          }
+        } catch (error) {
+          console.error('❌ Failed to fetch register of actions:', error)
+          setRegisterOfActionsError('An error occurred while loading the register of actions. Please try again.')
+          setLoadingProgress(0)
+        } finally {
+          setLoadingRegisterOfActions(false)
+          setTimeout(() => setLoadingProgress(0), 500)
+        }
+      }
+
+      // Small delay to avoid immediate fetch if data is still loading
+      const timeoutId = setTimeout(fetchRegisterOfActions, 500)
+      return () => {
+        clearTimeout(timeoutId)
+        setLoadingProgress(0)
+      }
+    }
+  }, [selectedCase, showDetailsModal, user, loadingRegisterOfActions])
 
   // Auto-detect search type: case number vs name
   const detectSearchType = (query: string): 'caseNumber' | 'name' => {
@@ -685,9 +817,47 @@ export default function SearchPageContent() {
                     Register of Actions
                   </h4>
                   <div className="text-center py-8 text-gray-400">
-                    <i className="fa-solid fa-file-lines text-4xl mb-3 opacity-50"></i>
-                    <p>Register of actions data is being retrieved...</p>
-                    <p className="text-sm mt-2">This may take a moment</p>
+                    {loadingRegisterOfActions ? (
+                      <>
+                        <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-white font-medium mb-2">Loading register of actions...</p>
+                        <p className="text-sm mb-4">Retrieving case history and filings from court records</p>
+                        
+                        {/* Progress Bar */}
+                        <div className="w-full max-w-md mx-auto bg-white/10 rounded-full h-2 mb-2">
+                          <div 
+                            className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(loadingProgress, 100)}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-gray-500">{Math.round(loadingProgress)}%</p>
+                      </>
+                    ) : registerOfActionsError ? (
+                      <>
+                        <i className="fa-solid fa-exclamation-triangle text-yellow-400 text-4xl mb-3"></i>
+                        <p className="text-yellow-400 font-medium mb-2">Unable to load register of actions</p>
+                        <p className="text-sm mb-4">{registerOfActionsError}</p>
+                        <button
+                          onClick={() => {
+                            setRegisterOfActionsError(null)
+                            setLoadingRegisterOfActions(true)
+                            // Trigger a re-fetch by updating selectedCase
+                            setSelectedCase({ ...selectedCase! })
+                          }}
+                          className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <i className="fa-solid fa-redo mr-2"></i>
+                          Try Again
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-file-lines text-4xl mb-3 opacity-50"></i>
+                        <p className="text-white font-medium mb-2">Loading register of actions...</p>
+                        <p className="text-sm mb-2">Retrieving case history from court records</p>
+                        <p className="text-xs mt-3 text-gray-500">The page will automatically update when data is available</p>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
