@@ -28,7 +28,7 @@ export default function Header() {
       className={`relative overflow-hidden ${user ? 'lg:ml-60' : ''}`}
       style={{
         background: 'linear-gradient(135deg, #0f0520 0%, #1a0b2e 25%, #2d1b4e 50%, #3d2563 75%, #4c1d95 100%)',
-        minHeight: user && pathname === '/' ? '150px' : '60px'
+        minHeight: '60px'
       }}
     >
       {/* Animated background particles */}
@@ -211,37 +211,6 @@ export default function Header() {
             </div>
           )}
         </div>
-
-                   {/* Hero Content - Only show for non-authenticated users */}
-                   {!user && (
-                     <div className="text-center mt-8 pb-12">
-                       <h1 
-                         id="title-dashboard" 
-                         className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6"
-                         style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
-                       >
-                         Search California Court Cases<br className="hidden sm:block"/>
-                         with AI-Powered Precision
-                       </h1>
-                       <p className="text-purple-300 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto mb-8">
-                         Access comprehensive case data from San Diego County family law cases. Track filings, hearings, and documents in real-time with automated updates.
-                       </p>
-                       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                         <button 
-                           onClick={() => router.push('/login')}
-                           className="vercel-button text-white border-none px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover-lift btn-pulse"
-                         >
-                           Get Started
-                         </button>
-                         <button 
-                           onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                           className="bg-transparent text-white border-2 border-white/20 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold cursor-pointer hover:bg-white/10 transition-all duration-300 hover-lift vercel-glow"
-                         >
-                           Learn More
-                         </button>
-                       </div>
-                     </div>
-                   )}
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
