@@ -124,9 +124,75 @@ export default function EmptyState({ type }: EmptyStateProps) {
         {content.title}
       </h3>
       
-      <p className="text-gray-300 mb-8 max-w-md">
+      <p className="text-gray-300 mb-4 max-w-md">
         {content.description}
       </p>
+
+      {/* Example/Reference Data Section */}
+      {type === 'dashboard' && (
+        <div className="w-full max-w-2xl mt-6 mb-8">
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs font-medium">Example Data</span>
+              <span className="text-gray-400 text-xs">This shows how your dashboard will look</span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+              <div className="bg-white/5 rounded-lg p-4">
+                <h5 className="text-white font-medium text-sm mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                  Example Search
+                </h5>
+                <p className="text-gray-300 text-xs mb-1">Case Number: <code className="bg-white/10 px-1 rounded">FL-2024-001234</code></p>
+                <p className="text-gray-400 text-xs">party • 3 results • 2 days ago</p>
+              </div>
+              
+              <div className="bg-white/5 rounded-lg p-4">
+                <h5 className="text-white font-medium text-sm mb-2 flex items-center gap-2">
+                  <i className="fa-solid fa-bookmark text-yellow-400 text-xs"></i>
+                  Example Saved Case
+                </h5>
+                <p className="text-gray-300 text-xs mb-1">Smith v. Johnson</p>
+                <p className="text-gray-400 text-xs">Family Law • Active</p>
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <p className="text-gray-400 text-xs text-center">
+                Search for real cases like <code className="bg-white/10 px-1 rounded">22FL001581C</code> or <code className="bg-white/10 px-1 rounded">FL-2024-123456</code> to see actual results
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === 'search' && (
+        <div className="w-full max-w-xl mt-4 mb-6">
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-left">
+            <p className="text-gray-300 text-sm mb-3 font-medium">💡 Try searching for:</p>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-1">•</span>
+                <div>
+                  <strong>Case Number:</strong> <code className="bg-white/10 px-1 rounded text-xs">22FL001581C</code> or <code className="bg-white/10 px-1 rounded text-xs">FL-2024-123456</code>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-1">•</span>
+                <div>
+                  <strong>Party Name:</strong> "John Smith" or "Smith, John"
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-1">•</span>
+                <div>
+                  <strong>Attorney Name:</strong> "Jane Doe"
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {isNewUser && type === 'dashboard' && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-md">

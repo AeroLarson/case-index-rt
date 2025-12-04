@@ -547,11 +547,13 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                      <h4 className="text-white font-semibold">Recent Case Activity</h4>
+                      <h4 className="text-white font-semibold">Example: Recent Case Activity</h4>
+                      <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs">Example</span>
                     </div>
                   </div>
-                  <p className="text-gray-300 text-sm mb-3 ml-6">Track real-time case updates, new filings, and upcoming hearings directly from San Diego County court records.</p>
-                  <p className="text-gray-400 text-xs ml-6">Automatically synced from official court sources</p>
+                  <p className="text-gray-300 text-sm mb-3 ml-6">New motion for temporary custody filed. Hearing scheduled for October 15, 2025.</p>
+                  <p className="text-gray-400 text-xs ml-6">San Diego Superior Court • Judge Martinez • 2 hours ago</p>
+                  <p className="text-gray-500 text-xs mt-2 ml-6 italic">This is example data to show how case updates appear in your dashboard</p>
                 </div>
               </div>
               
@@ -567,8 +569,11 @@ export default function Home() {
                       <i className="fa-solid fa-exclamation text-white text-sm"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-medium text-xs sm:text-sm">Upcoming Hearings</h4>
-                      <p className="text-gray-400 text-xs">Automatically track and sync all scheduled hearings from your saved cases</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-white font-medium text-xs sm:text-sm">Example: Smith v. Johnson - Hearing</h4>
+                        <span className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded text-[10px]">Example</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">Today, 2:00 PM • San Diego Superior Court</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 rounded-xl border border-white/10">
@@ -576,10 +581,14 @@ export default function Home() {
                       <i className="fa-solid fa-calendar text-white text-sm"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-medium text-xs sm:text-sm">Trial Dates & Conferences</h4>
-                      <p className="text-gray-400 text-xs">Never miss an important court date with automated calendar integration</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-white font-medium text-xs sm:text-sm">Example: Davis v. Wilson - Conference</h4>
+                        <span className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded text-[10px]">Example</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">Tomorrow, 10:00 AM • Virtual</p>
                     </div>
                   </div>
+                  <p className="text-gray-500 text-xs mt-2 italic">These are example calendar events to show how your hearings appear</p>
                 </div>
               </div>
             </div>
@@ -608,30 +617,32 @@ export default function Home() {
                     <div className="bg-white/5 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
                       <div className="text-xs text-gray-400 mb-3 flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span>AI Case Analysis Example</span>
+                        <span>Example: Case: Johnson v. Martinez (FL-2024-001234)</span>
+                        <span className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded text-[10px]">Example</span>
                       </div>
                       <div className="space-y-2 text-sm text-gray-300">
                         <div className="flex items-start gap-2">
                           <span className="text-blue-400 mt-1">•</span>
-                          <span>Automatically analyzes case details, parties, and key information</span>
+                          <span>Custody dispute, 2 children, filed March 2024</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-orange-400 mt-1">⚠</span>
-                          <span>Identifies potential risks, conflicts, and important deadlines</span>
+                          <span>High conflict, mediation recommended</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-green-400 mt-1">→</span>
-                          <span>Tracks upcoming hearings, trials, and important dates</span>
+                          <span>Next: Settlement conference Oct 15</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-purple-400 mt-1">📄</span>
-                          <span>Summarizes filings, motions, and register of actions</span>
+                          <span>3 motions filed, discovery ongoing</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-yellow-400 mt-1">💰</span>
-                          <span>Provides insights on financial matters and case trends</span>
+                          <span>Child support: $1,200/month pending</span>
                         </div>
                       </div>
+                      <p className="text-gray-500 text-xs mt-3 italic">This is example AI analysis output - your real cases will show similar insights</p>
                     </div>
                   </div>
                   <div className="p-5 bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-2xl border border-green-500/20">

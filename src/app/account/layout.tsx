@@ -1,9 +1,8 @@
+'use client'
+
 import React from 'react'
 
-// Force dynamic rendering for account page to ensure Vercel creates a serverless function
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-
+// Account layout - client component to match client page
 export default function AccountLayout({
   children,
 }: {
