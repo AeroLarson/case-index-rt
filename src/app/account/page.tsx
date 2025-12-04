@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { userProfileManager } from '@/lib/userProfile'
 
+// Route segment config - ensure static generation for client component
+export const dynamic = 'force-static'
+export const revalidate = false
+
 export default function AccountPage() {
   const { user, logout, userProfile, clearAllUserData, isLoading } = useAuth()
   const { settings, updateSettings } = useCustomization()
