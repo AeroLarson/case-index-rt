@@ -1,5 +1,6 @@
 ﻿'use client'
 
+// Account settings page component
 import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
