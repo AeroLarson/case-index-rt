@@ -72,7 +72,7 @@ export default function AccountPage() {
           'Authorization': `Bearer ${JSON.parse(clioTokens).access_token}`
         },
         body: JSON.stringify({
-          syncType: 'test'
+          syncType: 'full'
         })
       })
 
@@ -442,7 +442,7 @@ export default function AccountPage() {
                         value={formData.phone}
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                        placeholder="+1 (555) 123-4567"
+                        placeholder="Enter your phone number"
                       />
                     ) : (
                       <p className="text-white text-lg">+1 (555) 123-4567</p>

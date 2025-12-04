@@ -194,50 +194,11 @@ export default function CalendarPage() {
   }
 
   const getEventColor = (type: string, caseNumber?: string) => {
-    // Case-specific styling
-    if (caseNumber === 'FL-2024-005678') {
-      // John Doe criminal case - darker, more serious colors
-      switch (type) {
-        case 'hearing':
-        case 'county_hearing':
-          return 'bg-red-600'
-        case 'deadline':
-        case 'county_deadline':
-          return 'bg-red-700'
-        case 'meeting':
-          return 'bg-red-500'
-        case 'deposition':
-          return 'bg-red-800'
-        case 'trial':
-          return 'bg-red-900'
-        default:
-          return 'bg-red-600'
-      }
-    } else if (caseNumber === 'FL-2024-001234') {
-      // Aero Larson family case - softer, family-friendly colors
-      switch (type) {
-        case 'hearing':
-        case 'county_hearing':
-          return 'bg-blue-500'
-        case 'deadline':
-        case 'county_deadline':
-          return 'bg-blue-600'
-        case 'meeting':
-          return 'bg-blue-400'
-        case 'deposition':
-          return 'bg-blue-700'
-        case 'trial':
-          return 'bg-blue-800'
-        default:
-          return 'bg-blue-500'
-      }
-    }
-    
-    // Default styling for other cases
+    // Type-based styling for all cases
     switch (type) {
       case 'hearing':
       case 'county_hearing':
-        return 'bg-red-500'
+        return 'bg-yellow-500'
       case 'deadline':
       case 'county_deadline':
         return 'bg-orange-500'
@@ -246,7 +207,7 @@ export default function CalendarPage() {
       case 'deposition':
         return 'bg-purple-500'
       case 'trial':
-        return 'bg-green-500'
+        return 'bg-red-500'
       default:
         return 'bg-gray-500'
     }
@@ -463,10 +424,10 @@ export default function CalendarPage() {
                   <div
                     key={event.id}
                     className={`text-xs p-1 rounded truncate cursor-pointer ${
-                      event.caseNumber === 'FL-2024-005678' 
+                      event.type === 'trial'
                         ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30' 
-                        : event.caseNumber === 'FL-2024-001234'
-                        ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
+                        : event.type === 'hearing'
+                        ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
                         : 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
                     }`}
                     onClick={() => setSelectedEvent(event)}
@@ -604,10 +565,10 @@ export default function CalendarPage() {
                           <div
                             key={event.id}
                             className={`p-3 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
-                              event.caseNumber === 'FL-2024-005678' 
+                              event.type === 'trial'
                                 ? 'bg-red-500/20 border border-red-500/30 hover:bg-red-500/30' 
-                                : event.caseNumber === 'FL-2024-001234'
-                                ? 'bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500/30'
+                                : event.type === 'hearing'
+                                ? 'bg-yellow-500/20 border border-yellow-500/30 hover:bg-yellow-500/30'
                                 : 'bg-white/10 border border-white/20 hover:bg-white/20'
                             }`}
                             onClick={() => setSelectedEvent(event)}
@@ -1055,10 +1016,10 @@ export default function CalendarPage() {
                     <div
                       key={event.id}
                       className={`p-6 rounded-2xl border transition-all duration-200 cursor-pointer hover:scale-[1.02] ${
-                        event.caseNumber === 'FL-2024-005678' 
+                        event.type === 'trial'
                           ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20' 
-                          : event.caseNumber === 'FL-2024-001234'
-                          ? 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20'
+                          : event.type === 'hearing'
+                          ? 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20'
                           : 'bg-white/5 border-white/10 hover:bg-white/10'
                       }`}
                       onClick={() => {

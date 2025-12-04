@@ -213,11 +213,22 @@ export default function SearchPageContent() {
 
   const performSearch = async (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!user) return
+    if (!user || !userProfile) return
     
     const query = searchQuery.trim()
     if (!query) {
       setError('Please enter a case number or name to search')
+      return
+    }
+    
+    // Check plan limits for free users
+    const isFreePlan = userProfile.plan === 'free'
+    const monthlyUsage = userProfile.monthlyUsage || 0
+    const maxMonthlyUsage = userProfile.maxMonthlyUsage || 1
+    
+    if (isFreePlan && monthlyUsage >= maxMonthlyUsage) {
+      setError(`You've reached your monthly limit of ${maxMonthlyUsage} case search(es). Please upgrade to Professional or Team plan for unlimited searches.`)
+      router.push('/billing')
       return
     }
     
@@ -248,6 +259,18 @@ export default function SearchPageContent() {
         if (data.cases.length === 0) {
           setError('No cases found. Try a different search term or check the spelling.')
         } else {
+          // Increment monthly usage for free plan users after successful search
+          if (isFreePlan && user) {
+            try {
+              const success = userProfileManager.incrementMonthlyUsage(user.id)
+              if (!success) {
+                console.warn('Failed to increment monthly usage')
+              }
+            } catch (e) {
+              console.error('Failed to increment monthly usage:', e)
+            }
+          }
+          
           // Save recent search to user profile
           if (user) {
             try {

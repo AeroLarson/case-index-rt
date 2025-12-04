@@ -106,8 +106,16 @@ export default function BillingPage() {
           amount: planAmount,
           status: 'completed',
           stripeSessionId: sessionId,
+          stripeCustomerId: result.stripeCustomerId || undefined,
           nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         })
+
+        // Store Stripe customer ID in user profile for future portal access
+        if (result.stripeCustomerId && typeof window !== 'undefined') {
+          const profile = userProfileManager.getUserProfile(user.id, user.name, user.email)
+          profile.stripeCustomerId = result.stripeCustomerId
+          userProfileManager.saveUserProfile(profile)
+        }
 
         // Update user profile with new plan
         userProfileManager.updatePlan(user.id, result.planId as 'pro' | 'team')

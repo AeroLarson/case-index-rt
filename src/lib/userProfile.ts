@@ -51,6 +51,8 @@ export interface UserProfile {
   createdAt: string
   lastLogin: string
   previousLogin?: string
+  lastUsageReset?: string // Track when monthly usage was last reset
+  stripeCustomerId?: string // Stripe customer ID for subscription management
 }
 
 export interface SavedCase {
@@ -137,10 +139,30 @@ class UserProfileManager {
         if (!profile.calendarEvents) profile.calendarEvents = []
         if (!profile.notifications) profile.notifications = []
         
+        // Reset monthly usage if we're in a new month
+        if (profile.plan === 'free' && profile.monthlyUsage > 0) {
+          const lastUsageReset = profile.lastUsageReset ? new Date(profile.lastUsageReset) : new Date(profile.createdAt)
+          const now = new Date()
+          
+          // Check if we've moved to a new month
+          if (lastUsageReset.getMonth() !== now.getMonth() || 
+              lastUsageReset.getFullYear() !== now.getFullYear()) {
+            profile.monthlyUsage = 0
+            profile.lastUsageReset = new Date().toISOString()
+            console.log(`Monthly usage reset for user ${userId} - new month detected`)
+          }
+        }
+        
         // Save previous login time before updating
         profile.previousLogin = profile.lastLogin
         // Update last login to current time
         profile.lastLogin = new Date().toISOString()
+        
+        // Initialize lastUsageReset if not set
+        if (!profile.lastUsageReset && profile.monthlyUsage === 0) {
+          profile.lastUsageReset = new Date().toISOString()
+        }
+        
         this.saveUserProfile(profile)
         return profile
       } else {
@@ -272,11 +294,29 @@ class UserProfileManager {
   incrementMonthlyUsage(userId: string): boolean {
     const profile = this.getUserProfile(userId, '', '')
     
+    // Reset monthly usage if we're in a new month (for free plan users)
+    if (profile.plan === 'free' && profile.monthlyUsage > 0) {
+      const lastUsageReset = profile.lastUsageReset ? new Date(profile.lastUsageReset) : new Date(profile.createdAt)
+      const now = new Date()
+      
+      if (lastUsageReset.getMonth() !== now.getMonth() || 
+          lastUsageReset.getFullYear() !== now.getFullYear()) {
+        profile.monthlyUsage = 0
+        profile.lastUsageReset = new Date().toISOString()
+      }
+    }
+    
     if (profile.monthlyUsage >= profile.maxMonthlyUsage) {
       return false // Usage limit reached
     }
 
     profile.monthlyUsage += 1
+    
+    // Set lastUsageReset on first usage of the month
+    if (!profile.lastUsageReset) {
+      profile.lastUsageReset = new Date().toISOString()
+    }
+    
     this.saveUserProfile(profile)
     return true
   }

@@ -119,7 +119,25 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   try {
     console.log('Subscription updated:', subscription.id)
-    // Handle subscription updates if needed
+    
+    // Get plan from subscription metadata
+    const planId = subscription.metadata?.planId || subscription.items.data[0]?.price?.nickname
+    
+    // Note: userProfileManager uses localStorage which is client-side only
+    // In production, update a database here. For now, client-side will handle via payment success
+    // The webhook metadata should include userId for proper handling
+    
+    if (planId && (planId === 'pro' || planId === 'team')) {
+      const userId = subscription.metadata?.userId
+      if (userId && typeof window !== 'undefined') {
+        // Only update if running client-side (shouldn't happen in webhook, but safe check)
+        userProfileManager.updatePlan(userId, planId as 'pro' | 'team')
+        console.log(`Plan updated for user ${userId} to ${planId}`)
+      } else {
+        // Server-side: Log for database update (in production, update database here)
+        console.log(`Plan update needed for user ${userId} to ${planId} - handled client-side`)
+      }
+    }
   } catch (error) {
     console.error('Error handling subscription updated:', error)
   }
@@ -128,7 +146,19 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   try {
     console.log('Subscription deleted:', subscription.id)
-    // Handle subscription cancellation if needed
+    
+    // Downgrade user to free plan when subscription is cancelled
+    const userId = subscription.metadata?.userId
+    if (userId) {
+      if (typeof window !== 'undefined') {
+        // Only update if running client-side
+        userProfileManager.updatePlan(userId, 'free')
+        console.log(`Plan downgraded to free for user ${userId}`)
+      } else {
+        // Server-side: Log for database update (in production, update database here)
+        console.log(`Plan downgrade needed for user ${userId} to free - handled client-side`)
+      }
+    }
   } catch (error) {
     console.error('Error handling subscription deleted:', error)
   }
@@ -137,7 +167,29 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   try {
     console.log('Invoice payment succeeded:', invoice.id)
-    // Handle successful recurring payments
+    
+    // Update payment record for recurring subscription
+    const subscriptionId = invoice.subscription as string
+    if (subscriptionId) {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+      const userId = subscription.metadata?.userId
+      const planId = subscription.items.data[0]?.price?.nickname || subscription.metadata?.planId
+      
+      if (userId && planId) {
+        const amount = planId === 'pro' ? 99 : 299
+        PaymentTracker.addPaymentRecord({
+          userId,
+          userEmail: invoice.customer_email || '',
+          userName: invoice.customer_name || '',
+          planId: planId as 'pro' | 'team',
+          amount,
+          status: 'completed',
+          stripeInvoiceId: invoice.id,
+          stripeSessionId: subscriptionId,
+          nextBillingDate: new Date(invoice.period_end * 1000).toISOString()
+        })
+      }
+    }
   } catch (error) {
     console.error('Error handling invoice payment succeeded:', error)
   }
@@ -146,7 +198,19 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   try {
     console.log('Invoice payment failed:', invoice.id)
-    // Handle failed payments
+    
+    // Notify user about failed payment
+    const subscriptionId = invoice.subscription as string
+    if (subscriptionId) {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+      const userId = subscription.metadata?.userId
+      
+      if (userId) {
+        // In production, send notification email
+        console.log(`Payment failed for user ${userId}. Subscription may be cancelled.`)
+        // Optionally downgrade to free plan after grace period
+      }
+    }
   } catch (error) {
     console.error('Error handling invoice payment failed:', error)
   }

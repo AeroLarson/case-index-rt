@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import ClientOnly from '@/components/ClientOnly'
 import EmptyState from '@/components/EmptyState'
 import OperationsMap from '@/components/OperationsMap'
-import { useState } from 'react'
+import { userProfileManager } from '@/lib/userProfile'
+import { useState, useMemo } from 'react'
 
 export default function Home() {
   const router = useRouter()
@@ -22,11 +23,16 @@ export default function Home() {
     setSelectedCaseModal(case_)
   }
 
-  // Show personalized dashboard for authenticated users
-  console.log('Home page: User state:', user)
-  console.log('Home page: UserProfile state:', userProfile)
-  console.log('Home page: User plan:', userProfile?.plan)
-  console.log('Home page: Clio condition check:', userProfile && (userProfile.plan === 'pro' || userProfile.plan === 'team') && user)
+  // Check Clio connection status
+  const isClioConnected = useMemo(() => {
+    if (!user || typeof window === 'undefined') return false
+    try {
+      const clioTokens = userProfileManager.getClioTokens(user.id)
+      return !!clioTokens
+    } catch {
+      return false
+    }
+  }, [user])
   
   // Check if user has any data (moved outside conditional to avoid hook issues)
   const hasData = user && userProfile && (
@@ -170,40 +176,52 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Clio Integration Status - ALWAYS SHOW */}
-          <div className="apple-card p-4 sm:p-6 mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <i className="fa-solid fa-link text-white text-lg sm:text-xl"></i>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-white text-base sm:text-lg font-semibold mb-1">Clio CRM Integration</h3>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-xs sm:text-sm font-medium">Connected</span>
-                    <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">• Ready to sync</span>
+          {/* Clio Integration Status - Only show for Pro/Team plans */}
+          {(userProfile?.plan === 'pro' || userProfile?.plan === 'team') && (
+              <div className="apple-card p-4 sm:p-6 mb-6 sm:mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <i className="fa-solid fa-link text-white text-lg sm:text-xl"></i>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-white text-base sm:text-lg font-semibold mb-1">Clio CRM Integration</h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {isClioConnected ? (
+                          <>
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span className="text-green-400 text-xs sm:text-sm font-medium">Connected</span>
+                            <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">• Ready to sync</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                            <span className="text-gray-400 text-xs sm:text-sm font-medium">Not Connected</span>
+                            <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">• Connect in Account Settings</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button
+                      onClick={() => router.push('/calendar')}
+                      className="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 active:scale-95"
+                    >
+                      <i className="fa-solid fa-calendar mr-2"></i>
+                      View Calendar
+                    </button>
+                    <button
+                      onClick={() => router.push('/account?tab=integrations')}
+                      className="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-400 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 active:scale-95"
+                    >
+                      <i className="fa-solid fa-link mr-2"></i>
+                      {isClioConnected ? 'Integration Settings' : 'Connect Clio'}
+                    </button>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <button
-                  onClick={() => router.push('/calendar')}
-                  className="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 active:scale-95"
-                >
-                  <i className="fa-solid fa-calendar mr-2"></i>
-                  View Calendar
-                </button>
-                <button
-                  onClick={() => router.push('/account?tab=integrations')}
-                  className="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-400 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 active:scale-95"
-                >
-                  <i className="fa-solid fa-link mr-2"></i>
-                  Integration Settings
-                </button>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
@@ -529,13 +547,11 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                      <h4 className="text-white font-semibold">Smith v. Johnson</h4>
-                      <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs">FL-2024-001234</span>
+                      <h4 className="text-white font-semibold">Recent Case Activity</h4>
                     </div>
-                    <span className="text-gray-400 text-xs">2 hours ago</span>
                   </div>
-                  <p className="text-gray-300 text-sm mb-3 ml-6">New motion for temporary custody filed. Hearing scheduled for October 11, 2025.</p>
-                  <p className="text-gray-400 text-xs ml-6">San Diego Superior Court • Judge Martinez</p>
+                  <p className="text-gray-300 text-sm mb-3 ml-6">Track real-time case updates, new filings, and upcoming hearings directly from San Diego County court records.</p>
+                  <p className="text-gray-400 text-xs ml-6">Automatically synced from official court sources</p>
                 </div>
               </div>
               
@@ -546,22 +562,22 @@ export default function Home() {
                   Upcoming Hearings
                 </h3>
                 <div className="space-y-2 sm:space-y-3">
-                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all active:scale-[0.98]">
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 rounded-xl border border-white/10">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
                       <i className="fa-solid fa-exclamation text-white text-sm"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-medium text-xs sm:text-sm">Smith v. Johnson - Hearing</h4>
-                      <p className="text-gray-400 text-xs">Today, 2:00 PM • San Diego Superior Court</p>
+                      <h4 className="text-white font-medium text-xs sm:text-sm">Upcoming Hearings</h4>
+                      <p className="text-gray-400 text-xs">Automatically track and sync all scheduled hearings from your saved cases</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all active:scale-[0.98]">
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 rounded-xl border border-white/10">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                       <i className="fa-solid fa-calendar text-white text-sm"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-medium text-xs sm:text-sm">Davis v. Wilson - Conference</h4>
-                      <p className="text-gray-400 text-xs">Tomorrow, 10:00 AM • Virtual</p>
+                      <h4 className="text-white font-medium text-xs sm:text-sm">Trial Dates & Conferences</h4>
+                      <p className="text-gray-400 text-xs">Never miss an important court date with automated calendar integration</p>
                     </div>
                   </div>
                 </div>
@@ -592,28 +608,28 @@ export default function Home() {
                     <div className="bg-white/5 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
                       <div className="text-xs text-gray-400 mb-3 flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span>Case: Johnson v. Martinez (FL-2024-001234)</span>
+                        <span>AI Case Analysis Example</span>
                       </div>
                       <div className="space-y-2 text-sm text-gray-300">
                         <div className="flex items-start gap-2">
                           <span className="text-blue-400 mt-1">•</span>
-                          <span>Custody dispute, 2 children, filed March 2024</span>
+                          <span>Automatically analyzes case details, parties, and key information</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-orange-400 mt-1">⚠</span>
-                          <span>High conflict, mediation recommended</span>
+                          <span>Identifies potential risks, conflicts, and important deadlines</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-green-400 mt-1">→</span>
-                          <span>Next: Settlement conference Oct 15</span>
+                          <span>Tracks upcoming hearings, trials, and important dates</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-purple-400 mt-1">📄</span>
-                          <span>3 motions filed, discovery ongoing</span>
+                          <span>Summarizes filings, motions, and register of actions</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-yellow-400 mt-1">💰</span>
-                          <span>Child support: $1,200/month pending</span>
+                          <span>Provides insights on financial matters and case trends</span>
                         </div>
                       </div>
                     </div>

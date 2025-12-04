@@ -30,13 +30,28 @@ export async function POST(request: NextRequest) {
     if (session.payment_status === 'paid') {
       const { userId, planId } = session.metadata || {}
       
-      console.log('Payment successful for user:', userId, 'plan:', planId)
+      // Get or create Stripe customer ID
+      let customerId = session.customer as string
+      if (customerId && typeof customerId === 'string' && !customerId.startsWith('cus_')) {
+        // If customer is an object ID, get the actual customer
+        try {
+          const customer = await stripe.customers.retrieve(customerId)
+          if (customer && !customer.deleted) {
+            customerId = customer.id
+          }
+        } catch (e) {
+          console.error('Error retrieving customer:', e)
+        }
+      }
       
-      // Return success - the frontend will handle the plan update via localStorage
+      console.log('Payment successful for user:', userId, 'plan:', planId, 'customer:', customerId)
+      
+      // Return success with customer ID - the frontend will handle the plan update via localStorage
       return NextResponse.json({ 
         success: true, 
         planId,
         userId,
+        stripeCustomerId: customerId || null,
         message: 'Payment processed successfully'
       })
     }

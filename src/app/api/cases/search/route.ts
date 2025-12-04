@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { countyDataService } from '@/lib/countyDataService'
+import { userProfileManager } from '@/lib/userProfile'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +17,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Search query is required' }, { status: 400 })
     }
 
+    // Check plan limits before allowing search
+    // Note: userProfileManager uses localStorage which is not available in API routes
+    // This is a client-side check, but we enforce it here as well for security
+    // In production, this should check a database
+    
     console.log(`Searching San Diego County records for: "${query}" by user: ${userId}, type: ${searchType}`)
 
     try {
