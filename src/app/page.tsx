@@ -380,96 +380,111 @@ export default function Home() {
         </div>
       </ClientOnly>
 
-      {/* Hero Section - Professional & Compact */}
-      <div className="py-12 px-4 lg:px-6 pt-20">
+      {/* Single Hero Section - Modern Tech Startup Style */}
+      <section className="relative px-4 lg:px-6 pt-24 pb-16 lg:pt-32 lg:pb-24">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 fade-in-up">
-            <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-              California Court Case Search<br />
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Powered by AI</span>
+          <div className="text-center mb-16 fade-in-up">
+            {/* Main Headline - Single, Powerful */}
+            <h1 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight">
+              Search California Court Cases<br />
+              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+                with AI-Powered Precision
+              </span>
             </h1>
-            <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed">
-              Real-time case tracking, intelligent analytics, and automated calendar management for modern legal practices.
+            
+            {/* Subheadline */}
+            <p className="text-gray-300 text-xl md:text-2xl max-w-3xl mx-auto mb-4 leading-relaxed">
+              Access comprehensive case data from San Diego County family law cases
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-12">
+              Track filings, hearings, and documents in real-time with automated updates
+            </p>
+            
+            {/* Single CTA Section */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <button 
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover-lift transition-all duration-200 shadow-xl hover:shadow-2xl"
+                className="group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 overflow-hidden"
               >
-                Get Started Free
+                <span className="relative z-10">Get Started</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
               <button 
                 onClick={() => router.push('/pricing')}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200"
+                className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 bg-white/5 hover:bg-white/10 border border-white/20 text-white backdrop-blur-sm"
               >
                 View Pricing
               </button>
             </div>
-          </div>
 
-          {/* Key Stats - Compact */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-4xl mx-auto">
-            <div className="apple-card p-6 text-center">
-              <p className="text-white text-3xl font-bold mb-2">100%</p>
-              <p className="text-gray-400 text-sm">Real-Time Data</p>
-            </div>
-            <div className="apple-card p-6 text-center">
-              <p className="text-white text-3xl font-bold mb-2">AI</p>
-              <p className="text-gray-400 text-sm">Powered</p>
-            </div>
-            <div className="apple-card p-6 text-center">
-              <p className="text-white text-3xl font-bold mb-2">24/7</p>
-              <p className="text-gray-400 text-sm">Monitoring</p>
-            </div>
-            <div className="apple-card p-6 text-center">
-              <p className="text-white text-3xl font-bold mb-2">Free</p>
-              <p className="text-gray-400 text-sm">Trial</p>
+            {/* Key Stats - Modern Style */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+              <div className="text-center">
+                <div className="text-white text-4xl font-bold mb-2">100%</div>
+                <div className="text-gray-400 text-sm">Real-Time Data</div>
+              </div>
+              <div className="text-center">
+                <div className="text-white text-4xl font-bold mb-2">AI</div>
+                <div className="text-gray-400 text-sm">Powered</div>
+              </div>
+              <div className="text-center">
+                <div className="text-white text-4xl font-bold mb-2">24/7</div>
+                <div className="text-gray-400 text-sm">Monitoring</div>
+              </div>
+              <div className="text-center">
+                <div className="text-white text-4xl font-bold mb-2">Free</div>
+                <div className="text-gray-400 text-sm">Trial</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Combined Features & Preview - Compact */}
-      <div className="py-8 px-4 lg:px-6">
+      {/* Features Section */}
+      <section className="py-16 px-4 lg:px-6">
         <div className="max-w-7xl mx-auto">
-          {/* Key Features Grid - Compact */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="apple-card p-6 hover-lift">
+          <div className="text-center mb-12">
+            <h2 className="text-white text-3xl md:text-4xl font-bold mb-4">Powerful Features</h2>
+            <p className="text-gray-400 text-lg">Everything you need to manage your legal cases</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div className="apple-card p-6 hover-lift transition-all duration-300">
               <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4">
                 <i className="fa-solid fa-database text-white text-2xl" />
               </div>
               <h3 className="text-white text-xl font-semibold mb-2">Live County Data</h3>
               <p className="text-gray-400 text-sm leading-relaxed">Real-time access to California court records with automatic syncing and updates</p>
             </div>
-            <div className="apple-card p-6 hover-lift">
+            <div className="apple-card p-6 hover-lift transition-all duration-300">
               <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
                 <i className="fa-solid fa-robot text-white text-2xl" />
               </div>
               <h3 className="text-white text-xl font-semibold mb-2">AI-Powered Insights</h3>
               <p className="text-gray-400 text-sm leading-relaxed">Smart case summaries, risk analysis, and strategic recommendations</p>
             </div>
-            <div className="apple-card p-6 hover-lift">
+            <div className="apple-card p-6 hover-lift transition-all duration-300">
               <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-4">
                 <i className="fa-solid fa-calendar-check text-white text-2xl" />
               </div>
               <h3 className="text-white text-xl font-semibold mb-2">Smart Calendar</h3>
               <p className="text-gray-400 text-sm leading-relaxed">Automated hearing tracking with reminders and virtual meeting links</p>
             </div>
-            <div className="apple-card p-6 hover-lift">
+            <div className="apple-card p-6 hover-lift transition-all duration-300">
               <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mb-4">
                 <i className="fa-solid fa-link text-white text-2xl" />
               </div>
               <h3 className="text-white text-xl font-semibold mb-2">Clio Integration</h3>
               <p className="text-gray-400 text-sm leading-relaxed">Seamlessly sync cases, calendars, and contacts with your Clio account</p>
             </div>
-            <div className="apple-card p-6 hover-lift">
+            <div className="apple-card p-6 hover-lift transition-all duration-300">
               <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mb-4">
                 <i className="fa-solid fa-bell text-white text-2xl" />
               </div>
               <h3 className="text-white text-xl font-semibold mb-2">Real-Time Updates</h3>
               <p className="text-gray-400 text-sm leading-relaxed">Instant notifications when new filings, motions, or orders are added</p>
             </div>
-            <div className="apple-card p-6 hover-lift">
+            <div className="apple-card p-6 hover-lift transition-all duration-300">
               <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mb-4">
                 <i className="fa-solid fa-chart-line text-white text-2xl" />
               </div>
@@ -478,8 +493,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Combined Demo Section - Compact */}
-          <div className="apple-card p-8 hover-lift">
+          {/* Demo Preview Section */}
+          <div className="apple-card p-8 mb-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Case Preview */}
               <div>
@@ -490,7 +505,7 @@ export default function Home() {
                 <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                       <h4 className="text-white font-semibold">Smith v. Johnson</h4>
                       <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs">FL-2024-001234</span>
                     </div>
@@ -508,21 +523,21 @@ export default function Home() {
                   Upcoming Hearings
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all">
                     <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
                       <i className="fa-solid fa-exclamation text-white"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-medium text-sm truncate">Smith v. Johnson - Hearing</h4>
+                      <h4 className="text-white font-medium text-sm">Smith v. Johnson - Hearing</h4>
                       <p className="text-gray-400 text-xs">Today, 2:00 PM • San Diego Superior Court</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all">
                     <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                       <i className="fa-solid fa-calendar text-white"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-medium text-sm truncate">Davis v. Wilson - Conference</h4>
+                      <h4 className="text-white font-medium text-sm">Davis v. Wilson - Conference</h4>
                       <p className="text-gray-400 text-xs">Tomorrow, 10:00 AM • Virtual</p>
                     </div>
                   </div>
@@ -531,7 +546,141 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* AI-Powered Case Intelligence Section */}
+      <section className="py-16 px-4 lg:px-6 bg-gradient-to-b from-transparent to-purple-900/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-white text-3xl md:text-4xl font-bold mb-4">AI-Powered Case Intelligence</h2>
+            <p className="text-gray-400 text-lg">Get instant insights and summaries with advanced AI</p>
+          </div>
+          
+          <div className="apple-card p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* AI Case Analysis Example */}
+              <div>
+                <h3 className="text-white text-2xl font-semibold mb-4 flex items-center gap-2">
+                  <i className="fa-solid fa-brain text-purple-400"></i>
+                  AI Case Analysis
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-5 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-500/20">
+                    <div className="bg-white/5 rounded-lg p-4 mb-3">
+                      <div className="text-xs text-gray-400 mb-3 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>Case: Johnson v. Martinez (FL-2024-001234)</span>
+                      </div>
+                      <div className="space-y-2 text-sm text-gray-300">
+                        <div className="flex items-start gap-2">
+                          <span className="text-blue-400 mt-1">•</span>
+                          <span>Custody dispute, 2 children, filed March 2024</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-orange-400 mt-1">⚠</span>
+                          <span>High conflict, mediation recommended</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-green-400 mt-1">→</span>
+                          <span>Next: Settlement conference Oct 15</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-purple-400 mt-1">📄</span>
+                          <span>3 motions filed, discovery ongoing</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-yellow-400 mt-1">💰</span>
+                          <span>Child support: $1,200/month pending</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-5 bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-2xl border border-green-500/20">
+                    <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
+                      <i className="fa-solid fa-shield-check text-green-400"></i>
+                      Risk Assessment
+                    </h4>
+                    <div className="text-gray-300 text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-400">✓</span>
+                        <span>Standard family law proceedings</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-400">⚠</span>
+                        <span>Moderate conflict level</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* AI Features List */}
+              <div>
+                <h3 className="text-white text-2xl font-semibold mb-6">AI Features</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                    <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                      <i className="fa-solid fa-brain text-purple-400 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold mb-1">Intelligent Case Analysis</h4>
+                      <p className="text-gray-400 text-sm">Automated case summaries and insights</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                      <i className="fa-solid fa-file-text text-blue-400 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold mb-1">Document Summarization</h4>
+                      <p className="text-gray-400 text-sm">Quick understanding of complex filings</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                    <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                      <i className="fa-solid fa-chart-line text-green-400 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold mb-1">Trend Analysis & Predictions</h4>
+                      <p className="text-gray-400 text-sm">Data-driven insights for your cases</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                    <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                      <i className="fa-solid fa-lightbulb text-yellow-400 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold mb-1">Strategic Recommendations</h4>
+                      <p className="text-gray-400 text-sm">Actionable insights for case strategy</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Operations Map Section */}
+      <section className="py-16 px-4 lg:px-6">
+        <div className="max-w-7xl mx-auto">
+          <OperationsMap />
+        </div>
+      </section>
+
+      {/* Final CTA Section - Modern & Clean */}
+      <section className="py-20 px-4 lg:px-6 bg-gradient-to-b from-purple-900/10 to-transparent">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-white text-4xl md:text-5xl font-bold mb-4">Ready to Transform Your Practice?</h2>
+          <p className="text-gray-300 text-xl mb-8">Start tracking cases with AI-powered insights today</p>
+          <button 
+            onClick={handleGetStarted}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-5 rounded-xl font-semibold text-xl hover:scale-105 transition-all duration-300 shadow-2xl"
+          >
+            Get Started Free
+          </button>
+        </div>
+      </section>
     </main>
   )
 }
