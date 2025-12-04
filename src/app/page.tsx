@@ -464,40 +464,55 @@ export default function Home() {
                 <p className="text-gray-400 text-sm leading-relaxed">Real-time access to California court records with automatic syncing and updates</p>
               </div>
             </div>
-            <div className="apple-card p-6 hover-lift transition-all duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
-                <i className="fa-solid fa-robot text-white text-2xl" />
+            <div className="apple-card p-6 hover-lift transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-robot text-white text-2xl" />
+                </div>
+                <h3 className="text-white text-xl font-semibold mb-2">AI-Powered Insights</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">Smart case summaries, risk analysis, and strategic recommendations</p>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-2">AI-Powered Insights</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Smart case summaries, risk analysis, and strategic recommendations</p>
             </div>
-            <div className="apple-card p-6 hover-lift transition-all duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-4">
-                <i className="fa-solid fa-calendar-check text-white text-2xl" />
+            <div className="apple-card p-6 hover-lift transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-calendar-check text-white text-2xl" />
+                </div>
+                <h3 className="text-white text-xl font-semibold mb-2">Smart Calendar</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">Automated hearing tracking with reminders and virtual meeting links</p>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-2">Smart Calendar</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Automated hearing tracking with reminders and virtual meeting links</p>
             </div>
-            <div className="apple-card p-6 hover-lift transition-all duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mb-4">
-                <i className="fa-solid fa-link text-white text-2xl" />
+            <div className="apple-card p-6 hover-lift transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-link text-white text-2xl" />
+                </div>
+                <h3 className="text-white text-xl font-semibold mb-2">Clio Integration</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">Seamlessly sync cases, calendars, and contacts with your Clio account</p>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-2">Clio Integration</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Seamlessly sync cases, calendars, and contacts with your Clio account</p>
             </div>
-            <div className="apple-card p-6 hover-lift transition-all duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mb-4">
-                <i className="fa-solid fa-bell text-white text-2xl" />
+            <div className="apple-card p-6 hover-lift transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-bell text-white text-2xl" />
+                </div>
+                <h3 className="text-white text-xl font-semibold mb-2">Real-Time Updates</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">Instant notifications when new filings, motions, or orders are added</p>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-2">Real-Time Updates</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Instant notifications when new filings, motions, or orders are added</p>
             </div>
-            <div className="apple-card p-6 hover-lift transition-all duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mb-4">
-                <i className="fa-solid fa-chart-line text-white text-2xl" />
+            <div className="apple-card p-6 hover-lift transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <i className="fa-solid fa-chart-line text-white text-2xl" />
+                </div>
+                <h3 className="text-white text-xl font-semibold mb-2">Analytics Dashboard</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">Comprehensive insights into your case management activity and trends</p>
               </div>
-              <h3 className="text-white text-xl font-semibold mb-2">Analytics Dashboard</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Comprehensive insights into your case management activity and trends</p>
             </div>
           </div>
 
