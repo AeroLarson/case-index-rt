@@ -46,7 +46,7 @@ export default function Header() {
       
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Navigation */}
-        <div className={`flex items-center justify-between py-3 ${pathname === '/' ? 'mb-2' : 'mb-0'}`}>
+        <div className={`flex items-center justify-between py-2.5 ${pathname === '/' ? 'mb-2' : 'mb-0'}`}>
           {/* Logo and Name - Top Left when not logged in */}
           {!user && (
             <div className="flex items-center gap-3">

@@ -421,7 +421,7 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
               <div className="text-center p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <i className="fa-solid fa-shield-check text-blue-400 text-xl"></i>
+                  <i className="fa-solid fa-shield-halved text-blue-400 text-xl"></i>
                 </div>
                 <div className="text-white text-2xl md:text-3xl font-bold mb-1 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Secure</div>
                 <div className="text-gray-400 text-xs">Enterprise-Grade Security</div>
