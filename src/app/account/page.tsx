@@ -1,6 +1,7 @@
 ﻿'use client'
 
 // Account settings page component
+// This page allows users to manage their account settings, profile, and preferences
 import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
