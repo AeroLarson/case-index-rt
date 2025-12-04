@@ -58,8 +58,8 @@ export default function Footer() {
             &copy; 2025 Case Index RT. All rights reserved.
           </p>
           <p className="text-gray-500 text-xs mt-2">
-            <a href="#" className="text-purple-400 no-underline hover:text-purple-300">Privacy Policy</a> |{' '}
-            <a href="#" className="text-purple-400 no-underline">Terms of Service</a>
+            <a href="/privacy" className="text-purple-400 no-underline hover:text-purple-300 transition-colors">Privacy Policy</a> |{' '}
+            <a href="/terms" className="text-purple-400 no-underline hover:text-purple-300 transition-colors">Terms of Service</a>
           </p>
         </div>
       </div>

@@ -380,400 +380,173 @@ export default function Home() {
         </div>
       </ClientOnly>
 
-      {/* Demo Preview Section */}
+      {/* Hero Section - Professional & Compact */}
+      <div className="py-12 px-4 lg:px-6 pt-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 fade-in-up">
+            <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+              California Court Case Search<br />
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Powered by AI</span>
+            </h1>
+            <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed">
+              Real-time case tracking, intelligent analytics, and automated calendar management for modern legal practices.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button 
+                onClick={handleGetStarted}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover-lift transition-all duration-200 shadow-xl hover:shadow-2xl"
+              >
+                Get Started Free
+              </button>
+              <button 
+                onClick={() => router.push('/pricing')}
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200"
+              >
+                View Pricing
+              </button>
+            </div>
+          </div>
+
+          {/* Key Stats - Compact */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-4xl mx-auto">
+            <div className="apple-card p-6 text-center">
+              <p className="text-white text-3xl font-bold mb-2">100%</p>
+              <p className="text-gray-400 text-sm">Real-Time Data</p>
+            </div>
+            <div className="apple-card p-6 text-center">
+              <p className="text-white text-3xl font-bold mb-2">AI</p>
+              <p className="text-gray-400 text-sm">Powered</p>
+            </div>
+            <div className="apple-card p-6 text-center">
+              <p className="text-white text-3xl font-bold mb-2">24/7</p>
+              <p className="text-gray-400 text-sm">Monitoring</p>
+            </div>
+            <div className="apple-card p-6 text-center">
+              <p className="text-white text-3xl font-bold mb-2">Free</p>
+              <p className="text-gray-400 text-sm">Trial</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Combined Features & Preview - Compact */}
       <div className="py-8 px-4 lg:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-6 fade-in-up">
-            <h2 className="text-white text-2xl lg:text-3xl font-bold mb-4">See What You Can Do</h2>
-            <p className="text-purple-300 text-base lg:text-lg">Preview of your dashboard with sample data</p>
-          </div>
-
-              {/* Demo Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
-                <div className="apple-card p-6 lg:p-8 text-center hover-lift hover-glow fade-in-up stagger-1">
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-4 lg:mb-6 shadow-lg">
-                    <i className="fa-solid fa-folder-open text-white text-xl lg:text-2xl" />
-                  </div>
-                  <p className="text-white text-3xl lg:text-4xl font-bold m-0 mb-3 tracking-tight">12</p>
-                  <p className="text-gray-300 text-sm lg:text-base font-medium m-0">Active Cases</p>
-                </div>
-                <div className="apple-card p-6 lg:p-8 text-center hover-lift hover-glow fade-in-up stagger-2">
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-4 lg:mb-6 shadow-lg">
-                    <i className="fa-solid fa-calendar text-white text-xl lg:text-2xl" />
-                  </div>
-                  <p className="text-white text-3xl lg:text-4xl font-bold m-0 mb-3 tracking-tight">3</p>
-                  <p className="text-gray-300 text-sm lg:text-base font-medium m-0">Upcoming Hearings</p>
-                </div>
-                <div className="apple-card p-6 lg:p-8 text-center hover-lift hover-glow fade-in-up stagger-3 sm:col-span-2 lg:col-span-1">
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl flex items-center justify-center mx-auto mb-4 lg:mb-6 shadow-lg">
-                    <i className="fa-solid fa-file-circle-plus text-white text-xl lg:text-2xl" />
-                  </div>
-                  <p className="text-white text-3xl lg:text-4xl font-bold m-0 mb-3 tracking-tight">5</p>
-                  <p className="text-gray-300 text-sm lg:text-base font-medium m-0">New Filings</p>
-                </div>
+        <div className="max-w-7xl mx-auto">
+          {/* Key Features Grid - Compact */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="apple-card p-6 hover-lift">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4">
+                <i className="fa-solid fa-database text-white text-2xl" />
               </div>
-
-          {/* Demo Case Updates */}
-          <div className="apple-card p-8 hover-lift fade-in-up stagger-4">
-            <h3 className="text-white text-2xl font-semibold mb-8 tracking-tight">Recent Case Updates</h3>
-            <div className="grid gap-6">
-              <div className="apple-card p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg"></div>
-                    <h4 className="text-white text-lg font-semibold m-0">Smith v. Johnson</h4>
-                    <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">FL-2024-001234</span>
-                  </div>
-                  <span className="text-gray-400 text-sm">2 hours ago</span>
-                </div>
-                <p className="text-gray-300 text-base m-0 mb-4 ml-7 leading-relaxed">New motion for temporary custody filed by petitioner. Hearing scheduled for October 11, 2025.</p>
-                <div className="flex justify-between items-center ml-7">
-                  <span className="text-gray-400 text-sm">San Diego Superior Court • Judge Martinez</span>
-                </div>
+              <h3 className="text-white text-xl font-semibold mb-2">Live County Data</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">Real-time access to California court records with automatic syncing and updates</p>
+            </div>
+            <div className="apple-card p-6 hover-lift">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
+                <i className="fa-solid fa-robot text-white text-2xl" />
               </div>
+              <h3 className="text-white text-xl font-semibold mb-2">AI-Powered Insights</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">Smart case summaries, risk analysis, and strategic recommendations</p>
+            </div>
+            <div className="apple-card p-6 hover-lift">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-4">
+                <i className="fa-solid fa-calendar-check text-white text-2xl" />
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-2">Smart Calendar</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">Automated hearing tracking with reminders and virtual meeting links</p>
+            </div>
+            <div className="apple-card p-6 hover-lift">
+              <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mb-4">
+                <i className="fa-solid fa-link text-white text-2xl" />
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-2">Clio Integration</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">Seamlessly sync cases, calendars, and contacts with your Clio account</p>
+            </div>
+            <div className="apple-card p-6 hover-lift">
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mb-4">
+                <i className="fa-solid fa-bell text-white text-2xl" />
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-2">Real-Time Updates</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">Instant notifications when new filings, motions, or orders are added</p>
+            </div>
+            <div className="apple-card p-6 hover-lift">
+              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mb-4">
+                <i className="fa-solid fa-chart-line text-white text-2xl" />
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-2">Analytics Dashboard</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">Comprehensive insights into your case management activity and trends</p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Calendar Preview Section */}
-      <div className="py-6 px-4 lg:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-6 fade-in-up">
-            <h2 className="text-white text-2xl lg:text-3xl font-bold mb-4">Smart Calendar Integration</h2>
-            <p className="text-purple-300 text-base lg:text-lg">Never miss a hearing with intelligent calendar management</p>
-          </div>
-          
-          <div className="apple-card p-8 hover-lift fade-in-up mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Combined Demo Section - Compact */}
+          <div className="apple-card p-8 hover-lift">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Case Preview */}
               <div>
-                <h3 className="text-white text-2xl font-semibold mb-4">Upcoming Hearings</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all duration-300">
-                    <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
-                      <i className="fa-solid fa-exclamation text-white text-lg"></i>
+                <h3 className="text-white text-2xl font-semibold mb-4 flex items-center gap-2">
+                  <i className="fa-solid fa-folder-open text-blue-400"></i>
+                  Recent Case Update
+                </h3>
+                <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <h4 className="text-white font-semibold">Smith v. Johnson</h4>
+                      <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs">FL-2024-001234</span>
                     </div>
-                    <div>
-                      <h4 className="text-white font-semibold">Smith v. Johnson - Custody Hearing</h4>
-                      <p className="text-gray-400 text-sm">Today, 2:00 PM • San Diego Superior Court</p>
-                    </div>
+                    <span className="text-gray-400 text-xs">2 hours ago</span>
                   </div>
-                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all duration-300">
-                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                      <i className="fa-solid fa-calendar text-white text-lg"></i>
-                    </div>
-                    <div>
-                      <h4 className="text-white font-semibold">Davis v. Wilson - Settlement Conference</h4>
-                      <p className="text-gray-400 text-sm">Tomorrow, 10:00 AM • Virtual Hearing</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all duration-300">
-                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                      <i className="fa-solid fa-gavel text-white text-lg"></i>
-                    </div>
-                    <div>
-                      <h4 className="text-white font-semibold">Brown v. Garcia - Final Hearing</h4>
-                      <p className="text-gray-400 text-sm">Oct 15, 9:00 AM • San Diego Superior Court</p>
-                    </div>
-                  </div>
+                  <p className="text-gray-300 text-sm mb-3 ml-6">New motion for temporary custody filed. Hearing scheduled for October 11, 2025.</p>
+                  <p className="text-gray-400 text-xs ml-6">San Diego Superior Court • Judge Martinez</p>
                 </div>
               </div>
+              
+              {/* Calendar Preview */}
               <div>
-                <h3 className="text-white text-2xl font-semibold mb-4">Calendar Features</h3>
+                <h3 className="text-white text-2xl font-semibold mb-4 flex items-center gap-2">
+                  <i className="fa-solid fa-calendar text-green-400"></i>
+                  Upcoming Hearings
+                </h3>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300">
-                    <i className="fa-solid fa-sync text-blue-400 text-lg"></i>
-                    <span className="text-gray-300">Auto-sync with Clio CRM</span>
-                  </div>
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300">
-                    <i className="fa-solid fa-bell text-green-400 text-lg"></i>
-                    <span className="text-gray-300">Smart reminders & notifications</span>
-                  </div>
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300">
-                    <i className="fa-solid fa-video text-purple-400 text-lg"></i>
-                    <span className="text-gray-300">Virtual hearing links</span>
-                  </div>
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300">
-                    <i className="fa-solid fa-file text-orange-400 text-lg"></i>
-                    <span className="text-gray-300">Document attachments</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* AI Overview Preview Section */}
-      <div className="py-6 px-4 lg:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-6 fade-in-up">
-            <h2 className="text-white text-2xl lg:text-3xl font-bold mb-4">AI-Powered Case Intelligence</h2>
-            <p className="text-purple-300 text-base lg:text-lg">Get instant insights and summaries with advanced AI</p>
-          </div>
-          
-          <div className="apple-card p-8 hover-lift fade-in-up">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-white text-2xl font-semibold mb-4">AI Case Analysis</h3>
-                <div className="space-y-3">
-                  <div className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300">
-                    <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-                      <i className="fa-solid fa-brain text-purple-400"></i>
-                      <span>AI Case Analysis</span>
-                    </h4>
-                    <div className="text-gray-300 text-sm">
-                      <div className="bg-white/5 rounded-lg p-3 mb-3">
-                        <div className="text-xs text-gray-400 mb-2 flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                          <span>Case: Johnson v. Martinez (FL-2024-001234)</span>
-                        </div>
-                        <div className="animate-apple-intelligence">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-400">•</span>
-                              <span>Custody dispute, 2 children, filed March 2024</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-orange-400">⚠</span>
-                              <span>High conflict, mediation recommended</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-green-400">→</span>
-                              <span>Next: Settlement conference Oct 15</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-purple-400">📄</span>
-                              <span>3 motions filed, discovery ongoing</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-yellow-400">💰</span>
-                              <span>Child support: $1,200/month pending</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <i className="fa-solid fa-exclamation text-white"></i>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-white font-medium text-sm truncate">Smith v. Johnson - Hearing</h4>
+                      <p className="text-gray-400 text-xs">Today, 2:00 PM • San Diego Superior Court</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-2xl border border-green-500/20 hover:border-green-500/40 transition-all duration-300">
-                    <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <i className="fa-solid fa-shield-check text-green-400"></i>
-                      Risk Assessment
-                    </h4>
-                    <div className="text-gray-300 text-sm space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-green-400">✓</span>
-                        <span>Standard family law proceedings</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-yellow-400">⚠</span>
-                        <span>Moderate conflict level</span>
-                      </div>
+                  <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <i className="fa-solid fa-calendar text-white"></i>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-white font-medium text-sm truncate">Davis v. Wilson - Conference</h4>
+                      <p className="text-gray-400 text-xs">Tomorrow, 10:00 AM • Virtual</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div>
-                <h3 className="text-white text-2xl font-semibold mb-4">AI Features</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300 animate-slide-in-gentle">
-                    <i className="fa-solid fa-brain text-purple-400 text-lg"></i>
-                    <span className="text-gray-300">Intelligent case analysis</span>
-                  </div>
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300 animate-slide-in-gentle" style={{animationDelay: '0.2s'}}>
-                    <i className="fa-solid fa-file-text text-blue-400 text-lg"></i>
-                    <span className="text-gray-300">Document summarization</span>
-                  </div>
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300 animate-slide-in-gentle" style={{animationDelay: '0.4s'}}>
-                    <i className="fa-solid fa-chart-line text-green-400 text-lg"></i>
-                    <span className="text-gray-300">Trend analysis & predictions</span>
-                  </div>
-                  <div className="flex items-center gap-3 hover:translate-x-2 transition-all duration-300 animate-slide-in-gentle" style={{animationDelay: '0.6s'}}>
-                    <i className="fa-solid fa-lightbulb text-yellow-400 text-lg"></i>
-                    <span className="text-gray-300">Strategic recommendations</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Analytics Showcase Section */}
-      <div className="py-12 px-6 bg-gradient-to-b from-transparent to-slate-900/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8 fade-in-up">
-            <h2 className="text-white text-4xl font-bold mb-4">Analytics That Matter</h2>
-            <p className="text-purple-300 text-xl">Track every detail of your case management</p>
+
+      {/* Final CTA - Compact */}
+      <div className="py-12 px-4 lg:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="apple-card p-8 text-center">
+            <h2 className="text-white text-3xl font-bold mb-4">Ready to Transform Your Practice?</h2>
+            <p className="text-gray-300 text-lg mb-6">Start tracking cases with AI-powered insights today</p>
+            <button 
+              onClick={handleGetStarted}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover-lift transition-all duration-200 shadow-xl"
+            >
+              Get Started Free
+            </button>
           </div>
-
-          {/* Mock Analytics Dashboard Preview */}
-          <div className="apple-card p-8 fade-in-up hover-lift" style={{
-            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.8) 100%)',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-          }}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              {/* Stats Preview */}
-              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 rounded-xl p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl mx-auto mb-3 flex items-center justify-center">
-                  <i className="fa-solid fa-search text-white text-xl"></i>
-                </div>
-                <p className="text-white text-3xl font-bold mb-1">247</p>
-                <p className="text-gray-300 text-sm">Total Searches</p>
-              </div>
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl mx-auto mb-3 flex items-center justify-center">
-                  <i className="fa-solid fa-bookmark text-white text-xl"></i>
-                </div>
-                <p className="text-white text-3xl font-bold mb-1">42</p>
-                <p className="text-gray-300 text-sm">Saved Cases</p>
-              </div>
-              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl mx-auto mb-3 flex items-center justify-center">
-                  <i className="fa-solid fa-calendar-check text-white text-xl"></i>
-                </div>
-                <p className="text-white text-3xl font-bold mb-1">8</p>
-                <p className="text-gray-300 text-sm">Upcoming Events</p>
-              </div>
-              <div className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-xl p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl mx-auto mb-3 flex items-center justify-center">
-                  <i className="fa-solid fa-chart-line text-white text-xl"></i>
-                </div>
-                <p className="text-white text-3xl font-bold mb-1">156%</p>
-                <p className="text-gray-300 text-sm">Growth Rate</p>
-              </div>
-            </div>
-
-            {/* Mock Chart Preview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-                <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
-                  <i className="fa-solid fa-chart-line text-blue-400"></i>
-                  Search Trends
-                </h4>
-                {/* Simple line chart representation */}
-                <div className="h-40 flex items-end gap-2">
-                  {[40, 55, 65, 58, 75, 90].map((height, i) => (
-                    <div key={i} className="flex-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-t-lg transition-all hover:from-blue-400 hover:to-cyan-400" style={{ height: `${height}%` }}></div>
-                  ))}
-                </div>
-                <div className="flex justify-between mt-2 text-xs text-gray-400">
-                  <span>Jan</span>
-                  <span>Feb</span>
-                  <span>Mar</span>
-                  <span>Apr</span>
-                  <span>May</span>
-                  <span>Jun</span>
-                </div>
-              </div>
-
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-                <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
-                  <i className="fa-solid fa-chart-pie text-purple-400"></i>
-                  Case Distribution
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                    <span className="text-gray-300 text-sm">Family Law 45%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-purple-500"></div>
-                    <span className="text-gray-300 text-sm">Civil 30%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-cyan-500"></div>
-                    <span className="text-gray-300 text-sm">Criminal 15%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-indigo-500"></div>
-                    <span className="text-gray-300 text-sm">Other 10%</span>
-                  </div>
-                </div>
-                {/* Simple donut chart representation */}
-                <div className="mt-6 w-32 h-32 mx-auto rounded-full relative" style={{
-                  background: 'conic-gradient(from 0deg, #3b82f6 0deg 162deg, #8b5cf6 162deg 270deg, #06b6d4 270deg 324deg, #6366f1 324deg 360deg)'
-                }}>
-                  <div className="absolute inset-4 rounded-full bg-slate-800"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div id="features" className="py-12 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8 fade-in-up">
-            <h2 className="text-white text-3xl font-bold mb-4">Powerful Features</h2>
-            <p className="text-purple-300 text-lg">Everything you need to manage your legal cases</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-left stagger-1">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
-                <i className="fa-solid fa-database text-white text-3xl" />
-              </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Live County Data</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">Direct access to California court records, automatically synced and updated in real-time</p>
-            </div>
-            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-up stagger-2">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
-                <i className="fa-solid fa-robot text-white text-3xl" />
-              </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">AI-Powered Insights</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">Smart case summaries, risk analysis, and strategic recommendations</p>
-            </div>
-            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-right stagger-3">
-              <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
-                <i className="fa-solid fa-link text-white text-3xl" />
-              </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Easy Clio Integration</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">Seamlessly sync cases, calendars, and contacts with your Clio account</p>
-            </div>
-            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-left stagger-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
-                <i className="fa-solid fa-calendar-check text-white text-3xl" />
-              </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Smart Calendar</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">Automated hearing tracking with reminders and virtual meeting links</p>
-            </div>
-            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-up stagger-5">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
-                <i className="fa-solid fa-bell text-white text-3xl" />
-              </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Real-Time Updates</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">Instant notifications when new filings, motions, or orders are added</p>
-            </div>
-            <div className="text-center vercel-card-premium p-8 hover-lift fade-in-right stagger-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg vercel-glow">
-                <i className="fa-solid fa-chart-line text-white text-3xl" />
-              </div>
-              <h3 className="text-white text-2xl font-semibold mb-4 tracking-tight">Analytics Dashboard</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">Comprehensive insights into your case management activity and trends</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Operations Map Section */}
-      <div className="py-12 px-6">
-        <div className="max-w-6xl mx-auto">
-          <OperationsMap />
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="py-12 px-6">
-        <div className="max-w-4xl mx-auto text-center fade-in-up">
-          <h2 className="text-white text-3xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-purple-300 text-lg mb-8">Join thousands of legal professionals tracking their cases</p>
-          <button 
-            onClick={handleGetStarted}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-lg font-semibold text-lg hover-lift transition-all duration-200 shadow-lg"
-          >
-            Create Your Account
-          </button>
         </div>
       </div>
     </main>
