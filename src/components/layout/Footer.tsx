@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link'
 
 export default function Footer() {
   const { user } = useAuth()
@@ -58,8 +59,8 @@ export default function Footer() {
             &copy; 2025 Case Index RT. All rights reserved.
           </p>
           <p className="text-gray-500 text-xs mt-2">
-            <a href="/privacy" className="text-purple-400 no-underline hover:text-purple-300 transition-colors">Privacy Policy</a> |{' '}
-            <a href="/terms" className="text-purple-400 no-underline hover:text-purple-300 transition-colors">Terms of Service</a>
+            <Link href="/privacy" className="text-purple-400 no-underline hover:text-purple-300 transition-colors">Privacy Policy</Link> |{' '}
+            <Link href="/terms" className="text-purple-400 no-underline hover:text-purple-300 transition-colors">Terms of Service</Link>
           </p>
         </div>
       </div>
