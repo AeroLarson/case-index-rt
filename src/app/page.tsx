@@ -532,23 +532,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-
-      {/* Final CTA - Compact */}
-      <div className="py-12 px-4 lg:px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="apple-card p-8 text-center">
-            <h2 className="text-white text-3xl font-bold mb-4">Ready to Transform Your Practice?</h2>
-            <p className="text-gray-300 text-lg mb-6">Start tracking cases with AI-powered insights today</p>
-            <button 
-              onClick={handleGetStarted}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover-lift transition-all duration-200 shadow-xl"
-            >
-              Get Started Free
-            </button>
-          </div>
-        </div>
-      </div>
     </main>
   )
 }
