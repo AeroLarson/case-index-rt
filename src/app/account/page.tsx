@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
@@ -609,7 +609,7 @@ export default function AccountPage() {
                           <p className="text-gray-300">
                             ${subscriptionStatus.amount}/{subscriptionStatus.currency === 'usd' ? 'month' : subscriptionStatus.currency}
                             {subscriptionStatus.nextBillingDate && (
-                              <span> • Next billing: {new Date(subscriptionStatus.nextBillingDate).toLocaleDateString()}</span>
+                              <span> â€¢ Next billing: {new Date(subscriptionStatus.nextBillingDate).toLocaleDateString()}</span>
                             )}
                           </p>
                           <p className="text-gray-400 text-sm mt-2">
@@ -639,7 +639,7 @@ export default function AccountPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-white text-xl font-semibold">Free Plan</h3>
-                          <p className="text-gray-300">$0/month • Basic features</p>
+                          <p className="text-gray-300">$0/month â€¢ Basic features</p>
                           <p className="text-gray-400 text-sm mt-2">1 case per month, basic case information only</p>
                         </div>
                         <button 
@@ -729,9 +729,9 @@ export default function AccountPage() {
                       </div>
                       
                       <div className="text-sm text-gray-400">
-                        <p>• Use "Manage Subscription" to update payment methods, view invoices, and change billing settings</p>
-                        <p>• Cancellation will take effect at the end of your current billing period</p>
-                        <p>• You can reactivate your subscription anytime before the cancellation date</p>
+                        <p>â€¢ Use "Manage Subscription" to update payment methods, view invoices, and change billing settings</p>
+                        <p>â€¢ Cancellation will take effect at the end of your current billing period</p>
+                        <p>â€¢ You can reactivate your subscription anytime before the cancellation date</p>
                       </div>
                     </div>
                   </div>
@@ -1380,5 +1380,3 @@ export default function AccountPage() {
     </main>
   )
 }
- 
- 
