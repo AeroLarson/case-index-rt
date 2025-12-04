@@ -1,6 +1,6 @@
 ﻿'use client'
 
-// Account settings page component
+// Account settings page component - Client-side only, no serverless function needed
 // This page allows users to manage their account settings, profile, and preferences
 import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
