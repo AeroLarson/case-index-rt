@@ -203,41 +203,41 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen p-3 md:p-4 lg:p-8 pb-20 lg:pb-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)' }}>
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8 pb-20 lg:pb-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)' }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-3 flex items-center gap-3">
-            <i className="fa-solid fa-chart-line text-blue-400"></i>
-            Analytics Dashboard
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-3 flex items-center gap-2 sm:gap-3">
+            <i className="fa-solid fa-chart-line text-blue-400 text-xl sm:text-2xl"></i>
+            <span>Analytics Dashboard</span>
           </h1>
-          <p className="text-gray-300 text-lg">Track your case management activity and insights</p>
+          <p className="text-gray-300 text-sm sm:text-base md:text-lg">Track your case management activity and insights</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <Suspense fallback={<div className="apple-card p-4 sm:p-6 h-24 sm:h-32 flex items-center justify-center"><div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
             <StatsCard
               icon="fa-solid fa-search"
               title="Total Searches"
               value={stats.totalSearches}
             />
           </Suspense>
-          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+          <Suspense fallback={<div className="apple-card p-4 sm:p-6 h-24 sm:h-32 flex items-center justify-center"><div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
             <StatsCard
               icon="fa-solid fa-bookmark"
               title="Saved Cases"
               value={stats.savedCasesCount}
             />
           </Suspense>
-          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+          <Suspense fallback={<div className="apple-card p-4 sm:p-6 h-24 sm:h-32 flex items-center justify-center"><div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
             <StatsCard
               icon="fa-solid fa-star"
               title="Starred Cases"
               value={stats.starredCasesCount}
             />
           </Suspense>
-          <Suspense fallback={<div className="apple-card p-6 h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+          <Suspense fallback={<div className="apple-card p-4 sm:p-6 h-24 sm:h-32 flex items-center justify-center"><div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
             <StatsCard
               icon="fa-solid fa-calendar-check"
               title="Upcoming Events"
@@ -247,79 +247,80 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Suspense fallback={<div className="apple-card p-6 h-80 flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <Suspense fallback={<div className="apple-card p-4 sm:p-6 h-64 sm:h-80 flex items-center justify-center"><div className="w-6 h-6 sm:w-8 sm:h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
             <SearchTrendChart data={searchTrends} />
           </Suspense>
-          <Suspense fallback={<div className="apple-card p-6 h-80 flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+          <Suspense fallback={<div className="apple-card p-4 sm:p-6 h-64 sm:h-80 flex items-center justify-center"><div className="w-6 h-6 sm:w-8 sm:h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
             <CaseTypeDistribution data={caseTypeData} />
           </Suspense>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 mb-8">
-          <Suspense fallback={<div className="apple-card p-6 h-80 flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <Suspense fallback={<div className="apple-card p-4 sm:p-6 h-64 sm:h-80 flex items-center justify-center"><div className="w-6 h-6 sm:w-8 sm:h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
             <WeeklyActivityChart data={weeklyActivity} />
           </Suspense>
         </div>
 
         {/* Recent Activity */}
-        <div className="apple-card p-6">
-          <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
-            <i className="fa-solid fa-clock-rotate-left text-purple-400"></i>
+        <div className="apple-card p-4 sm:p-6">
+          <h3 className="text-white font-semibold text-base sm:text-lg mb-3 sm:mb-4 flex items-center gap-2">
+            <i className="fa-solid fa-clock-rotate-left text-purple-400 text-lg"></i>
             Recent Activity
           </h3>
           {recentActivity.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center gap-4 p-4 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition-colors">
-                  <div className={`w-10 h-10 rounded-lg bg-${activity.color}-500/20 flex items-center justify-center flex-shrink-0`}>
-                    <i className={`fa-solid ${activity.icon} text-${activity.color}-400`}></i>
+                <div key={index} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition-colors active:scale-[0.98]">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-${activity.color}-500/20 flex items-center justify-center flex-shrink-0`}>
+                    <i className={`fa-solid ${activity.icon} text-${activity.color}-400 text-sm sm:text-base`}></i>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium">{activity.action}</p>
-                    <p className="text-gray-400 text-sm truncate">{activity.case}</p>
+                    <p className="text-white font-medium text-sm sm:text-base">{activity.action}</p>
+                    <p className="text-gray-400 text-xs sm:text-sm truncate">{activity.case}</p>
                   </div>
-                  <span className="text-gray-500 text-sm flex-shrink-0">{activity.time}</span>
+                  <span className="text-gray-500 text-xs sm:text-sm flex-shrink-0 hidden sm:inline">{activity.time}</span>
+                  <span className="text-gray-500 text-xs flex-shrink-0 sm:hidden">Now</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <i className="fa-solid fa-clock-rotate-left text-gray-600 text-4xl mb-4"></i>
-              <p className="text-gray-400">No recent activity yet</p>
-              <p className="text-gray-500 text-sm mt-2">Start searching for cases to see your activity here!</p>
+            <div className="text-center py-6 sm:py-8">
+              <i className="fa-solid fa-clock-rotate-left text-gray-600 text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
+              <p className="text-gray-400 text-sm sm:text-base">No recent activity yet</p>
+              <p className="text-gray-500 text-xs sm:text-sm mt-2">Start searching for cases to see your activity here!</p>
             </div>
           )}
         </div>
 
         {/* Insights */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className="apple-card p-6 bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-purple-500/20">
-            <div className="flex items-center gap-3 mb-3">
-              <i className="fa-solid fa-lightbulb text-yellow-400 text-2xl"></i>
-              <h4 className="text-white font-semibold">Insight</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
+          <div className="apple-card p-4 sm:p-6 bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-purple-500/20">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <i className="fa-solid fa-lightbulb text-yellow-400 text-xl sm:text-2xl flex-shrink-0"></i>
+              <h4 className="text-white font-semibold text-sm sm:text-base">Insight</h4>
             </div>
-            <p className="text-gray-300 text-sm">
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
               You're most active on Thursdays. Consider scheduling important searches on this day for better productivity.
             </p>
           </div>
 
-          <div className="apple-card p-6 bg-gradient-to-br from-green-500/10 to-emerald-600/10 border-green-500/20">
-            <div className="flex items-center gap-3 mb-3">
-              <i className="fa-solid fa-trophy text-yellow-400 text-2xl"></i>
-              <h4 className="text-white font-semibold">Achievement</h4>
+          <div className="apple-card p-4 sm:p-6 bg-gradient-to-br from-green-500/10 to-emerald-600/10 border-green-500/20">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <i className="fa-solid fa-trophy text-yellow-400 text-xl sm:text-2xl flex-shrink-0"></i>
+              <h4 className="text-white font-semibold text-sm sm:text-base">Achievement</h4>
             </div>
-            <p className="text-gray-300 text-sm">
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
               You've maintained a 15-day streak of daily case searches. Keep up the great work!
             </p>
           </div>
 
-          <div className="apple-card p-6 bg-gradient-to-br from-purple-500/10 to-pink-600/10 border-purple-500/20">
-            <div className="flex items-center gap-3 mb-3">
-              <i className="fa-solid fa-chart-simple text-cyan-400 text-2xl"></i>
-              <h4 className="text-white font-semibold">Trend</h4>
+          <div className="apple-card p-4 sm:p-6 bg-gradient-to-br from-purple-500/10 to-pink-600/10 border-purple-500/20">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <i className="fa-solid fa-chart-simple text-cyan-400 text-xl sm:text-2xl flex-shrink-0"></i>
+              <h4 className="text-white font-semibold text-sm sm:text-base">Trend</h4>
             </div>
-            <p className="text-gray-300 text-sm">
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
               Your search volume has increased by 40% this month compared to last month.
             </p>
           </div>

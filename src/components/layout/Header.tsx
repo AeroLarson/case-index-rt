@@ -44,35 +44,36 @@ export default function Header() {
         <div className="particle" style={{ left: '90%', animationDelay: '3.5s' }}></div>
       </div>
       
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-6xl mx-auto relative z-10 px-3 sm:px-4">
         {/* Navigation */}
-        <div className={`flex items-center justify-between py-2.5 ${pathname === '/' ? 'mb-2' : 'mb-0'}`}>
+        <div className={`flex items-center justify-between py-2 sm:py-2.5 ${pathname === '/' ? 'mb-2' : 'mb-0'}`}>
           {/* Logo and Name - Top Left when not logged in */}
           {!user && (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <i className="fa-solid fa-gavel text-white text-xl"></i>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                <i className="fa-solid fa-gavel text-white text-base sm:text-xl"></i>
               </div>
-              <span className="text-white text-xl font-bold hidden sm:block">Case Index RT</span>
+              <span className="text-white text-lg sm:text-xl font-bold hidden sm:block">Case Index RT</span>
             </div>
           )}
           
           {/* User info and logout - TOP RIGHT when logged in */}
           {user && (
-            <div className="flex items-center gap-4 ml-auto">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
+            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-xs sm:text-sm font-medium">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="text-white text-base font-medium">{user.name}</span>
+                <span className="text-white text-sm sm:text-base font-medium hidden sm:inline">{user.name}</span>
               </div>
               <button 
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors active:scale-95"
               >
-                Logout
+                <span className="hidden sm:inline">Logout</span>
+                <span className="sm:hidden">Out</span>
               </button>
             </div>
           )}
@@ -110,9 +111,10 @@ export default function Header() {
           {/* Mobile menu button */}
           <button 
             onClick={toggleMobileMenu}
-            className="lg:hidden text-white p-2"
+            className="lg:hidden text-white p-2 active:scale-95"
+            aria-label="Toggle menu"
           >
-            <i className={`fa-solid ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
+            <i className={`fa-solid ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-lg sm:text-xl`}></i>
           </button>
 
           {/* Mobile Navigation */}
@@ -214,14 +216,14 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center mt-4 px-4">
+          <div className="text-center mt-3 sm:mt-4 px-3 sm:px-4">
             <h1 
               id="title-dashboard" 
-              className="text-white text-2xl font-bold leading-tight mb-2"
+              className="text-white text-xl sm:text-2xl font-bold leading-tight mb-2"
             >
               Welcome back, {user.name.split(' ')[0]}!
             </h1>
-            <p className="text-purple-300 text-sm leading-relaxed max-w-2xl mx-auto">
+            <p className="text-purple-300 text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto">
               Here's your personalized dashboard with your latest case updates and insights.
             </p>
           </div>

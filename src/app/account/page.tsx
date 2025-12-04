@@ -263,20 +263,20 @@ export default function AccountPage() {
 
   return (
     <main 
-      className="min-h-screen animated-aura"
+      className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-        padding: '40px 24px'
+        padding: '20px 16px 100px'
       }}
     >
       {/* Saved Notification Toast */}
       {showSavedNotification && (
-        <div className="fixed top-4 right-4 z-50 animate-slideInRight">
-          <div className="apple-card p-4 bg-green-500/20 border-green-500/50 flex items-center gap-3">
-            <i className="fa-solid fa-check-circle text-green-400 text-xl"></i>
-            <div>
-              <p className="text-white font-semibold">Settings Saved!</p>
-              <p className="text-green-300 text-sm">Changes applied successfully</p>
+        <div className="fixed top-3 sm:top-4 right-3 sm:right-4 left-3 sm:left-auto z-50 animate-slideInRight max-w-sm sm:max-w-none mx-auto">
+          <div className="apple-card p-3 sm:p-4 bg-green-500/20 border-green-500/50 flex items-center gap-2 sm:gap-3">
+            <i className="fa-solid fa-check-circle text-green-400 text-lg sm:text-xl flex-shrink-0"></i>
+            <div className="min-w-0 flex-1">
+              <p className="text-white font-semibold text-sm sm:text-base">Settings Saved!</p>
+              <p className="text-green-300 text-xs sm:text-sm">Changes applied successfully</p>
             </div>
           </div>
         </div>
@@ -284,87 +284,87 @@ export default function AccountPage() {
 
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-white text-4xl font-bold mb-4 tracking-tight">Account Settings</h1>
-          <p className="text-gray-300 text-lg">Manage your account information and preferences</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4 tracking-tight">Account Settings</h1>
+          <p className="text-gray-300 text-sm sm:text-base md:text-lg">Manage your account information and preferences</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <div className="apple-card p-6 sticky top-8">
-              <nav className="space-y-2">
+            <div className="apple-card p-4 sm:p-6 lg:sticky lg:top-8">
+              <nav className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:space-y-0 sm:space-y-2">
                 <button
                   onClick={() => setActiveTab('profile')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-xs sm:text-sm ${
                     activeTab === 'profile' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
-                  }`}
+                  } active:scale-95`}
                 >
-                  <i className="fa-solid fa-user mr-3"></i>
+                  <i className="fa-solid fa-user mr-2 sm:mr-3 text-xs sm:text-sm"></i>
                   Profile
                 </button>
                 <button
                   onClick={() => setActiveTab('security')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-xs sm:text-sm ${
                     activeTab === 'security' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
-                  }`}
+                  } active:scale-95`}
                 >
-                  <i className="fa-solid fa-shield-halved mr-3"></i>
+                  <i className="fa-solid fa-shield-halved mr-2 sm:mr-3 text-xs sm:text-sm"></i>
                   Security
                 </button>
                 <button
                   onClick={() => setActiveTab('notifications')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-xs sm:text-sm ${
                     activeTab === 'notifications' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
-                  }`}
+                  } active:scale-95`}
                 >
-                  <i className="fa-solid fa-bell mr-3"></i>
+                  <i className="fa-solid fa-bell mr-2 sm:mr-3 text-xs sm:text-sm"></i>
                   Notifications
                 </button>
                 <button
                   onClick={() => router.push('/billing')}
-                  className="w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 text-gray-300 hover:bg-white/5"
+                  className="w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-xs sm:text-sm text-gray-300 hover:bg-white/5 active:scale-95"
                 >
-                  <i className="fa-solid fa-credit-card mr-3"></i>
+                  <i className="fa-solid fa-credit-card mr-2 sm:mr-3 text-xs sm:text-sm"></i>
                   Billing
                 </button>
                 <button
                   onClick={() => setActiveTab('preferences')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-xs sm:text-sm ${
                     activeTab === 'preferences' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
-                  }`}
+                  } active:scale-95`}
                 >
-                  <i className="fa-solid fa-gear mr-3"></i>
+                  <i className="fa-solid fa-gear mr-2 sm:mr-3 text-xs sm:text-sm"></i>
                   Preferences
                 </button>
                 <button
                   onClick={() => setActiveTab('customization')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-xs sm:text-sm ${
                     activeTab === 'customization' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
-                  }`}
+                  } active:scale-95`}
                 >
-                  <i className="fa-solid fa-palette mr-3"></i>
+                  <i className="fa-solid fa-palette mr-2 sm:mr-3 text-xs sm:text-sm"></i>
                   Customization
                 </button>
                 <button
                   onClick={() => setActiveTab('integrations')}
-                  className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-xs sm:text-sm ${
                     activeTab === 'integrations' 
                       ? 'bg-blue-500/20 text-blue-300' 
                       : 'text-gray-300 hover:bg-white/5'
-                  }`}
+                  } active:scale-95`}
                 >
-                  <i className="fa-solid fa-link mr-3"></i>
+                  <i className="fa-solid fa-link mr-2 sm:mr-3 text-xs sm:text-sm"></i>
                   Integrations
                 </button>
               </nav>
@@ -375,28 +375,28 @@ export default function AccountPage() {
           <div className="lg:col-span-3">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <div className="apple-card p-8">
-                <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-white text-2xl font-semibold tracking-tight">Profile Information</h2>
+              <div className="apple-card p-4 sm:p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+                  <h2 className="text-white text-xl sm:text-2xl font-semibold tracking-tight">Profile Information</h2>
                   {!isEditing ? (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200 hover:scale-105"
+                      className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-medium text-sm sm:text-base transition-all duration-200 hover:scale-105 active:scale-95"
                     >
                       <i className="fa-solid fa-edit mr-2"></i>
                       Edit Profile
                     </button>
                   ) : (
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                       <button
                         onClick={handleCancel}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                        className="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-medium text-sm sm:text-base transition-all duration-200 active:scale-95"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleSave}
-                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-medium transition-all duration-200"
+                        className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-medium text-sm sm:text-base transition-all duration-200 active:scale-95"
                       >
                         <i className="fa-solid fa-check mr-2"></i>
                         Save Changes

@@ -537,55 +537,55 @@ export default function SearchPageContent() {
       className="min-h-screen animated-aura pb-20 lg:pb-10"
       style={{
         background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)',
-        padding: '40px 24px'
+        padding: '20px 16px 100px'
       }}
     >
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-white text-4xl font-bold mb-3 flex items-center gap-3">
-                <i className="fa-solid fa-search text-blue-400"></i>
-                San Diego County Case Search
+              <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 flex items-center gap-2 sm:gap-3">
+                <i className="fa-solid fa-search text-blue-400 text-xl sm:text-2xl"></i>
+                <span className="leading-tight">San Diego County Case Search</span>
               </h1>
-              <p className="text-gray-300 text-lg">Search by case number or party name to find case information, filings, and upcoming hearings</p>
+              <p className="text-gray-300 text-sm sm:text-base md:text-lg">Search by case number or party name to find case information, filings, and upcoming hearings</p>
             </div>
           </div>
           
           {/* Quick Stats */}
           {userProfile && userProfile.savedCases && userProfile.savedCases.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="apple-card p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                    <i className="fa-solid fa-bookmark text-blue-400 text-xl"></i>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="apple-card p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i className="fa-solid fa-bookmark text-blue-400 text-lg sm:text-xl"></i>
                   </div>
-                  <div>
-                    <p className="text-white font-semibold text-lg">{userProfile.savedCases.length}</p>
-                    <p className="text-gray-400 text-sm">Saved Cases</p>
-                  </div>
-                </div>
-              </div>
-              <div className="apple-card p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                    <i className="fa-solid fa-calendar-check text-green-400 text-xl"></i>
-                  </div>
-                  <div>
-                    <p className="text-white font-semibold text-lg">{userProfile.calendarEvents?.length || 0}</p>
-                    <p className="text-gray-400 text-sm">Upcoming Events</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-semibold text-base sm:text-lg">{userProfile.savedCases.length}</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Saved Cases</p>
                   </div>
                 </div>
               </div>
-              <div className="apple-card p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                    <i className="fa-solid fa-bell text-purple-400 text-xl"></i>
+              <div className="apple-card p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i className="fa-solid fa-calendar-check text-green-400 text-lg sm:text-xl"></i>
                   </div>
-                  <div>
-                    <p className="text-white font-semibold text-lg">{userProfile.notifications?.filter(n => !n.read).length || 0}</p>
-                    <p className="text-gray-400 text-sm">Unread Notifications</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-semibold text-base sm:text-lg">{userProfile.calendarEvents?.length || 0}</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Upcoming Events</p>
+                  </div>
+                </div>
+              </div>
+              <div className="apple-card p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i className="fa-solid fa-bell text-purple-400 text-lg sm:text-xl"></i>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-semibold text-base sm:text-lg">{userProfile.notifications?.filter(n => !n.read).length || 0}</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Unread Notifications</p>
                   </div>
                 </div>
               </div>
@@ -594,51 +594,54 @@ export default function SearchPageContent() {
         </div>
 
         {/* Enhanced Search Bar */}
-        <form onSubmit={performSearch} className="apple-card p-6 mb-6">
-          <div className="space-y-4">
-            <div className="flex gap-3">
+        <form onSubmit={performSearch} className="apple-card p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <div className="flex-1 relative">
-                <i className="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <i className="fa-solid fa-search absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm sm:text-base"></i>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Enter case number (e.g., 22FL001581C, FL-2024-123456) or party name (e.g., John Smith)"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                  placeholder="Case number or party name"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base md:text-lg"
                   disabled={loading}
                 />
               </div>
-              <button
-                type="submit"
-                disabled={loading || !searchQuery.trim()}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-blue-800 disabled:to-purple-900 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl flex items-center gap-2 min-w-[140px] justify-center"
-              >
-                <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-lg`}></i>
-                {loading ? 'Searching…' : 'Search'}
-              </button>
-              {searchQuery && (
+              <div className="flex gap-2 sm:gap-3">
                 <button
-                  type="button"
-                  onClick={clearForm}
-                  className="bg-white/5 hover:bg-white/10 text-white px-6 py-4 rounded-lg font-medium border border-white/10 transition-colors"
-                  disabled={loading}
-                  title="Clear search"
+                  type="submit"
+                  disabled={loading || !searchQuery.trim()}
+                  className="flex-1 sm:flex-none bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-blue-800 disabled:to-purple-900 disabled:cursor-not-allowed text-white px-4 sm:px-8 py-3 sm:py-4 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:min-w-[140px] active:scale-95"
                 >
-                  <i className="fa-solid fa-times"></i>
+                  <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-base sm:text-lg`}></i>
+                  <span className="hidden sm:inline">{loading ? 'Searching…' : 'Search'}</span>
+                  <span className="sm:hidden">{loading ? '…' : 'Go'}</span>
                 </button>
-              )}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={clearForm}
+                    className="bg-white/5 hover:bg-white/10 text-white px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-medium border border-white/10 transition-colors active:scale-95"
+                    disabled={loading}
+                    title="Clear search"
+                  >
+                    <i className="fa-solid fa-times text-sm sm:text-base"></i>
+                  </button>
+                )}
+              </div>
             </div>
             
             {/* Search Tips */}
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <i className="fa-solid fa-lightbulb text-blue-400 mt-1"></i>
-                <div className="flex-1">
-                  <p className="text-blue-300 font-medium mb-2">Search Tips</p>
-                  <ul className="text-gray-300 text-sm space-y-1">
-                    <li>• <strong>Case Numbers:</strong> Use format like <code className="bg-white/10 px-1 rounded">22FL001581C</code> or <code className="bg-white/10 px-1 rounded">FL-2024-123456</code></li>
-                    <li>• <strong>Party Names:</strong> Enter first name, last name, or full name (e.g., "John Smith" or "Smith")</li>
-                    <li>• <strong>Auto-Detection:</strong> We'll automatically detect if you're searching by case number or name</li>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <i className="fa-solid fa-lightbulb text-blue-400 mt-0.5 sm:mt-1 text-sm sm:text-base flex-shrink-0"></i>
+                <div className="flex-1 min-w-0">
+                  <p className="text-blue-300 font-medium mb-1 sm:mb-2 text-xs sm:text-sm">Search Tips</p>
+                  <ul className="text-gray-300 text-xs sm:text-sm space-y-1">
+                    <li className="leading-relaxed">• <strong>Case Numbers:</strong> <code className="bg-white/10 px-1 rounded text-xs">22FL001581C</code> or <code className="bg-white/10 px-1 rounded text-xs">FL-2024-123456</code></li>
+                    <li className="leading-relaxed">• <strong>Party Names:</strong> First name, last name, or full name</li>
+                    <li className="leading-relaxed">• <strong>Auto-Detection:</strong> Automatically detects case number or name</li>
                   </ul>
                 </div>
               </div>
@@ -674,20 +677,21 @@ export default function SearchPageContent() {
         )}
 
         {results.length > 0 && (
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-white text-2xl font-semibold">
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <h2 className="text-white text-xl sm:text-2xl font-semibold">
               Search Results ({results.length})
             </h2>
-            <div className="text-gray-400 text-sm">
-              <i className="fa-solid fa-info-circle mr-2"></i>
-              Click "View Details" to see full case information, motions, and upcoming hearings
+            <div className="text-gray-400 text-xs sm:text-sm">
+              <i className="fa-solid fa-info-circle mr-1 sm:mr-2"></i>
+              <span className="hidden sm:inline">Click "View Details" to see full case information, motions, and upcoming hearings</span>
+              <span className="sm:hidden">Tap "View Details" for full info</span>
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {results.map((c) => (
-            <div key={c.id} className="apple-card p-6 hover:bg-white/5 transition-all hover:shadow-xl">
+            <div key={c.id} className="apple-card p-4 sm:p-6 hover:bg-white/5 transition-all hover:shadow-xl">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-3 mb-3">
@@ -762,27 +766,29 @@ export default function SearchPageContent() {
                 </div>
               </div>
               
-              <div className="flex gap-2 pt-4 border-t border-white/10 flex-wrap">
+              <div className="flex flex-col sm:flex-row gap-2 pt-3 sm:pt-4 border-t border-white/10">
                 <button 
                   onClick={() => { setSelectedCase(c); setShowDetailsModal(true) }}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 active:scale-95"
                 >
-                  <i className="fa-solid fa-eye"></i>
+                  <i className="fa-solid fa-eye text-sm"></i>
                   View Details
                 </button>
                 <button 
                   onClick={() => addToCalendar(c)}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 active:scale-95"
                 >
-                  <i className="fa-solid fa-calendar-plus"></i>
-                  Add to Calendar
+                  <i className="fa-solid fa-calendar-plus text-sm"></i>
+                  <span className="hidden sm:inline">Add to Calendar</span>
+                  <span className="sm:hidden">Calendar</span>
                 </button>
                 <button 
                   onClick={() => saveCase(c)}
-                  className="bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium border border-white/10 transition-colors flex items-center gap-2"
+                  className="bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium border border-white/10 transition-colors flex items-center justify-center gap-2 active:scale-95 sm:w-auto w-full"
                   title="Save case to your profile"
                 >
-                  <i className="fa-solid fa-bookmark"></i>
+                  <i className="fa-solid fa-bookmark text-sm"></i>
+                  <span className="sm:hidden">Save</span>
                 </button>
               </div>
             </div>
@@ -792,24 +798,24 @@ export default function SearchPageContent() {
 
       {/* Case Details Modal */}
       {showDetailsModal && selectedCase && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
-            <div className="sticky top-0 bg-gray-900 border-b border-white/10 p-6 flex items-center justify-between">
-              <h2 className="text-white text-2xl font-bold">Case Details</h2>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-gray-900 rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-white/10">
+            <div className="sticky top-0 bg-gray-900 border-b border-white/10 p-4 sm:p-6 flex items-center justify-between gap-3">
+              <h2 className="text-white text-lg sm:text-xl md:text-2xl font-bold flex-1 min-w-0">Case Details</h2>
               <button
                 onClick={() => { setShowDetailsModal(false); setSelectedCase(null) }}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors flex-shrink-0 w-8 h-8 flex items-center justify-center active:scale-95"
               >
-                <i className="fa-solid fa-times text-2xl"></i>
+                <i className="fa-solid fa-times text-xl sm:text-2xl"></i>
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Case Header */}
-              <div className="apple-card p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-white text-xl font-semibold mb-2">{selectedCase.title}</h3>
+              <div className="apple-card p-4 sm:p-6">
+                <div className="flex items-start justify-between mb-3 sm:mb-4 gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white text-lg sm:text-xl font-semibold mb-2 leading-tight">{selectedCase.title}</h3>
                     <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
                       <span className="flex items-center gap-1">
                         <i className="fa-solid fa-hashtag text-blue-400"></i>
