@@ -216,14 +216,14 @@ export default function Header() {
 
         {/* Welcome message only for dashboard (home page) */}
         {user && pathname === '/' && (
-          <div className="text-center mt-4 sm:mt-6 mb-2 sm:mb-3 px-3 sm:px-4">
+          <div className="text-center py-2 sm:py-3 px-3 sm:px-4">
             <h1 
               id="title-dashboard" 
-              className="text-white text-lg sm:text-xl font-bold leading-tight mb-1.5"
+              className="text-white text-base sm:text-lg font-semibold leading-tight mb-1"
             >
               Welcome back, {user.name.split(' ')[0]}!
             </h1>
-            <p className="text-purple-300 text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto">
+            <p className="text-purple-300 text-xs leading-relaxed max-w-2xl mx-auto">
               Here's your personalized dashboard with your latest case updates and insights.
             </p>
           </div>
