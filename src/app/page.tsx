@@ -212,7 +212,7 @@ export default function Home() {
                       View Calendar
                     </button>
                     <button
-                      onClick={() => router.push('/settings?tab=integrations')}
+                      onClick={() => router.push('/account?tab=integrations')}
                       className="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-400 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 active:scale-95"
                     >
                       <i className="fa-solid fa-link mr-2"></i>

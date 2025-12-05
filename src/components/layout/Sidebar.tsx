@@ -173,9 +173,9 @@ export default function Sidebar() {
               <span>Billing</span>
             </button>
             <button 
-              onClick={() => handleNavigation('/settings')}
+              onClick={() => handleNavigation('/account')}
               id="nav-account"
-              className={getButtonClasses('/settings')}
+              className={getButtonClasses('/account')}
             >
               <i className="fa-solid fa-user text-base" />
               <span>Account</span>
