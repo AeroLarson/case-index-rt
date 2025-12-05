@@ -243,20 +243,13 @@ export default function AccountPage() {
     setIsEditing(false)
   }
 
-  // Redirect to login if not authenticated (only after loading is complete)
+  // Redirect to login if not authenticated (client-side only)
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!user) {
       router.push('/login')
+      return
     }
-  }, [isLoading, user, router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-      </div>
-    )
-  }
+  }, [user, router])
 
   if (!user) {
     return null
