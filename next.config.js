@@ -167,6 +167,8 @@ const nextConfig = {
     
     return config
   },
+  // Ensure static output for client components
+  output: 'standalone',
 }
 
 module.exports = nextConfig
