@@ -2,6 +2,7 @@
 
 // Account settings page component - Client-side only, no serverless function needed
 // This page allows users to manage their account settings, profile, and preferences
+// Force fresh Vercel build - client component only
 import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
