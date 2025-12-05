@@ -1,0 +1,14 @@
+{
+  "rewrites": [],
+  "headers": [],
+  "routes": [
+    {
+      "src": "/account",
+      "dest": "/account",
+      "headers": {
+        "Cache-Control": "public, s-maxage=0, must-revalidate"
+      }
+    }
+  ]
+}
+
