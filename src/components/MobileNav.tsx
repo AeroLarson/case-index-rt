@@ -25,7 +25,7 @@ export default function MobileNav() {
     { icon: 'fa-magnifying-glass', label: 'Search', path: '/search' },
     { icon: 'fa-chart-line', label: 'Analytics', path: '/analytics' },
     { icon: 'fa-calendar', label: 'Calendar', path: '/calendar' },
-    { icon: 'fa-user', label: 'Account', path: '/account' },
+    { icon: 'fa-user', label: 'Account', path: '/settings' },
   ]
 
   const isActive = (path: string) => pathname === path
