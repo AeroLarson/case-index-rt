@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 // Account settings page component - Client-side only, no serverless function needed
 // This page allows users to manage their account settings, profile, and preferences
@@ -245,14 +245,31 @@ export default function AccountPage() {
 
   // Redirect to login if not authenticated (client-side only)
   useEffect(() => {
-    if (!user) {
-      router.push('/login')
-      return
+    if (!isLoading && !user) {
+      router.push('/login?returnUrl=/account')
     }
-  }, [user, router])
+  }, [user, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)' }}>
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </main>
+    )
+  }
 
   if (!user) {
-    return null
+    return (
+      <main className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg,#0f0520 0%,#1a0b2e 100%)' }}>
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Redirecting to login...</p>
+        </div>
+      </main>
+    )
   }
 
   return (
