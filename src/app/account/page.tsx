@@ -1,7 +1,9 @@
 'use client'
 
-// Account settings page component - Client-side only, no serverless function needed
-// This page allows users to manage their account settings, profile, and preferences
+// Route segment config - ensure static rendering
+export const dynamic = 'force-static'
+export const revalidate = false
+
 import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
