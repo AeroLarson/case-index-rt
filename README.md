@@ -1,58 +1,147 @@
 # Case Index RT - California Court Case Search
 
-A modern, responsive web application for tracking California court cases, built with Next.js, TypeScript, and Tailwind CSS.
+A comprehensive, production-ready web application for tracking and managing California court cases. Built with modern web technologies, this platform provides legal professionals with AI-powered case search, real-time updates, calendar integration, and advanced analytics.
 
-## Features
+## 🚀 Key Features
 
-- **AI-Powered Case Search**: Search and track family law cases across San Diego County
-- **Real-time Updates**: Automated case filing and hearing notifications
-- **Dashboard Analytics**: Overview of active cases, upcoming hearings, and new filings
-- **Responsive Design**: Modern UI with dark theme and gradient backgrounds
-- **Component Architecture**: Reusable layout components (Header, Sidebar, Footer)
+### Core Functionality
+- **AI-Powered Case Search**: Intelligent search across San Diego County family law cases with natural language processing
+- **Real-time Case Tracking**: Automated monitoring of case filings, hearings, and document updates
+- **Advanced Analytics Dashboard**: Comprehensive insights into active cases, upcoming hearings, and case trends
+- **Document Management**: Access and organize court documents and filings
 
-## Tech Stack
+### Integrations & Automation
+- **Clio CRM Integration**: Seamless synchronization with Clio practice management system
+- **Calendar Sync**: Automatic hearing date synchronization with Google Calendar and Outlook
+- **AI Case Analysis**: Intelligent case summaries, timeline analysis, and court rules search
+- **Email Notifications**: Automated alerts for case updates and hearing reminders
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Icons**: Font Awesome 6
-- **Build Tool**: Turbopack
+### User Experience
+- **Modern Responsive Design**: Beautiful dark theme UI with gradient backgrounds, optimized for all devices
+- **User Authentication**: Secure login with email/password and Google OAuth integration
+- **Subscription Management**: Flexible pricing tiers (Free, Professional, Team) with Stripe payment integration
+- **Role-Based Access**: Admin dashboard with user management and analytics
 
-## Project Structure
+## 🛠️ Tech Stack
+
+### Frontend
+- **Framework**: Next.js 15 with App Router (React Server Components)
+- **Language**: TypeScript for type safety
+- **Styling**: Tailwind CSS with custom design system
+- **Icons**: Font Awesome 6 & React Icons
+- **Charts**: Recharts for data visualization
+- **Build Tool**: Turbopack for fast development
+
+### Backend & Services
+- **Authentication**: NextAuth.js with multiple providers (Email/Password, Google OAuth)
+- **Database**: PostgreSQL with Prisma ORM
+- **Payment Processing**: Stripe integration with subscription management
+- **Email Service**: Resend API for transactional emails
+- **AI Services**: OpenAI API for case analysis and summaries
+- **Web Scraping**: Puppeteer with Chromium for court data extraction
+
+### Infrastructure
+- **Deployment**: Vercel (optimized for Next.js)
+- **Analytics**: Vercel Analytics & Speed Insights
+- **Security**: bcrypt password hashing, HTTPS, secure headers
+
+## 📁 Project Structure
 
 ```
 src/
-├── app/
-│   ├── globals.css          # Global styles with Tailwind imports
-│   ├── layout.tsx           # Root layout with Header, Sidebar, Footer
-│   └── page.tsx             # Main dashboard page
-└── components/
-    └── layout/
-        ├── Header.tsx       # Navigation header component
-        ├── Sidebar.tsx      # Side navigation component
-        └── Footer.tsx       # Footer component
+├── app/                      # Next.js App Router pages
+│   ├── api/                  # API routes
+│   │   ├── auth/            # Authentication endpoints
+│   │   ├── stripe/          # Payment processing
+│   │   └── clio/            # Clio CRM integration
+│   ├── account/             # User account management
+│   ├── admin/               # Admin dashboard
+│   ├── analytics/           # Analytics and reporting
+│   ├── billing/             # Subscription management
+│   └── [pages]/             # Public pages (about, pricing, etc.)
+├── components/              # React components
+│   ├── layout/             # Layout components (Header, Sidebar, Footer)
+│   └── [feature]/          # Feature-specific components
+├── lib/                     # Core business logic
+│   ├── aiService.ts        # AI/OpenAI integration
+│   ├── stripe.ts           # Payment processing
+│   ├── clioAPI.ts          # Clio CRM API client
+│   ├── courtDataService.ts # Court data scraping
+│   └── userProfile.ts      # User profile management
+├── contexts/                # React contexts
+│   └── AuthContext.tsx     # Authentication state
+└── hooks/                   # Custom React hooks
 ```
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ (if you want to run the development server)
-- npm or yarn
+- **Node.js** 18+ 
+- **npm** or **yarn**
+- **PostgreSQL** database (Neon, Supabase, or Railway recommended)
+- **Stripe** account (for payment processing)
+- **OpenAI** API key (for AI features)
+- **Resend** account (for email services)
 
 ### Installation
 
-1. Install dependencies:
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd Coder5
+```
+
+2. **Install dependencies**
 ```bash
 npm install
 ```
 
-2. Run the development server:
+3. **Set up environment variables**
+Create a `.env.local` file with the following variables:
+```env
+# Database
+DATABASE_URL=postgresql://your-connection-string
+
+# Authentication
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_your_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_key
+STRIPE_PRO_PRICE_ID=price_your_pro_price
+STRIPE_TEAM_PRICE_ID=price_your_team_price
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+
+# OpenAI
+OPENAI_API_KEY=sk-your-openai-key
+
+# Email
+RESEND_API_KEY=re_your_resend_key
+
+# Clio (optional)
+CLIO_CLIENT_ID=your_clio_client_id
+CLIO_CLIENT_SECRET=your_clio_client_secret
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+4. **Set up the database**
+```bash
+npm run db:generate
+npm run db:push
+```
+
+5. **Run the development server**
 ```bash
 npm run dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. **Open your browser**
+Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Build for Production
 
@@ -61,50 +150,82 @@ npm run build
 npm start
 ```
 
-## Components
+## 🎨 Key Components
 
-### Header Component
-- Gradient background with navigation links
-- Call-to-action buttons
-- Responsive design
+### Layout Components
+- **Header**: Navigation bar with gradient design, user menu, and call-to-action buttons
+- **Sidebar**: Fixed navigation with case management links and active state indicators
+- **Footer**: Trusted partners section, legal links, and responsive layout
 
-### Sidebar Component
-- Fixed navigation with case management links
-- Font Awesome icons
-- Active state indicators
+### Feature Components
+- **Dashboard**: Overview cards, case statistics, recent updates feed, and upcoming hearings calendar
+- **Case Search**: Advanced search interface with filters and AI-powered suggestions
+- **Analytics**: Data visualization with charts, trends, and reporting tools
+- **Account Management**: User profile, subscription management, and settings
+- **Admin Panel**: User management, system analytics, and configuration
 
-### Footer Component
-- Trusted by section with partner logos
-- Copyright and legal links
-- Responsive layout
+## 🔐 Authentication & Security
 
-### Main Dashboard
-- Overview cards with statistics
-- Recent case updates feed
-- Upcoming hearings calendar
-- Filter and search functionality
+- **Multi-provider Authentication**: Email/password and Google OAuth
+- **Password Security**: bcrypt hashing with secure password reset flow
+- **Session Management**: Secure session handling with NextAuth.js
+- **API Security**: Protected API routes with authentication middleware
+- **Data Protection**: Secure headers, CSP policies, and HTTPS enforcement
 
-## Styling
+## 💳 Payment & Subscriptions
 
-The project uses Tailwind CSS with a custom dark theme. Key styling features:
+Integrated Stripe payment processing with three subscription tiers:
 
-- **Gradient Backgrounds**: Purple and indigo gradients throughout
-- **Dark Theme**: Consistent dark color scheme
-- **Responsive Grid**: CSS Grid and Flexbox for layouts
-- **Custom Colors**: Purple and indigo color palette
-- **Typography**: Clean, readable fonts with proper hierarchy
+- **Free Plan**: 1 case per month, basic information, email notifications
+- **Professional Plan** ($99/month): Unlimited searches, AI summaries, calendar integration, Clio CRM
+- **Team Plan** ($299/month): Everything in Professional, up to 5 team members, custom reporting
 
-## Development Notes
+Features include:
+- Secure checkout sessions
+- Subscription management portal
+- Webhook handling for payment events
+- Admin exemption for testing
 
-- All components are client-side rendered with `'use client'` directive
-- Font Awesome icons are loaded via CDN
-- Tailwind CSS is imported using the modern `@import "tailwindcss"` syntax
-- Components follow React best practices with TypeScript
+## 🔌 Third-Party Integrations
 
-## License
+- **Clio CRM**: OAuth integration for syncing cases and calendar events
+- **Google Calendar**: Automatic hearing date synchronization
+- **Stripe**: Payment processing and subscription management
+- **OpenAI**: AI-powered case analysis and summaries
+- **Resend**: Transactional email delivery
+
+## 🎨 Design & Styling
+
+The application features a modern, professional design:
+
+- **Dark Theme**: Consistent dark color scheme with gradient accents
+- **Responsive Design**: Mobile-first approach, optimized for all screen sizes
+- **Gradient Backgrounds**: Purple and indigo gradients throughout the UI
+- **Custom Components**: Reusable, accessible components with proper TypeScript types
+- **Smooth Animations**: Scroll animations and transitions for enhanced UX
+
+## 📝 Development Notes
+
+- **Client Components**: Strategic use of `'use client'` for interactive features
+- **Server Components**: Leveraging Next.js 15 App Router for optimal performance
+- **Type Safety**: Full TypeScript coverage for type safety and better DX
+- **Code Organization**: Modular architecture with clear separation of concerns
+- **Performance**: Optimized bundle sizes, code splitting, and lazy loading
+
+## 🧪 Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run dev:fast     # Start with Turbopack
+npm run build        # Build for production
+npm start            # Start production server
+npm run lint         # Run ESLint
+npm run clear-cache  # Clear Next.js cache
+npm run generate-secret # Generate NEXTAUTH_SECRET
+```
+
+## 📄 License
 
 © 2025 Case Index RT. All rights reserved.
-
-<!-- Deployment trigger: $(date) -->
 
 

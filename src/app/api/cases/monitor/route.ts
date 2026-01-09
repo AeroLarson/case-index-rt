@@ -32,10 +32,37 @@ export async function POST(request: NextRequest) {
     const notifications: any[] = []
     
     // Check each saved case for updates
-    for (const savedCase of savedCases.slice(0, 10)) { // Limit to 10 cases per check
+    // Also check cases that have calendar events (even if not explicitly saved)
+    const casesToCheck = new Set(savedCases.map(c => c.caseNumber))
+    
+    // Add cases from calendar events
+    savedCases.forEach(savedCase => {
+      if (savedCase.calendarEvents && savedCase.calendarEvents.length > 0) {
+        savedCase.calendarEvents.forEach((event: any) => {
+          if (event.caseNumber) {
+            casesToCheck.add(event.caseNumber)
+          }
+        })
+      }
+    })
+    
+    const uniqueCases = Array.from(casesToCheck).slice(0, 15) // Limit to 15 cases per check
+    
+    for (const caseNumber of uniqueCases) {
       try {
-        // Get current case data
-        const currentData = await countyDataService.getCaseDetails(savedCase.caseNumber)
+        // Find the saved case data if it exists
+        const savedCase = savedCases.find(c => c.caseNumber === caseNumber) || {
+          caseNumber,
+          caseTitle: `Case ${caseNumber}`,
+          caseStatus: 'Active',
+          notes: '',
+          registerOfActions: [],
+          calendarEvents: []
+        }
+        
+        // Get current case data with full register of actions
+        console.log(`🔍 Checking case ${caseNumber} for updates...`)
+        const currentData = await countyDataService.getCaseDetails(caseNumber)
         
         // Compare with saved case data
         const changes: string[] = []
@@ -54,23 +81,33 @@ export async function POST(request: NextRequest) {
           })
         }
         
-        // Check for new register of actions
-        const savedActionsCount = savedCase.notes ? parseInt(savedCase.notes) || 0 : 0
-        if (currentData.registerOfActions.length > savedActionsCount) {
-          const newActions = currentData.registerOfActions.slice(savedActionsCount)
-          changes.push(`${newActions.length} new filing(s) added`)
+        // Check for new register of actions - compare full arrays, not just counts
+        const savedActions = savedCase.registerOfActions || []
+        const savedActionHashes = savedActions.map((a: any) => 
+          `${a.date}_${a.action}_${a.description}`.toLowerCase()
+        )
+        
+        const newActions = currentData.registerOfActions.filter(action => {
+          const actionHash = `${action.date}_${action.action}_${action.description}`.toLowerCase()
+          return !savedActionHashes.includes(actionHash)
+        })
+        
+        if (newActions.length > 0) {
+          changes.push(`${newActions.length} new filing(s) added to register of actions`)
           
           newActions.forEach(action => {
             notifications.push({
               type: 'new_filing',
               title: `New Filing: ${savedCase.caseNumber}`,
-              message: `${action.action}: ${action.description}`,
+              message: `${action.date}: ${action.action} - ${action.description}`,
               caseNumber: savedCase.caseNumber,
               caseTitle: savedCase.caseTitle,
               actionUrl: `/search?case=${savedCase.caseNumber}`,
               metadata: {
                 eventType: action.action,
-                date: action.date
+                date: action.date,
+                description: action.description,
+                filedBy: action.filedBy
               }
             })
           })
@@ -164,7 +201,8 @@ export async function POST(request: NextRequest) {
             updatedData: {
               status: currentData.status,
               registerOfActionsCount: currentData.registerOfActions.length,
-              upcomingEventsCount: currentData.upcomingEvents.length
+              upcomingEventsCount: currentData.upcomingEvents.length,
+              registerOfActions: currentData.registerOfActions // Include full register for updates
             }
           })
         }
@@ -173,7 +211,7 @@ export async function POST(request: NextRequest) {
         await new Promise(resolve => setTimeout(resolve, 2000))
         
       } catch (error: any) {
-        console.error(`Error monitoring case ${savedCase.caseNumber}:`, error.message)
+        console.error(`Error monitoring case ${caseNumber}:`, error.message)
         // Continue with next case
       }
     }

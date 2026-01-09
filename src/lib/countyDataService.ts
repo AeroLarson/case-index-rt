@@ -183,7 +183,8 @@ class CountyDataService {
           console.log('⚠️ San Diego County systems are down for maintenance - using enhanced database');
         }
       } catch (error) {
-        console.log('❌ Real data retrieval failed (systems may be down for maintenance):', error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.log('❌ Real data retrieval failed (systems may be down for maintenance):', errorMessage);
       }
       
       // No fallback – return empty to reflect true county result
@@ -210,59 +211,89 @@ class CountyDataService {
       console.log('🔍 Getting REAL data from whitelisted San Diego County systems...');
       
       // Try ROASearch first (whitelisted) - PRIORITY since user specifically requested this
+      // Use Promise.race to timeout quickly if it takes too long
       try {
         await this.respectRateLimit('roasearch');
         console.log('🎯 PRIORITY: Searching ROASearch for:', searchQuery);
-        const roaResults = await this.searchROACases(searchQuery, searchType);
+        const roaResults = await Promise.race([
+          this.searchROACases(searchQuery, searchType),
+          new Promise<any[]>((_, reject) => 
+            setTimeout(() => reject(new Error('ROASearch timeout')), 8000)
+          )
+        ]);
         if (roaResults && roaResults.length > 0) {
           console.log('✅ Got REAL data from ROASearch!');
           return roaResults;
         }
       } catch (error) {
-        console.log('ROASearch failed:', error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.log('ROASearch failed:', errorMessage);
       }
       
-      // Try ODYROA (whitelisted)
+      // Try ODYROA (whitelisted) - with timeout
       try {
         await this.respectRateLimit('odyroa');
-        const odyroaResults = await this.searchODYROACases(searchQuery, searchType);
+        const odyroaResults = await Promise.race([
+          this.searchODYROACases(searchQuery, searchType),
+          new Promise<any[]>((_, reject) => 
+            setTimeout(() => reject(new Error('ODYROA timeout')), 8000)
+          )
+        ]);
         if (odyroaResults && odyroaResults.length > 0) {
           console.log('✅ Got REAL data from ODYROA!');
           return odyroaResults;
         }
       } catch (error) {
-        console.log('ODYROA failed:', error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.log('ODYROA failed:', errorMessage);
       }
       
-      // Try CourtIndex (whitelisted) - use Puppeteer for form submission
+      // Try CourtIndex (whitelisted) - use Puppeteer for form submission - with timeout
       try {
         await this.respectRateLimit('courtindex');
         console.log('🤖 Trying CourtIndex with Puppeteer form submission...');
-        const courtIndexResults = await this.searchCourtIndexWithPuppeteer(searchQuery, searchType);
+        const courtIndexResults = await Promise.race([
+          this.searchCourtIndexWithPuppeteer(searchQuery, searchType),
+          new Promise<any[]>((_, reject) => 
+            setTimeout(() => reject(new Error('CourtIndex Puppeteer timeout')), 10000)
+          )
+        ]);
         if (courtIndexResults && courtIndexResults.length > 0) {
           console.log('✅ Got REAL data from CourtIndex via Puppeteer!');
           return courtIndexResults;
         }
         
-        // Fallback to direct endpoint attempts
-        const courtIndexDirectResults = await this.searchCourtIndexCases(searchQuery, searchType);
+        // Fallback to direct endpoint attempts - with timeout
+        const courtIndexDirectResults = await Promise.race([
+          this.searchCourtIndexCases(searchQuery, searchType),
+          new Promise<any[]>((_, reject) => 
+            setTimeout(() => reject(new Error('CourtIndex direct timeout')), 5000)
+          )
+        ]);
         if (courtIndexDirectResults && courtIndexDirectResults.length > 0) {
           console.log('✅ Got REAL data from CourtIndex!');
           return courtIndexDirectResults;
         }
       } catch (error) {
-        console.log('CourtIndex failed:', error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.log('CourtIndex failed:', errorMessage);
       }
       
-      // Try main San Diego County site (whitelisted)
+      // Try main San Diego County site (whitelisted) - with timeout
       try {
-        const mainCountyResults = await this.searchPublicCases(searchQuery, searchType);
+        const mainCountyResults = await Promise.race([
+          this.searchPublicCases(searchQuery, searchType),
+          new Promise<any[]>((_, reject) => 
+            setTimeout(() => reject(new Error('Main county site timeout')), 5000)
+          )
+        ]);
         if (mainCountyResults && mainCountyResults.length > 0) {
           console.log('✅ Got REAL data from main San Diego County site!');
           return mainCountyResults;
         }
       } catch (error) {
-        console.log('Main county site failed:', error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.log('Main county site failed:', errorMessage);
       }
       
       console.log('❌ No real data found from any whitelisted system');
@@ -304,39 +335,39 @@ class CountyDataService {
       
       // Get executable path - handle both function and property
       let executablePath: string;
-      if (typeof chromium.executablePath === 'function') {
-        executablePath = await chromium.executablePath();
-      } else if (typeof chromium.executablePath === 'string') {
-        executablePath = chromium.executablePath;
+      const chromiumAny = chromium as any;
+      
+      if (typeof chromiumAny.executablePath === 'function') {
+        const result = chromiumAny.executablePath();
+        executablePath = result instanceof Promise ? await result : result;
+      } else if (typeof chromiumAny.executablePath === 'string') {
+        executablePath = chromiumAny.executablePath;
       } else {
-        // Try to get it from the module
-        executablePath = (chromium as any).executablePath || '';
-        if (!executablePath && typeof (chromium as any).executablePath === 'function') {
-          executablePath = await (chromium as any).executablePath();
-        }
+        console.log('⚠️ Could not get Chromium executable path');
+        return [];
       }
       
-      if (!executablePath) {
+      if (!executablePath || typeof executablePath !== 'string') {
         console.log('⚠️ Could not get Chromium executable path');
         return [];
       }
       
       const browser = await puppeteer.launch({
-        args: chromium.args || [],
-        defaultViewport: chromium.defaultViewport || { width: 1280, height: 720 },
+        args: (chromium as any).args || [],
+        defaultViewport: (chromium as any).defaultViewport || { width: 1280, height: 720 },
         executablePath: executablePath,
-        headless: chromium.headless !== false, // Default to true
+        headless: (chromium as any).headless !== false, // Default to true
       });
       
       try {
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36');
         
-        // Navigate to search page
-        await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+        // Navigate to search page - use domcontentloaded for faster loading
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
         
-        // Wait for page to load
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait for page to load - reduced wait time
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Try to find and fill search form
         if (searchType === 'caseNumber') {
@@ -346,7 +377,7 @@ class CountyDataService {
             const submitBtn = await page.$('button[type="submit"], input[type="submit"]').catch(() => null);
             if (submitBtn) {
               await submitBtn.click();
-              await new Promise(resolve => setTimeout(resolve, 3000));
+              await new Promise(resolve => setTimeout(resolve, 1000));
             }
           }
         } else {
@@ -356,7 +387,7 @@ class CountyDataService {
             const submitBtn = await page.$('button[type="submit"], input[type="submit"]').catch(() => null);
             if (submitBtn) {
               await submitBtn.click();
-              await new Promise(resolve => setTimeout(resolve, 3000));
+              await new Promise(resolve => setTimeout(resolve, 1000));
             }
           }
         }
@@ -409,28 +440,28 @@ class CountyDataService {
       
       // Get executable path - handle both function and property
       let executablePath: string;
-      if (typeof chromium.executablePath === 'function') {
-        executablePath = await chromium.executablePath();
-      } else if (typeof chromium.executablePath === 'string') {
-        executablePath = chromium.executablePath;
+      const chromiumAny = chromium as any;
+      
+      if (typeof chromiumAny.executablePath === 'function') {
+        const result = chromiumAny.executablePath();
+        executablePath = result instanceof Promise ? await result : result;
+      } else if (typeof chromiumAny.executablePath === 'string') {
+        executablePath = chromiumAny.executablePath;
       } else {
-        // Try to get it from the module
-        executablePath = (chromium as any).executablePath || '';
-        if (!executablePath && typeof (chromium as any).executablePath === 'function') {
-          executablePath = await (chromium as any).executablePath();
-        }
+        console.log('⚠️ Could not get Chromium executable path');
+        return [];
       }
       
-      if (!executablePath) {
+      if (!executablePath || typeof executablePath !== 'string') {
         console.log('⚠️ Could not get Chromium executable path');
         return [];
       }
       
       const browser = await puppeteer.launch({
-        args: chromium.args || [],
-        defaultViewport: chromium.defaultViewport || { width: 1280, height: 720 },
+        args: (chromium as any).args || [],
+        defaultViewport: (chromium as any).defaultViewport || { width: 1280, height: 720 },
         executablePath: executablePath,
-        headless: chromium.headless !== false, // Default to true
+        headless: (chromium as any).headless !== false, // Default to true
       });
       
       try {
@@ -446,8 +477,8 @@ class CountyDataService {
         }
         
         console.log('📡 Navigating to:', searchPageUrl);
-        await page.goto(searchPageUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await page.goto(searchPageUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Find and fill the search form
         if (searchType === 'caseNumber') {
@@ -461,7 +492,7 @@ class CountyDataService {
             const submitBtn = await page.$('input[type="submit"], button[type="submit"], input[value*="Search" i]').catch(() => null);
             if (submitBtn) {
               await Promise.all([
-                page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+                page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {}),
                 submitBtn.click()
               ]);
               await new Promise(resolve => setTimeout(resolve, 3000));
@@ -476,7 +507,7 @@ class CountyDataService {
           console.log('🔍 Filling form with:', { firstName, lastName, fullQuery: searchQuery });
           
           // Wait for form to be ready
-          await page.waitForSelector('input[type="text"], input[name*="name" i], textbox', { timeout: 10000 }).catch(() => {});
+          await page.waitForSelector('input[type="text"], input[name*="name" i], textbox', { timeout: 5000 }).catch(() => {});
           
           // Fill Last Name or Business Name field (primary field in CourtIndex)
           const lastNameInput = await page.$('input[name*="last" i], input[name*="Last" i], textbox').catch(() => null);
@@ -504,10 +535,10 @@ class CountyDataService {
             if (submitBtn2) {
               console.log('✅ Found submit button via alternative selector');
               await Promise.all([
-                page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+                page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {}),
                 submitBtn2.click()
               ]);
-              await new Promise(resolve => setTimeout(resolve, 4000)); // Wait longer for results to load
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for results to load
             }
           } else {
             console.log('✅ Found submit button, clicking...');
@@ -755,28 +786,28 @@ class CountyDataService {
       
       // Get executable path - handle both function and property
       let executablePath: string;
-      if (typeof chromium.executablePath === 'function') {
-        executablePath = await chromium.executablePath();
-      } else if (typeof chromium.executablePath === 'string') {
-        executablePath = chromium.executablePath;
+      const chromiumAny = chromium as any;
+      
+      if (typeof chromiumAny.executablePath === 'function') {
+        const result = chromiumAny.executablePath();
+        executablePath = result instanceof Promise ? await result : result;
+      } else if (typeof chromiumAny.executablePath === 'string') {
+        executablePath = chromiumAny.executablePath;
       } else {
-        // Try to get it from the module
-        executablePath = (chromium as any).executablePath || '';
-        if (!executablePath && typeof (chromium as any).executablePath === 'function') {
-          executablePath = await (chromium as any).executablePath();
-        }
+        console.log('⚠️ Could not get Chromium executable path');
+        return [];
       }
       
-      if (!executablePath) {
+      if (!executablePath || typeof executablePath !== 'string') {
         console.log('⚠️ Could not get Chromium executable path');
         return [];
       }
       
       const browser = await puppeteer.launch({
-        args: chromium.args || [],
-        defaultViewport: chromium.defaultViewport || { width: 1280, height: 720 },
+        args: (chromium as any).args || [],
+        defaultViewport: (chromium as any).defaultViewport || { width: 1280, height: 720 },
         executablePath: executablePath,
-        headless: chromium.headless !== false, // Default to true
+        headless: (chromium as any).headless !== false, // Default to true
       });
       
       try {
@@ -792,7 +823,7 @@ class CountyDataService {
         }
         
         console.log('📡 Navigating to ROASearch:', roaSearchUrl);
-        await page.goto(roaSearchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+        await page.goto(roaSearchUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Wait for page to fully load
@@ -1053,11 +1084,11 @@ class CountyDataService {
         
         // Wait for results to load
         console.log('⏳ Waiting for search results...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         // Try to wait for results table or navigation
         try {
-          await page.waitForSelector('table, .results, [class*="result"], [id*="result"]', { timeout: 10000 }).catch(() => {});
+          await page.waitForSelector('table, .results, [class*="result"], [id*="result"]', { timeout: 5000 }).catch(() => {});
         } catch (e) {
           console.log('⚠️ Results table not found, continuing anyway');
         }
@@ -1322,7 +1353,7 @@ class CountyDataService {
       try {
         return await this.getCaseDetailsWithPuppeteer(caseNumber);
       } catch (puppeteerError: any) {
-        console.log('⚠️ Puppeteer case details failed, trying direct fetch:', puppeteerError.message);
+        console.log('⚠️ Puppeteer case details failed, trying direct fetch:', puppeteerError?.message || 'Unknown error');
       }
       
       // Fallback to direct fetch
@@ -1336,16 +1367,21 @@ class CountyDataService {
       });
 
       if (!response.ok) {
-        throw new Error(`County API error: ${response.status}`);
+        throw new Error(`County API error: ${response.status} ${response.statusText}`);
       }
 
       const html = await response.text();
+      
+      if (!html || html.length < 100) {
+        throw new Error('Received empty or invalid response from county API');
+      }
       
       // Parse the HTML response to extract detailed case information
       return this.parseCaseDetailsHTML(html, caseNumber);
     } catch (error) {
       console.error('County case details failed:', error);
-      throw new Error('Unable to retrieve case details at this time');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Unable to retrieve case details: ${errorMessage}`);
     }
   }
 
@@ -1354,17 +1390,51 @@ class CountyDataService {
    */
   private async getCaseDetailsWithPuppeteer(caseNumber: string): Promise<CountyCaseData> {
     try {
-      const puppeteer = require('puppeteer-core');
-      const chromium = require('@sparticuz/chromium');
+      // Use serverless-compatible Puppeteer for Vercel
+      const puppeteer = await import('puppeteer-core').catch(() => null);
+      const chromiumModule = await import('@sparticuz/chromium').catch(() => null);
       
-      // Configure Chromium for serverless
-      chromium.setGraphicsMode(false);
+      if (!puppeteer || !chromiumModule) {
+        console.log('⚠️ Puppeteer/Chromium not available for case details');
+        throw new Error('Puppeteer not available');
+      }
+      
+      // Handle different export formats for @sparticuz/chromium
+      const chromium = chromiumModule.default || chromiumModule;
+      
+      // Configure Chromium for Vercel serverless - setGraphicsMode is optional
+      if (chromium && typeof (chromium as any).setGraphicsMode === 'function') {
+        try {
+          (chromium as any).setGraphicsMode(false);
+        } catch (e) {
+          // Ignore if setGraphicsMode fails
+        }
+      }
+      
+      // Get executable path - handle both function and property
+      let executablePath: string;
+      const chromiumAny = chromium as any;
+      
+      if (typeof chromiumAny.executablePath === 'function') {
+        const result: string | Promise<string> = chromiumAny.executablePath();
+        executablePath = result instanceof Promise ? await result : result;
+      } else if (typeof chromiumAny.executablePath === 'string') {
+        executablePath = chromiumAny.executablePath;
+      } else {
+        console.log('⚠️ Could not get Chromium executable path for case details');
+        throw new Error('Chromium executable path not available');
+      }
+      
+      if (!executablePath || typeof executablePath !== 'string') {
+        console.log('⚠️ Could not get Chromium executable path for case details');
+        throw new Error('Chromium executable path not available');
+      }
       
       const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: (chromium as any).executablePath || chromium.executablePath,
-        headless: chromium.headless,
+        args: chromiumAny.args || [],
+        defaultViewport: chromiumAny.defaultViewport || { width: 1280, height: 720 },
+        executablePath: executablePath,
+        headless: chromiumAny.headless !== false,
       });
       
       const page = await browser.newPage();
@@ -1373,18 +1443,41 @@ class CountyDataService {
       const caseUrl = `${this.roaBaseUrl}/Cases?caseNumber=${encodeURIComponent(caseNumber)}`;
       console.log('🔍 Navigating to case details:', caseUrl);
       
-      await page.goto(caseUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for content to load
-      
-      // Get the rendered HTML
-      const html = await page.content();
-      
-      await browser.close();
-      
-      // Parse the HTML
-      return this.parseCaseDetailsHTML(html, caseNumber);
+      try {
+        await page.goto(caseUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+        
+        // Wait for register of actions table to load - try multiple selectors
+        try {
+          await page.waitForSelector('table, [class*="register"], [id*="register"], [class*="action"], [id*="action"]', { timeout: 5000 }).catch(() => {});
+        } catch (e) {
+          // Continue even if selector not found
+        }
+        
+        // Scroll to ensure all content is loaded (some sites lazy load)
+        await page.evaluate(() => {
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for lazy-loaded content
+        
+        // Scroll back to top
+        await page.evaluate(() => {
+          window.scrollTo(0, 0);
+        });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Get the rendered HTML
+        const html = await page.content();
+        
+        await browser.close();
+        
+        // Parse the HTML
+        return this.parseCaseDetailsHTML(html, caseNumber);
+      } catch (navError) {
+        await browser.close().catch(() => {});
+        throw navError;
+      }
     } catch (error: any) {
-      console.log('⚠️ Puppeteer case details failed:', error.message);
+      console.log('⚠️ Puppeteer case details failed:', error?.message || 'Unknown error');
       throw error;
     }
   }
@@ -1468,7 +1561,7 @@ class CountyDataService {
         /Case\s+No[.:\s]*([A-Z]{2}[-]?\d{4}[-]?\d{4,8})/gi,     // Case No.: FL-2024-123456
       ];
       
-      const allCaseNumbers = [];
+      const allCaseNumbers: string[] = [];
       for (const pattern of caseNumberPatterns) {
         const matches = html.match(pattern);
         if (matches) {
@@ -2542,14 +2635,32 @@ class CountyDataService {
       if (!registerTableHTML) {
         const divPatterns = [
           /<div[^>]*class[^>]*register[^>]*>([\s\S]*?)<\/div>/gi,
-          /<div[^>]*id[^>]*actions[^>]*>([\s\S]*?)<\/div>/gi
+          /<div[^>]*id[^>]*actions[^>]*>([\s\S]*?)<\/div>/gi,
+          /<div[^>]*class[^>]*history[^>]*>([\s\S]*?)<\/div>/gi,
+          /<div[^>]*class[^>]*filing[^>]*>([\s\S]*?)<\/div>/gi
         ];
         for (const pattern of divPatterns) {
-          const match = html.match(pattern);
-          if (match && match[0]) {
-            registerTableHTML = match[0];
+          const matches = html.match(pattern);
+          if (matches && matches.length > 0) {
+            // Get the largest matching div (likely contains all actions)
+            registerTableHTML = matches.reduce((a, b) => a.length > b.length ? a : b);
             console.log('✅ Found register of actions in div structure');
             break;
+          }
+        }
+      }
+      
+      // Strategy 4: Look for tbody elements (some tables don't have explicit table tags)
+      if (!registerTableHTML || registerTableHTML.length < 500) {
+        const tbodyMatches = html.match(/<tbody[^>]*>([\s\S]*?)<\/tbody>/gi) || [];
+        for (const tbody of tbodyMatches) {
+          const tbodyText = stripTags(tbody).toLowerCase();
+          if (tbodyText.includes('date') && (tbodyText.includes('filed') || tbodyText.includes('action') || 
+              tbodyText.includes('motion') || tbodyText.includes('order'))) {
+            if (tbody.length > registerTableHTML.length) {
+              registerTableHTML = tbody;
+              console.log('✅ Found register of actions in tbody element');
+            }
           }
         }
       }
@@ -2561,13 +2672,38 @@ class CountyDataService {
       // If no table rows found, try div-based rows
       let actionDivRows: string[] = [];
       if (actionRows.length === 0 && registerTableHTML) {
-        const divRowPattern = /<div[^>]*class[^>]*row[^>]*>[\s\S]*?<\/div>/gi;
-        actionDivRows = registerTableHTML.match(divRowPattern) || [];
+        const divRowPatterns = [
+          /<div[^>]*class[^>]*row[^>]*>[\s\S]*?<\/div>/gi,
+          /<div[^>]*class[^>]*item[^>]*>[\s\S]*?<\/div>/gi,
+          /<div[^>]*class[^>]*entry[^>]*>[\s\S]*?<\/div>/gi,
+          /<li[^>]*>[\s\S]*?<\/li>/gi // Some sites use lists
+        ];
+        for (const pattern of divRowPatterns) {
+          const matches = registerTableHTML.match(pattern) || [];
+          if (matches.length > actionDivRows.length) {
+            actionDivRows = matches;
+          }
+        }
       }
       
       const allRows = [...actionRows, ...actionDivRows];
       
       console.log(`📋 Found ${allRows.length} potential action rows to parse`);
+      
+      // If we still don't have many rows, try parsing the entire HTML for action patterns
+      if (allRows.length < 3 && html.length > 1000) {
+        console.log('⚠️ Few rows found, trying alternative parsing strategy...');
+        // Look for date-action patterns in the entire HTML
+        const dateActionPattern = /(\d{1,2}\/\d{1,2}\/\d{4})[\s\S]{0,500}?(filed|motion|order|hearing|notice|judgment|petition|response|reply|stipulation|declaration|affidavit|exhibit|subpoena|deposition|discovery|settlement|dismissal|default)/gi;
+        const matches = html.match(dateActionPattern);
+        if (matches && matches.length > allRows.length) {
+          console.log(`✅ Found ${matches.length} date-action patterns in HTML`);
+          // Convert matches to pseudo-rows for parsing
+          matches.forEach(match => {
+            allRows.push(`<tr><td>${match}</td></tr>`);
+          });
+        }
+      }
       
       for (const row of allRows) {
         const rowText = stripTags(row).trim();
@@ -2788,20 +2924,49 @@ class CountyDataService {
         }
       }
       
-      // Also check for "Closed" in the HTML text
+      // Also check for "Closed" in the HTML text and register of actions
       if (status === 'Active') {
         const closedIndicators = [
           /case\s+closed/i,
           /closed\s+case/i,
           /status:\s*closed/i,
           /final\s+judgment/i,
-          /dismissed/i
+          /dismissed/i,
+          /case\s+dismissed/i,
+          /judgment\s+entered/i,
+          /final\s+order/i,
+          /case\s+terminated/i,
+          /settled\s+and\s+closed/i
         ];
         for (const indicator of closedIndicators) {
           if (indicator.test(textContent)) {
             status = 'Closed';
             console.log('✅ Detected Closed status from text content');
             break;
+          }
+        }
+        
+        // Check register of actions for final judgment or dismissal entries
+        if (status === 'Active' && finalRegisterOfActions.length > 0) {
+          const finalActionText = finalRegisterOfActions.map(a => 
+            `${a.action} ${a.description}`.toLowerCase()
+          ).join(' ');
+          
+          const finalActionIndicators = [
+            /final\s+judgment/i,
+            /judgment\s+of\s+dissolution/i,
+            /case\s+dismissed/i,
+            /stipulated\s+judgment/i,
+            /default\s+judgment/i,
+            /order\s+of\s+dismissal/i
+          ];
+          
+          for (const indicator of finalActionIndicators) {
+            if (indicator.test(finalActionText)) {
+              status = 'Closed';
+              console.log('✅ Detected Closed status from register of actions');
+              break;
+            }
           }
         }
       }

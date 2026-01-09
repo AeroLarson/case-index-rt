@@ -95,3 +95,25 @@ jspm_packages/
 
 
 /generated/prisma
+
+# Sensitive configuration files
+*_KEYS.txt
+*_SECRETS.txt
+*_CONFIG.txt
+ADD_TO_ENV*.txt
+COPY_TO_ENV*.txt
+env-config.txt
+
+# Test and debug files
+debug-*.ts
+test-*.ts
+*_response.html
+*.html
+
+# Archive files
+*.zip
+*.tar.gz
+
+# Development prompts and internal docs
+copycoder-prompts*/
+EMAIL_TO_*.md

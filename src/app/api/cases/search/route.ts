@@ -27,34 +27,37 @@ export async function POST(request: NextRequest) {
     try {
       // Search real San Diego County court data with comprehensive search
       console.log(`🔍 Searching San Diego County for: "${query}" (${searchType})`)
-      const countyResults = await countyDataService.searchCases(query.trim(), searchType as any)
       
-      console.log(`✅ Found ${countyResults.length} cases from San Diego County`)
-      
-      // Fetch detailed information for each case (including register of actions, upcoming events, judge names)
-      const casesWithDetails = await Promise.all(
-        countyResults.map(async (caseData) => {
-          try {
-            // Try to get detailed case information
-            const detailedData = await countyDataService.getCaseDetails(caseData.caseNumber).catch(() => null)
-            
-            // Merge detailed data with search results
-            if (detailedData) {
-              return {
-                ...caseData,
-                judge: detailedData.judge !== 'Unknown' ? detailedData.judge : caseData.judge,
-                registerOfActions: detailedData.registerOfActions.length > 0 ? detailedData.registerOfActions : caseData.registerOfActions,
-                upcomingEvents: detailedData.upcomingEvents.length > 0 ? detailedData.upcomingEvents : caseData.upcomingEvents,
-                department: detailedData.department || caseData.department
-              }
-            }
-            return caseData
-          } catch (error) {
-            console.log(`⚠️ Could not fetch details for case ${caseData.caseNumber}:`, error)
-            return caseData
+      let countyResults: any[] = []
+      try {
+        countyResults = await countyDataService.searchCases(query.trim(), searchType as any)
+        console.log(`✅ Found ${countyResults.length} cases from San Diego County`)
+      } catch (searchError) {
+        console.error('❌ Search failed:', searchError)
+        // If search fails, return empty results instead of throwing
+        return NextResponse.json({
+          success: true,
+          cases: [],
+          total: 0,
+          source: 'san_diego_county',
+          searchType,
+          message: 'Search service temporarily unavailable. Please try again in a few moments.',
+          error: searchError instanceof Error ? searchError.message : 'Search failed'
+        }, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'X-Content-Type-Options': 'nosniff'
           }
         })
-      )
+      }
+      
+      // OPTIMIZATION: Skip detailed fetching for faster results - return basic search results immediately
+      // Detailed info (register of actions, upcoming events) can be fetched on-demand when user clicks on a specific case
+      // This reduces search time from 10+ seconds per case to instant results
+      // NOTE: When user clicks on a case, we fetch full details including complete register of actions
+      const casesWithDetails = countyResults
       
       // Transform county data to our format
       const cases = casesWithDetails.map(caseData => ({
@@ -116,13 +119,27 @@ export async function POST(request: NextRequest) {
 
     } catch (countyError) {
       console.error('County data search failed:', countyError)
+      
+      // Log detailed error information
+      const errorDetails = {
+        message: countyError instanceof Error ? countyError.message : 'Unknown error',
+        stack: countyError instanceof Error ? countyError.stack : undefined,
+        type: countyError?.constructor?.name,
+        query,
+        searchType
+      }
+      console.error('Error details:', errorDetails)
+      
       // Return empty results with explicit source to avoid any fake data
       return NextResponse.json({
         success: true,
         cases: [],
         total: 0,
         source: 'san_diego_county',
-        countyError: countyError instanceof Error ? countyError.message : 'Unknown error'
+        searchType,
+        message: 'Search service temporarily unavailable. Please try again in a few moments.',
+        error: countyError instanceof Error ? countyError.message : 'Unknown error',
+        ...(process.env.NODE_ENV === 'development' ? { errorDetails } : {})
       }, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
@@ -135,8 +152,23 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Case search error:', error)
+    
+    // Log more details about the error
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    
+    console.error('Error details:', {
+      message: errorMessage,
+      stack: errorStack,
+      type: error?.constructor?.name
+    })
+    
     return NextResponse.json(
-      { error: 'Failed to search cases' },
+      { 
+        error: 'Failed to search cases',
+        message: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      },
       { status: 500 }
     )
   }

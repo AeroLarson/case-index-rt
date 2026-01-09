@@ -69,8 +69,9 @@ export default function AIOverview({
       const registerOfActions = countyData?.registerOfActions || []
       const upcomingEvents = countyData?.upcomingEvents || []
       
-      // Build summary of recent actions with more detail
-      const recentActions = registerOfActions.slice(0, 15).map(action => {
+      // Build summary of ALL actions (not just recent) for comprehensive AI analysis
+      // Include all register of actions entries to give AI complete case timeline
+      const allActions = registerOfActions.map(action => {
         let actionLine = `${action.date || 'Date unknown'}: ${action.action || 'Filing'}`
         if (action.description && action.description !== action.action) {
           actionLine += ` - ${action.description}`
@@ -81,6 +82,11 @@ export default function AIOverview({
         return actionLine
       }).join('\n')
       
+      // Also include a summary if there are many actions
+      const actionSummary = registerOfActions.length > 0 
+        ? `Total of ${registerOfActions.length} case actions/filings in register of actions.`
+        : 'No register of actions available.'
+      
       // Build summary of upcoming events
       const upcomingEventsSummary = upcomingEvents.map(event => 
         `${event.date} ${event.time}: ${event.eventType} - ${event.description}${event.virtualInfo ? ` (Zoom ID: ${event.virtualInfo.zoomId})` : ''}`
@@ -88,6 +94,8 @@ export default function AIOverview({
       
       const caseData = {
         caseNumber: caseId,
+        registerOfActionsCount: registerOfActions.length,
+        actionSummary: actionSummary,
         caseTitle: caseTitle || `Case ${caseId}`,
         caseType: `Family Law - ${caseType}`,
         status: caseStatus || "Active",
@@ -98,7 +106,8 @@ export default function AIOverview({
         },
         courtLocation: court || "San Diego Superior Court",
         judicialOfficer: judge || "Unknown",
-        registerOfActions: recentActions,
+        registerOfActions: allActions, // Use ALL actions, not just recent 15
+        completeTimeline: allActions, // Full timeline for comprehensive analysis
         upcomingEvents: upcomingEventsSummary,
         recentMotions: registerOfActions
           .filter(a => /motion|order|judgment|stipulation|petition|response|reply/i.test(a.action || a.description))
