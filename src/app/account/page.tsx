@@ -1,9 +1,5 @@
 'use client'
 
-// Route segment config - ensure static rendering
-export const dynamic = 'force-static'
-export const revalidate = false
-
 import { useAuth } from '@/contexts/AuthContext'
 import { useCustomization } from '@/contexts/CustomizationContext'
 import { useRouter } from 'next/navigation'
