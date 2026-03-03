@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { countyDataService } from '@/lib/countyDataService'
-import { userProfileManager } from '@/lib/userProfile'
 
 export async function POST(request: NextRequest) {
   try {

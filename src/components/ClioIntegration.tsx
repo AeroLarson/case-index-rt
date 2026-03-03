@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { userProfileManager } from '@/lib/userProfile'
 
 interface ClioIntegrationProps {
   className?: string
+  isConnectedOverride?: boolean
 }
 
 interface ClioEvent {
@@ -17,12 +20,27 @@ interface ClioEvent {
   location?: string
 }
 
-export default function ClioIntegration({ className = '' }: ClioIntegrationProps) {
+export default function ClioIntegration({ className = '', isConnectedOverride }: ClioIntegrationProps) {
+  const { user } = useAuth()
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [events, setEvents] = useState<ClioEvent[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
+  useEffect(() => {
+    if (!user || typeof window === 'undefined') {
+      setIsConnected(false)
+      return
+    }
+    const tokens = userProfileManager.getClioTokens(user.id)
+    setIsConnected(!!tokens)
+  }, [user])
+
+  useEffect(() => {
+    if (typeof isConnectedOverride === 'boolean') {
+      setIsConnected(isConnectedOverride)
+    }
+  }, [isConnectedOverride])
 
   const handleConnect = async () => {
     setIsConnecting(true)
@@ -37,6 +55,9 @@ export default function ClioIntegration({ className = '' }: ClioIntegrationProps
   }
 
   const handleDisconnect = async () => {
+    if (user) {
+      userProfileManager.updateClioTokens(user.id, null)
+    }
     setIsConnected(false)
     setEvents([])
   }
