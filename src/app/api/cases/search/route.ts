@@ -115,7 +115,6 @@ export async function POST(request: NextRequest) {
           'X-Content-Type-Options': 'nosniff'
         }
       })
-
     } catch (countyError) {
       console.error('County data search failed:', countyError)
       
