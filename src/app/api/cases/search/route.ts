@@ -59,38 +59,50 @@ export async function POST(request: NextRequest) {
       const casesWithDetails = countyResults
       
       // Transform county data to our format
-      const cases = casesWithDetails.map(caseData => ({
-        id: `county_${caseData.caseNumber.replace(/[^a-zA-Z0-9]/g, '_')}`,
-        caseNumber: caseData.caseNumber,
-        title: caseData.caseTitle,
-        court: `${caseData.department} - San Diego Superior Court`,
-        judge: caseData.judge,
-        status: caseData.status,
-        lastActivity: caseData.lastActivity,
-        parties: {
-          plaintiff: caseData.parties[0] || 'Unknown',
-          defendant: caseData.parties[1] || 'Unknown'
-        },
-        documents: caseData.registerOfActions.length,
-        hearings: caseData.upcomingEvents.length,
-        isDetailed: true,
-        caseType: caseData.caseType,
-        department: caseData.department,
-        courtLocation: 'San Diego Superior Court',
-        judicialOfficer: caseData.judge,
-        dateFiled: caseData.dateFiled,
-        note: caseData.note, // Include any notes about data access
-        countyData: {
-          court: 'San Diego Superior Court',
-          department: caseData.department,
-          judicialOfficer: caseData.judge,
-          caseType: caseData.caseType,
-          status: caseData.status,
-          lastUpdated: new Date().toISOString(),
-          registerOfActions: caseData.registerOfActions,
-          upcomingEvents: caseData.upcomingEvents
+      const cases = casesWithDetails.map(caseData => {
+        const caseNumber = caseData?.caseNumber ? String(caseData.caseNumber) : 'Unknown'
+        const parties = Array.isArray(caseData?.parties) ? caseData.parties : []
+        const registerOfActions = Array.isArray(caseData?.registerOfActions) ? caseData.registerOfActions : []
+        const upcomingEvents = Array.isArray(caseData?.upcomingEvents) ? caseData.upcomingEvents : []
+        const department = caseData?.department || 'Unknown'
+        const judge = caseData?.judge || 'Unknown'
+        const caseTitle = caseData?.caseTitle || 'Untitled Case'
+        const status = caseData?.status || 'Unknown'
+        const caseType = caseData?.caseType || 'Unknown'
+
+        return {
+          id: `county_${caseNumber.replace(/[^a-zA-Z0-9]/g, '_')}`,
+          caseNumber,
+          title: caseTitle,
+          court: `${department} - San Diego Superior Court`,
+          judge,
+          status,
+          lastActivity: caseData?.lastActivity || 'Unknown',
+          parties: {
+            plaintiff: parties[0] || 'Unknown',
+            defendant: parties[1] || 'Unknown'
+          },
+          documents: registerOfActions.length,
+          hearings: upcomingEvents.length,
+          isDetailed: true,
+          caseType,
+          department,
+          courtLocation: 'San Diego Superior Court',
+          judicialOfficer: judge,
+          dateFiled: caseData?.dateFiled || '',
+          note: caseData?.note,
+          countyData: {
+            court: 'San Diego Superior Court',
+            department,
+            judicialOfficer: judge,
+            caseType,
+            status,
+            lastUpdated: new Date().toISOString(),
+            registerOfActions,
+            upcomingEvents
+          }
         }
-      }))
+      })
 
       // Get rate limit status for all platforms
       const rateLimitStatus = {
